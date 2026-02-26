@@ -1,5 +1,43 @@
 @import "tailwindcss";
 
+@theme {
+  /* Cream palette */
+  --color-cream-50: #fdfcfb;
+  --color-cream-100: #faf8f5;
+  --color-cream-200: #f5f1e8;
+  --color-cream-300: #f0e9db;
+  --color-cream-400: #ebe1ce;
+  --color-cream-500: #e6d9c1;
+  --color-cream-600: #d4c5a8;
+  --color-cream-700: #c2b18f;
+  --color-cream-800: #9d8e73;
+  --color-cream-900: #786b57;
+
+  /* Vanilla palette */
+  --color-vanilla-50: #fffef9;
+  --color-vanilla-100: #fffcf3;
+  --color-vanilla-200: #fff9e6;
+  --color-vanilla-300: #fff5d9;
+  --color-vanilla-400: #fff2cc;
+  --color-vanilla-500: #ffefbf;
+  --color-vanilla-600: #f5e4a8;
+  --color-vanilla-700: #ebd991;
+  --color-vanilla-800: #c9b876;
+  --color-vanilla-900: #a6975b;
+
+  /* Beige palette */
+  --color-beige-50: #fefdfb;
+  --color-beige-100: #fdfbf7;
+  --color-beige-200: #faf6ee;
+  --color-beige-300: #f7f1e5;
+  --color-beige-400: #f4ecdc;
+  --color-beige-500: #f1e7d3;
+  --color-beige-600: #e8dbc4;
+  --color-beige-700: #dfcfb5;
+  --color-beige-800: #c5b79d;
+  --color-beige-900: #ab9f85;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
