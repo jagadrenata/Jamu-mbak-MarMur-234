@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { orders } from '../../lib/api';
-import { PageHeader, Card, Table, Tr, Td, Badge, Select, LoadingSpinner, Pagination, statusBadge } from '../../components/ui';
+import { orders } from '@/lib/api';
+import { PageHeader, Card, Table, Tr, Td, Badge, Select, LoadingSpinner, Pagination, statusBadge } from '@/components/ui';
 import { Package } from 'lucide-react';
 
 export default function OrdersPage() {

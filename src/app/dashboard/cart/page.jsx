@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { cart } from '../../../lib/api';
-import { PageHeader, Card, Table, Tr, Td, Button, LoadingSpinner } from '../../../components/ui';
+import { cart } from '@/lib/api';
+import { PageHeader, Card, Table, Tr, Td, Button, LoadingSpinner } from '@/components/ui';
 import { Trash2, Plus, Minus } from 'lucide-react';
 
 export default function CartPage() {

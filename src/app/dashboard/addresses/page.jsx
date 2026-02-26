@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { addresses } from '../../../lib/api';
-import { PageHeader, Card, Button, Modal, Input, LoadingSpinner } from '../../../components/ui';
+import { addresses } from '@/lib/api';
+import { PageHeader, Card, Button, Modal, Input, LoadingSpinner } from '@/components/ui';
 import { Plus, Trash2, Star } from 'lucide-react';
 
 const emptyForm = { name: '', address: { province: '', city: '', detail: '' }, is_default: false };

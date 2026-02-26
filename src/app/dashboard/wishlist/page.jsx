@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { wishlist } from '../../../lib/api';
-import { PageHeader, Card, LoadingSpinner, Button } from '../../../components/ui';
+import { wishlist } from '@/lib/api';
+import { PageHeader, Card, LoadingSpinner, Button } from '@/components/ui';
 import { Heart, Trash2 } from 'lucide-react';
 
 export default function WishlistPage() {
