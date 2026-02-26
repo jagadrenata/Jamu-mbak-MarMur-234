@@ -6,8 +6,8 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { Users, ShoppingCart, Package, TrendingUp, ArrowUp, ArrowDown, Eye, Clock } from 'lucide-react';
-import { adminOrders, adminUsers, products, feedbacks } from '../../../lib/api';
-import { LoadingSpinner, Card } from '../../../components/ui';
+import { adminOrders, adminUsers, products, feedbacks } from '@/lib/api';
+import { LoadingSpinner, Card } from '@/components/ui';
 
 const COLORS = ['#64748b', '#c2b18f', '#8b5e3c', '#10b981'];
 
