@@ -5,7 +5,7 @@ import { adminOrders, adminGuestOrders } from '@/lib/api';
 import { PageHeader, Card, Table, Tr, Td, Button, Modal, Select, LoadingSpinner, Pagination, statusBadge } from '@/components/ui';
 import { Search, Eye } from 'lucide-react';
 
-const ORDER_STATUSES = ['pending','paid','processing','shipping','completed','cancelled'];
+const ORDER_STATUSES = ['pending', 'paid', 'processing', 'shipping', 'completed', 'cancelled'];
 
 export default function AdminOrdersPage() {
   const [tab, setTab] = useState('member');
@@ -18,22 +18,28 @@ export default function AdminOrdersPage() {
   const [modal, setModal] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const [saving, setSaving] = useState(false);
+  const [reload, setReload] = useState(0);
   const limit = 15;
 
-  async function load() {
-    setLoading(true);
-    try {
-      const params = { limit, offset };
-      if (search) params.search = search;
-      if (status) params.status = status;
-      const res = tab === 'member' ? await adminOrders.list(params) : await adminGuestOrders.list(params);
-      setData(res.data || []);
-      setTotal(res.total || 0);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    const params = { limit, offset };
+    if (search) params.search = search;
+    if (status) params.status = status;
+    const fetchFn = tab === 'member' ? adminOrders.list(params) : adminGuestOrders.list(params);
+    fetchFn
+      .then(res => {
+        if (active) {
+          setData(res.data || []);
+          setTotal(res.total || 0);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [tab, search, status, offset, reload]);
 
-  useEffect(() => { load(); }, [tab, search, status, offset]);
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   async function updateStatus() {
     setSaving(true);
@@ -41,7 +47,7 @@ export default function AdminOrdersPage() {
       if (tab === 'member') await adminOrders.update(modal.id, { status: newStatus });
       else await adminGuestOrders.update(modal.id, { status: newStatus });
       setModal(null);
-      load();
+      refresh();
     } catch {}
     setSaving(false);
   }

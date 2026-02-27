@@ -13,17 +13,18 @@ export default function SuppliersPage() {
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [reload, setReload] = useState(0);
 
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await suppliers.list();
-      setData(res.data || []);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    suppliers.list()
+      .then(res => { if (active) setData(res.data || []); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reload]);
 
-  useEffect(() => { load(); }, []);
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   async function save() {
     setSaving(true);
@@ -31,7 +32,7 @@ export default function SuppliersPage() {
       await suppliers.create(form);
       setModal(false);
       setForm(emptyForm);
-      load();
+      refresh();
     } catch {}
     setSaving(false);
   }

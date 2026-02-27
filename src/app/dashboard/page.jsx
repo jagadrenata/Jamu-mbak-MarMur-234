@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { orders } from '@/lib/api';
-import { PageHeader, Card, Table, Tr, Td, Badge, Select, LoadingSpinner, Pagination, statusBadge } from '@/components/ui';
-import { Package } from 'lucide-react';
+import { PageHeader, Card, Table, Tr, Td, Select, LoadingSpinner, Pagination, statusBadge } from '@/components/ui';
 
 export default function OrdersPage() {
   const [data, setData] = useState([]);
@@ -13,19 +12,21 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const limit = 10;
 
-  async function load() {
-    setLoading(true);
-    try {
-      const params = { limit, offset };
-      if (status) params.status = status;
-      const res = await orders.list(params);
-      setData(res.data || []);
-      setTotal(res.total || 0);
-    } catch {}
-    setLoading(false);
-  }
-
-  useEffect(() => { load(); }, [status, offset]);
+  useEffect(() => {
+    let active = true;
+    const params = { limit, offset };
+    if (status) params.status = status;
+    orders.list(params)
+      .then(res => {
+        if (active) {
+          setData(res.data || []);
+          setTotal(res.total || 0);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [status, offset]);
 
   return (
     <div>

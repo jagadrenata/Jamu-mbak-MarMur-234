@@ -5,8 +5,8 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
-import { Users, ShoppingCart, Package, TrendingUp, ArrowUp, ArrowDown, Eye, Clock } from 'lucide-react';
-import { adminOrders, adminUsers, products, feedbacks } from '@/lib/api';
+import { Users, ShoppingCart, Package, TrendingUp, ArrowUp, ArrowDown, Clock } from 'lucide-react';
+import { adminOrders, adminUsers, products } from '@/lib/api';
 import { LoadingSpinner, Card } from '@/components/ui';
 
 const COLORS = ['#64748b', '#c2b18f', '#8b5e3c', '#10b981'];
@@ -34,25 +34,27 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  async function load() {
-    setLoading(true);
-    try {
-      const [ordersRes, usersRes, productsRes] = await Promise.all([
-        adminOrders.list({ limit: 5 }),
-        adminUsers.list({ limit: 1 }),
-        products.list({ limit: 1 }),
-      ]);
-      setStats({
-        orders: ordersRes.total || 0,
-        users: usersRes.total || 0,
-        products: productsRes.total || 0,
-        recentOrders: ordersRes.data || [],
-      });
-    } catch {}
-    setLoading(false);
-  }
-
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      adminOrders.list({ limit: 5 }),
+      adminUsers.list({ limit: 1 }),
+      products.list({ limit: 1 }),
+    ])
+      .then(([ordersRes, usersRes, productsRes]) => {
+        if (active) {
+          setStats({
+            orders: ordersRes.total || 0,
+            users: usersRes.total || 0,
+            products: productsRes.total || 0,
+            recentOrders: ordersRes.data || [],
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const statCards = stats ? [
     { title: 'Total Pesanan', value: stats.orders.toLocaleString(), change: '+12.5%', pos: true, icon: ShoppingCart },

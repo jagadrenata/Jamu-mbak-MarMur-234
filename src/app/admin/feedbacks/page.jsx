@@ -13,27 +13,32 @@ export default function FeedbacksPage() {
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
+  const [reload, setReload] = useState(0);
   const limit = 15;
 
-  async function load() {
-    setLoading(true);
-    try {
-      const params = { limit, offset };
-      if (search) params.search = search;
-      if (type) params.type = type;
-      const res = await feedbacks.list(params);
-      setData(res.data || []);
-      setTotal(res.total || 0);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    const params = { limit, offset };
+    if (search) params.search = search;
+    if (type) params.type = type;
+    feedbacks.list(params)
+      .then(res => {
+        if (active) {
+          setData(res.data || []);
+          setTotal(res.total || 0);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [search, type, offset, reload]);
 
-  useEffect(() => { load(); }, [search, type, offset]);
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   async function remove(id) {
     if (!confirm('Hapus feedback ini?')) return;
     await feedbacks.delete(id);
-    load();
+    refresh();
   }
 
   return (

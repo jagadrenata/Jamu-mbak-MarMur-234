@@ -16,21 +16,26 @@ export default function InventoryPage() {
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [reload, setReload] = useState(0);
   const limit = 15;
 
-  async function load() {
-    setLoading(true);
-    try {
-      const params = { limit, offset };
-      if (type) params.type = type;
-      const res = await inventoryLogs.list(params);
-      setData(res.data || []);
-      setTotal(res.total || 0);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    const params = { limit, offset };
+    if (type) params.type = type;
+    inventoryLogs.list(params)
+      .then(res => {
+        if (active) {
+          setData(res.data || []);
+          setTotal(res.total || 0);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [type, offset, reload]);
 
-  useEffect(() => { load(); }, [type, offset]);
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   async function save() {
     setSaving(true);
@@ -43,7 +48,7 @@ export default function InventoryPage() {
       });
       setModal(false);
       setForm(emptyForm);
-      load();
+      refresh();
     } catch {}
     setSaving(false);
   }

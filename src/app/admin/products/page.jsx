@@ -22,23 +22,28 @@ export default function ProductsPage() {
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [reload, setReload] = useState(0);
   const limit = 15;
 
-  async function load() {
-    setLoading(true);
-    try {
-      const params = { limit, offset };
-      if (search) params.search = search;
-      if (status) params.status = status;
-      const [res, catsRes] = await Promise.all([products.list(params), categories.list()]);
-      setData(res.data || []);
-      setTotal(res.total || 0);
-      setCats(catsRes.data || []);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    const params = { limit, offset };
+    if (search) params.search = search;
+    if (status) params.status = status;
+    Promise.all([products.list(params), categories.list()])
+      .then(([res, catsRes]) => {
+        if (active) {
+          setData(res.data || []);
+          setTotal(res.total || 0);
+          setCats(catsRes.data || []);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [search, status, offset, reload]);
 
-  useEffect(() => { load(); }, [search, status, offset]);
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   function openCreate() {
     setEditItem(null);
@@ -58,7 +63,7 @@ export default function ProductsPage() {
       if (editItem) await products.update(editItem.id, form);
       else await products.create(form);
       setModal(false);
-      load();
+      refresh();
     } catch {}
     setSaving(false);
   }
@@ -66,7 +71,7 @@ export default function ProductsPage() {
   async function remove(id) {
     if (!confirm('Hapus produk ini?')) return;
     await products.delete(id);
-    load();
+    refresh();
   }
 
   function setField(f, v) { setForm(prev => ({ ...prev, [f]: v })); }

@@ -13,15 +13,18 @@ export default function AddressesPage() {
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [reload, setReload] = useState(0);
 
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await addresses.list();
-      setItems(res.data || []);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    addresses.list()
+      .then(res => { if (active) setItems(res.data || []); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reload]);
+
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   async function save() {
     setSaving(true);
@@ -29,31 +32,24 @@ export default function AddressesPage() {
       await addresses.create(form);
       setModal(false);
       setForm(emptyForm);
-      load();
+      refresh();
     } catch {}
     setSaving(false);
   }
 
   async function setDefault(id) {
     await addresses.update(id, { is_default: true });
-    load();
+    refresh();
   }
 
   async function remove(id) {
     if (!confirm('Hapus alamat ini?')) return;
     await addresses.delete(id);
-    load();
+    refresh();
   }
 
-  useEffect(() => { load(); }, []);
-
-  function setField(field, val) {
-    setForm(f => ({ ...f, [field]: val }));
-  }
-
-  function setAddrField(field, val) {
-    setForm(f => ({ ...f, address: { ...f.address, [field]: val } }));
-  }
+  function setField(field, val) { setForm(f => ({ ...f, [field]: val })); }
+  function setAddrField(field, val) { setForm(f => ({ ...f, address: { ...f.address, [field]: val } })); }
 
   return (
     <div>

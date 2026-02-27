@@ -19,22 +19,27 @@ export default function AdminUsersPage() {
   const [newRole, setNewRole] = useState('');
   const [saving, setSaving] = useState(false);
   const [userOrders, setUserOrders] = useState([]);
+  const [reload, setReload] = useState(0);
   const limit = 15;
 
-  async function load() {
-    setLoading(true);
-    try {
-      const params = { limit, offset };
-      if (search) params.search = search;
-      if (role) params.role = role;
-      const res = await adminUsers.list(params);
-      setData(res.data || []);
-      setTotal(res.total || 0);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    const params = { limit, offset };
+    if (search) params.search = search;
+    if (role) params.role = role;
+    adminUsers.list(params)
+      .then(res => {
+        if (active) {
+          setData(res.data || []);
+          setTotal(res.total || 0);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [search, role, offset, reload]);
 
-  useEffect(() => { load(); }, [search, role, offset]);
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   async function openDetail(user) {
     setDetailUser(user);
@@ -49,7 +54,7 @@ export default function AdminUsersPage() {
     try {
       await adminUsers.update(editModal.id, { role: newRole });
       setEditModal(null);
-      load();
+      refresh();
     } catch {}
     setSaving(false);
   }
@@ -57,7 +62,7 @@ export default function AdminUsersPage() {
   async function remove(id) {
     if (!confirm('Hapus pengguna ini?')) return;
     await adminUsers.delete(id);
-    load();
+    refresh();
   }
 
   return (

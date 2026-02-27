@@ -9,35 +9,40 @@ export default function CartPage() {
   const [items, setItems] = useState([]);
   const [subtotal, setSubtotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [reload, setReload] = useState(0);
 
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await cart.list();
-      setItems(res.data || []);
-      setSubtotal(res.subtotal || 0);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    cart.list()
+      .then(res => {
+        if (active) {
+          setItems(res.data || []);
+          setSubtotal(res.subtotal || 0);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reload]);
+
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   async function updateQty(id, qty) {
     if (qty < 1) return;
     await cart.update(id, qty);
-    load();
+    refresh();
   }
 
   async function removeItem(id) {
     await cart.remove(id);
-    load();
+    refresh();
   }
 
   async function clearCart() {
     if (!confirm('Kosongkan semua keranjang?')) return;
     await cart.clear();
-    load();
+    refresh();
   }
-
-  useEffect(() => { load(); }, []);
 
   return (
     <div>

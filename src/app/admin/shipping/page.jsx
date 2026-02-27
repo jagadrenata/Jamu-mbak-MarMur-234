@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { shippingMethods } from '@/lib/api';
-import { PageHeader, Card, Table, Tr, Td, Button, Modal, Input, LoadingSpinner, Badge } from '@/components/ui';
+import { PageHeader, Card, Table, Tr, Td, Button, Modal, Input, LoadingSpinner } from '@/components/ui';
 import { Plus, Pencil } from 'lucide-react';
 
 const emptyForm = { name: '', code: '', price: '', estimated_time: '', is_active: true };
@@ -14,17 +14,18 @@ export default function ShippingPage() {
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [reload, setReload] = useState(0);
 
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await shippingMethods.list();
-      setData(res.data || []);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    shippingMethods.list()
+      .then(res => { if (active) setData(res.data || []); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reload]);
 
-  useEffect(() => { load(); }, []);
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   function openCreate() { setEditItem(null); setForm(emptyForm); setModal(true); }
   function openEdit(item) {
@@ -40,14 +41,14 @@ export default function ShippingPage() {
       if (editItem) await shippingMethods.update(editItem.id, body);
       else await shippingMethods.create(body);
       setModal(false);
-      load();
+      refresh();
     } catch {}
     setSaving(false);
   }
 
   async function toggle(item) {
     await shippingMethods.update(item.id, { is_active: !item.is_active });
-    load();
+    refresh();
   }
 
   function setField(f, v) { setForm(p => ({ ...p, [f]: v })); }

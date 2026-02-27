@@ -15,17 +15,18 @@ export default function AdminsPage() {
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [reload, setReload] = useState(0);
 
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await admins.list();
-      setData(res.data || []);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    admins.list()
+      .then(res => { if (active) setData(res.data || []); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reload]);
 
-  useEffect(() => { load(); }, []);
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   function openCreate() { setEditItem(null); setForm(emptyForm); setModal(true); }
   function openEdit(item) {
@@ -45,7 +46,7 @@ export default function AdminsPage() {
         await admins.create(form);
       }
       setModal(false);
-      load();
+      refresh();
     } catch {}
     setSaving(false);
   }
@@ -53,7 +54,7 @@ export default function AdminsPage() {
   async function remove(id) {
     if (!confirm('Hapus admin ini?')) return;
     await admins.delete(id);
-    load();
+    refresh();
   }
 
   function setField(f, v) { setForm(p => ({ ...p, [f]: v })); }

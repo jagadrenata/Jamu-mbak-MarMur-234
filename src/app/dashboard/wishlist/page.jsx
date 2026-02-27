@@ -3,27 +3,28 @@
 import { useState, useEffect } from 'react';
 import { wishlist } from '@/lib/api';
 import { PageHeader, Card, LoadingSpinner, Button } from '@/components/ui';
-import { Heart, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 export default function WishlistPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reload, setReload] = useState(0);
 
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await wishlist.list();
-      setItems(res.data || []);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    wishlist.list()
+      .then(res => { if (active) setItems(res.data || []); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reload]);
+
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   async function remove(productId) {
     await wishlist.remove(productId);
-    load();
+    refresh();
   }
-
-  useEffect(() => { load(); }, []);
 
   return (
     <div>

@@ -15,17 +15,18 @@ export default function BannersPage() {
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [reload, setReload] = useState(0);
 
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await bannerAds.list();
-      setData(res.data || []);
-    } catch {}
-    setLoading(false);
-  }
+  useEffect(() => {
+    let active = true;
+    bannerAds.list()
+      .then(res => { if (active) setData(res.data || []); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reload]);
 
-  useEffect(() => { load(); }, []);
+  function refresh() { setLoading(true); setReload(n => n + 1); }
 
   function openCreate() { setEditItem(null); setForm(emptyForm); setModal(true); }
   function openEdit(item) {
@@ -49,7 +50,7 @@ export default function BannersPage() {
       if (editItem) await bannerAds.update(editItem.id, body);
       else await bannerAds.create(body);
       setModal(false);
-      load();
+      refresh();
     } catch {}
     setSaving(false);
   }
@@ -57,12 +58,12 @@ export default function BannersPage() {
   async function remove(id) {
     if (!confirm('Hapus banner ini?')) return;
     await bannerAds.delete(id);
-    load();
+    refresh();
   }
 
   async function toggle(item) {
     await bannerAds.update(item.id, { is_active: !item.is_active });
-    load();
+    refresh();
   }
 
   function setField(f, v) { setForm(p => ({ ...p, [f]: v })); }
