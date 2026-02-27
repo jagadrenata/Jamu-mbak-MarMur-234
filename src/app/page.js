@@ -77,7 +77,7 @@ export default function HomePage() {
 
   async function fetchCategories() {
     try {
-      const res = await fetch("/api/data?table=categories&parent_id=");
+      const res = await fetch("/api/data/categories?parent_id=");
       const json = await res.json();
       setCategories(json.data || []);
     } catch (err) {
@@ -88,7 +88,7 @@ export default function HomePage() {
   async function fetchProducts() {
     setLoading(true);
     try {
-      let url = "/api/data?table=products&status=active";
+      let url = "/api/data/products?status=active";
       if (search) url += `&search=${encodeURIComponent(search)}`;
       if (selectedCategory) url += `&category_id=${selectedCategory}`;
       const res = await fetch(url);
@@ -113,7 +113,7 @@ export default function HomePage() {
     try {
       // Ambil variant pertama produk
       const varRes = await fetch(
-        `/api/data?table=product_variants&product_id=${product.id}&is_active=true`
+        `/api/data/product_variants?product_id=${product.id}&is_active=true`
       );
       const varJson = await varRes.json();
       const firstVariant = varJson.data?.[0];
@@ -135,13 +135,7 @@ export default function HomePage() {
         guestAddItem({
           variant_id: firstVariant.id,
           product_id: product.id,
-          product_name: product.name,
-          product_image: product.primary_image,
-          variant_name: firstVariant.name,
           variant_sku: firstVariant.sku,
-          variant_price: firstVariant.price,
-          stock: firstVariant.quantity,
-          quantity: 1
         });
       }
 

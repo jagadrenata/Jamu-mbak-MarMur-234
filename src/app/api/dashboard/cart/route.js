@@ -1,4 +1,4 @@
-import { ok, err, requireUser } from "@/lib/helpers";
+import { ok, err, requireUser } from "../../_lib/helpers.js";
 
 export async function GET(request) {
   const { supabase, user, response } = await requireUser();

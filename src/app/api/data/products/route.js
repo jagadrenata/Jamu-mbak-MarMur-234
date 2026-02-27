@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { ok, err, requireAdmin, paginate } from "@/lib/helpers";
 
 export async function GET(request) {
-  const { supabase, response } = await requireAdmin();
-  if (response) return response;
+  const { supabase } = await requireAdmin();
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");

@@ -99,7 +99,7 @@ export default function CartPage() {
   async function fetchUserCart() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/cart?user_id=${userId}`);
+      const res = await fetch(`/api/dashboard/cart`);
       const json = await res.json();
       setItems(json.data || []);
       setSubtotal(json.subtotal || 0);
@@ -115,7 +115,7 @@ export default function CartPage() {
     if (quantity < 1) return;
     setUpdating(id);
     try {
-      await fetch("/api/cart", {
+      await fetch("/api/dashboard/cart", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, quantity })
@@ -131,7 +131,7 @@ export default function CartPage() {
   async function removeUserItem(id) {
     setRemoving(id);
     try {
-      await fetch(`/api/cart?id=${id}`, { method: "DELETE" });
+      await fetch(`/api/dashboard/cart?id=${id}`, { method: "DELETE" });
       await fetchUserCart();
     } catch (err) {
       console.error("Remove failed", err);
@@ -150,7 +150,7 @@ export default function CartPage() {
         guestItems.map(async item => {
           try {
             const res = await fetch(
-              `/api/data?table=product_variants&id=${item.variant_id}`
+              `/api/data/product_variants?id=${item.variant_id}`
             );
             const json = await res.json();
             const variant = json.data?.[0];
@@ -307,7 +307,7 @@ export default function CartPage() {
         };
       }
 
-      const res = await fetch("/api/orders", {
+      const res = await fetch("/api/data/guest-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
