@@ -12,13 +12,14 @@ const STATUS_LABEL = {
   expired: "Kedaluwarsa",
 };
 
-
 function idgenerator() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   let result = "";
   for (let i = 0; i < 3; i++) result += chars[Math.floor(Math.random() * chars.length)];
   result += "-";
-  new Date().toISOString().match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/).slice(1).forEach(d => { result += d; });
+  new Date().toISOString().match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/).slice(1).forEach(d => {
+    result += d;
+  });
   return result;
 }
 
@@ -39,8 +40,12 @@ export async function GET(request) {
         order_items (
           *,
           product_variants (
-            id, name, img,
-            products ( id, name, img )
+            id, name,
+            product_variant_images (url, is_primary),
+            products (
+              id, name,
+              product_images (url, is_primary)
+            )
           )
         )
       `)
@@ -67,8 +72,12 @@ export async function GET(request) {
       order_items (
         *,
         product_variants (
-          id, name, img,
-          products ( id, name, img )
+          id, name,
+          product_variant_images (url, is_primary),
+          products (
+            id, name,
+            product_images (url, is_primary)
+          )
         )
       )
     `, { count: "exact" })
@@ -96,13 +105,46 @@ export async function POST(request) {
   if (response) return response;
 
   const body = await request.json();
-  // items: [{ variant_id, quantity, price }]
   const { items } = body;
 
   if (!items?.length) return err("items are required");
 
+  // Ambil data variant dari DB (anti manipulasi harga)
+  const variantIds = items.map(i => i.variant_id);
+
+  const { data: variants, error: variantError } = await supabase
+    .from("product_variants")
+    .select("id, price, quantity")
+    .in("id", variantIds);
+
+  if (variantError) return err(variantError.message, 500);
+
+  const variantMap = Object.fromEntries(
+    variants.map(v => [v.id, v])
+  );
+
+  // Validasi stok & hitung total dari DB
+  let total_price = 0;
+  const validatedItems = [];
+
+  for (const item of items) {
+    const variant = variantMap[item.variant_id];
+    if (!variant) return err(`Variant ${item.variant_id} not found`);
+
+    if (variant.quantity < item.quantity) {
+      return err(`Stock not enough for variant ${item.variant_id}`);
+    }
+
+    total_price += variant.price * item.quantity;
+
+    validatedItems.push({
+      variant_id: item.variant_id,
+      quantity: item.quantity,
+      price: variant.price,
+    });
+  }
+
   const orderId = idgenerator();
-  const total_price = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const { data: newOrder, error: orderError } = await supabase
     .from("orders")
@@ -120,7 +162,7 @@ export async function POST(request) {
   const { data: newItems, error: itemsError } = await supabase
     .from("order_items")
     .insert(
-      items.map(item => ({
+      validatedItems.map(item => ({
         order_id: orderId,
         variant_id: item.variant_id,
         quantity: item.quantity,
@@ -129,7 +171,11 @@ export async function POST(request) {
     )
     .select();
 
-  if (itemsError) return err(itemsError.message, 500);
+  // rollback kalau gagal insert item
+  if (itemsError) {
+    await supabase.from("orders").delete().eq("id", orderId);
+    return err(itemsError.message, 500);
+  }
 
   return ok(
     {

@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createSessionClient, createAdminClient } from "./supabase/server";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export const ok = (data, status = 200) => NextResponse.json(data, { status });
 export const err = (message, status = 400) => NextResponse.json({ error: message }, { status });
@@ -11,10 +15,30 @@ export async function getSessionUser() {
 }
 
 export async function requireUser() {
-  const { supabase, user } = await getSessionUser();
-  if (!user) return { supabase, user: null, response: err("Unauthorized", 401) };
-  return { supabase, user, response: null };
+  const supabase = await createSessionClient();
+  const token = (await cookies()).get("token");
+
+  if (!token) {
+    return { supabase, user: null, response: err("Unauthorized", 401) };
+  }
+
+  try {
+    const { payload } = await jwtVerify(token.value, JWT_SECRET);
+
+    return {
+      supabase,
+      user: {
+        id: payload.sub,
+        email: payload.email,
+        role: payload.role,
+      },
+      response: null,
+    };
+  } catch {
+    return { supabase, user: null, response: err("Unauthorized", 401) };
+  }
 }
+
 
 export async function requireAdmin() {
   const supabase = createAdminClient();

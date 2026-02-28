@@ -2,7 +2,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    credentials: "include",
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}), },
     ...options,
   });
   const data = await res.json();

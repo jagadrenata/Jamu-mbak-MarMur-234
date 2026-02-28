@@ -86,7 +86,7 @@ export default function Navbar() {
             </Link>
             <Link
               href='/signup'
-              className='px-4 py-2 text-sm font-medium rounded transition-colors'
+              className='px-4 py-2 text-sm font-medium  transition-colors'
               style={{
                 backgroundColor: C.accent,
                 color: C.textLight
@@ -100,7 +100,7 @@ export default function Navbar() {
           <div className='md:hidden flex items-center gap-1'>
             <Link
               href='/cart'
-              className='p-2 rounded'
+              className='p-2 '
               style={{ color: C.accent }}
             >
               <ShoppingCart className='w-6 h-6' />
@@ -108,7 +108,7 @@ export default function Navbar() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className='p-2 rounded'
+              className='p-2 '
               style={{ color: C.accent }}
               onClick={() => setOpen(true)}
             >
@@ -173,7 +173,7 @@ export default function Navbar() {
                     <Link
                       key={label}
                       href={href}
-                      className='flex items-center gap-3 px-4 py-3 rounded text-base font-medium transition-colors'
+                      className='flex items-center gap-3 px-4 py-3  text-base font-medium transition-colors'
                       style={
                         isActive
                           ? {
@@ -203,7 +203,7 @@ export default function Navbar() {
               >
                 <Link
                   href='/login'
-                  className='w-full text-center py-2.5 rounded text-sm font-medium'
+                  className='w-full text-center py-2.5  text-sm font-medium'
                   style={{
                     border: `1px solid ${C.border}`,
                     color: C.accent
@@ -214,7 +214,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href='/signup'
-                  className='w-full text-center py-2.5 rounded text-sm font-medium'
+                  className='w-full text-center py-2.5  text-sm font-medium'
                   style={{
                     backgroundColor: C.accent,
                     color: C.textLight

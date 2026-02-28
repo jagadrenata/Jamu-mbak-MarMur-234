@@ -20,7 +20,7 @@ import { createClient } from "@/lib/supabase/client";
 import Navbar, { C } from "@/components/Navbar";
 import { useGuestCartStore } from "@/store/useGuestCartStore";
 
-const supabase = createClient()
+const supabase = createClient();
 
 function formatRupiah(n) {
   return "Rp " + n.toLocaleString("id-ID");
@@ -36,7 +36,6 @@ const navItems = [
   }
 ];
 
-// Form state awal untuk guest
 const EMPTY_GUEST_FORM = {
   customer_name: "",
   customer_email: "",
@@ -52,11 +51,9 @@ export default function CartPage() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Auth
-  const [userId, setUserId] = useState(null); // null=loading, false=guest, string=user
+  const [userId, setUserId] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Cart items (user → API, guest → Zustand)
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subtotal, setSubtotal] = useState(0);
@@ -66,17 +63,18 @@ export default function CartPage() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
 
-  // Guest form
   const [guestForm, setGuestForm] = useState(EMPTY_GUEST_FORM);
   const [formErrors, setFormErrors] = useState({});
 
-  // Zustand guest cart
   const guestItems = useGuestCartStore(s => s.items);
   const guestUpdateQuantity = useGuestCartStore(s => s.updateQuantity);
   const guestRemoveItem = useGuestCartStore(s => s.removeItem);
   const guestClearCart = useGuestCartStore(s => s.clearCart);
 
-  // Cek auth saat mount
+  // NEW
+  const guestSync = useGuestCartStore(s => s.syncWithServer);
+  const guestIsSyncing = useGuestCartStore(s => s.isSyncing);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUserId(data?.user?.id ?? false);
@@ -84,17 +82,18 @@ export default function CartPage() {
     });
   }, []);
 
-  // Setelah auth diketahui, load cart
   useEffect(() => {
     if (authLoading) return;
-    if (userId) {
-      fetchUserCart();
-    } else {
-      loadGuestCart();
-    }
+    if (userId) fetchUserCart();
+    else loadGuestCart();
   }, [userId, authLoading]);
 
-  //  USER CART (dari API)
+  // AUTO RE-SYNC
+  useEffect(() => {
+    if (!authLoading && !userId) {
+      loadGuestCart();
+    }
+  }, [guestItems]);
 
   async function fetchUserCart() {
     setLoading(true);
@@ -104,85 +103,26 @@ export default function CartPage() {
       setItems(json.data || []);
       setSubtotal(json.subtotal || 0);
       setTotalItems(json.total_items || 0);
-    } catch (err) {
-      console.error("Failed to fetch cart", err);
     } finally {
       setLoading(false);
     }
   }
 
-  async function updateUserQuantity(id, quantity) {
-    if (quantity < 1) return;
-    setUpdating(id);
-    try {
-      await fetch("/api/dashboard/cart", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, quantity })
-      });
-      await fetchUserCart();
-    } catch (err) {
-      console.error("Update failed", err);
-    } finally {
-      setUpdating(null);
-    }
-  }
-
-  async function removeUserItem(id) {
-    setRemoving(id);
-    try {
-      await fetch(`/api/dashboard/cart?id=${id}`, { method: "DELETE" });
-      await fetchUserCart();
-    } catch (err) {
-      console.error("Remove failed", err);
-    } finally {
-      setRemoving(null);
-    }
-  }
-
-  //  GUEST CART (dari Zustand + validasi produk via API)
-
+  // NEW loadGuestCart (pakai sync)
   async function loadGuestCart() {
     setLoading(true);
     try {
-      // Validasi setiap item: ambil data variant terbaru dari API
-      const validated = await Promise.all(
-        guestItems.map(async item => {
-          try {
-            const res = await fetch(
-              `/api/data/product_variants?id=${item.variant_id}`
-            );
-            const json = await res.json();
-            const variant = json.data?.[0];
-            if (!variant || !variant.is_active) return null; // produk tidak valid
-            return {
-              ...item,
-              variant_price: variant.price, // harga terbaru
-              stock: variant.quantity,
-              quantity: Math.min(item.quantity, variant.quantity) // jangan melebihi stok
-            };
-          } catch {
-            return item; // kalau gagal, tetap tampilkan
-          }
-        })
+      await guestSync();
+
+      const items = useGuestCartStore.getState().items;
+
+      setItems(items);
+      setSubtotal(
+        items.reduce((s, i) => s + i.variant_price * i.quantity, 0)
       );
-
-      const validItems = validated.filter(Boolean);
-
-      // Update Zustand jika ada perubahan (misalnya stok berkurang)
-      validItems.forEach(item => {
-        guestUpdateQuantity(item.variant_id, item.quantity);
-      });
-
-      const sub = validItems.reduce(
-        (s, i) => s + i.variant_price * i.quantity,
-        0
-      );
-      setItems(validItems);
-      setSubtotal(sub);
-      setTotalItems(validItems.reduce((s, i) => s + i.quantity, 0));
+      setTotalItems(items.reduce((s, i) => s + i.quantity, 0));
     } catch (err) {
-      console.error("Failed to load guest cart", err);
+      console.error("Failed to sync guest cart", err);
     } finally {
       setLoading(false);
     }
@@ -190,86 +130,48 @@ export default function CartPage() {
 
   function updateGuestQty(variant_id, quantity) {
     setUpdating(variant_id);
+
+    const updatedItems = items.map(i =>
+      i.variant_id === variant_id
+        ? { ...i, quantity: Math.max(1, Math.min(quantity, i.stock)) }
+        : i
+    );
+
+    setItems(updatedItems);
     guestUpdateQuantity(variant_id, quantity);
-    setItems(prev =>
-      prev.map(i =>
-        i.variant_id === variant_id
-          ? { ...i, quantity: Math.max(1, Math.min(quantity, i.stock)) }
-          : i
-      )
+
+    setSubtotal(
+      updatedItems.reduce((s, i) => s + i.variant_price * i.quantity, 0)
     );
-    const newSub = items.reduce(
-      (s, i) =>
-        s +
-        i.variant_price *
-          (i.variant_id === variant_id
-            ? Math.max(1, Math.min(quantity, i.stock))
-            : i.quantity),
-      0
-    );
-    setSubtotal(newSub);
     setTotalItems(
-      items.reduce(
-        (s, i) =>
-          s +
-          (i.variant_id === variant_id
-            ? Math.max(1, Math.min(quantity, i.stock))
-            : i.quantity),
-        0
-      )
+      updatedItems.reduce((s, i) => s + i.quantity, 0)
     );
+
     setTimeout(() => setUpdating(null), 200);
   }
 
   function removeGuestItemFn(variant_id) {
     setRemoving(variant_id);
     guestRemoveItem(variant_id);
+
     const newItems = items.filter(i => i.variant_id !== variant_id);
     setItems(newItems);
     setSubtotal(newItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
     setTotalItems(newItems.reduce((s, i) => s + i.quantity, 0));
+
     setTimeout(() => setRemoving(null), 200);
   }
-
-  //  GUEST FORM
-
-  function handleFormChange(e) {
-    const { name, value } = e.target;
-    setGuestForm(prev => ({ ...prev, [name]: value }));
-    setFormErrors(prev => ({ ...prev, [name]: "" }));
-  }
-
-  function validateForm() {
-    const errors = {};
-    if (!guestForm.customer_name.trim())
-      errors.customer_name = "Nama wajib diisi";
-    if (!guestForm.customer_email.trim())
-      errors.customer_email = "Email wajib diisi";
-    else if (!/\S+@\S+\.\S+/.test(guestForm.customer_email))
-      errors.customer_email = "Format email tidak valid";
-    if (!guestForm.customer_phone.trim())
-      errors.customer_phone = "Nomor HP wajib diisi";
-    if (!guestForm.street.trim()) errors.street = "Alamat wajib diisi";
-    if (!guestForm.city.trim()) errors.city = "Kota wajib diisi";
-    if (!guestForm.province.trim()) errors.province = "Provinsi wajib diisi";
-    if (!guestForm.postal_code.trim())
-      errors.postal_code = "Kode pos wajib diisi";
-    return errors;
-  }
-
-  //  CHECKOUT
 
   async function handleCheckout() {
     setCheckoutError("");
 
-    // Validasi form untuk guest
     if (!userId) {
+      await guestSync();
+
       const errors = validateForm();
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
-        document
-          .getElementById("guest-form")
-          ?.scrollIntoView({ behavior: "smooth" });
+        document.getElementById("guest-form")?.scrollIntoView({ behavior: "smooth" });
         return;
       }
     }
@@ -279,33 +181,10 @@ export default function CartPage() {
       const orderItems = items.map(item => ({
         variant_id: item.variant_id,
         quantity: item.quantity,
-        price: item.variant_price,
-        variant_name: item.variant_name,
-        product_name: item.product_name,
-        product_image: item.product_image
+        price: item.variant_price
       }));
 
-      const body = {
-        items: orderItems,
-        shipping_method_id: 1,
-        payment_method: userId ? "bank_transfer" : guestForm.payment_method
-      };
-
-      if (userId) {
-        // User — gunakan data profil Supabase
-        body.user_id = userId;
-      } else {
-        // Guest — dari form
-        body.customer_name = guestForm.customer_name;
-        body.customer_email = guestForm.customer_email;
-        body.customer_phone = guestForm.customer_phone;
-        body.shipping_address = {
-          street: guestForm.street,
-          city: guestForm.city,
-          province: guestForm.province,
-          postal_code: guestForm.postal_code
-        };
-      }
+      const body = { items: orderItems };
 
       const res = await fetch("/api/data/guest-orders", {
         method: "POST",
@@ -314,46 +193,60 @@ export default function CartPage() {
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Checkout gagal");
+      if (!res.ok) throw new Error(json.error);
 
-      if (!userId) {
-        guestClearCart();
-        // Simpan email/phone untuk halaman orders guest
-        sessionStorage.setItem("guest_email", guestForm.customer_email);
-        sessionStorage.setItem("guest_phone", guestForm.customer_phone);
-      }
+      if (!userId) guestClearCart();
 
       router.push("/orders");
     } catch (err) {
-      console.error("Checkout failed", err);
-      setCheckoutError(err.message || "Terjadi kesalahan saat checkout.");
+      setCheckoutError(err.message);
     } finally {
       setCheckoutLoading(false);
     }
   }
 
-  //  HELPERS
+  function validateForm() {
+    const errors = {};
+    if (!guestForm.customer_name) errors.customer_name = "Wajib";
+    if (!guestForm.customer_email) errors.customer_email = "Wajib";
+    if (!guestForm.customer_phone) errors.customer_phone = "Wajib";
+    return errors;
+  }
 
   const isGuest = !authLoading && !userId;
   const shippingCost = 10000;
   const grandTotal = subtotal + shippingCost;
 
-  // Update/remove handler yang tergantung user/guest
   function handleUpdateQty(item, quantity) {
-    if (userId) updateUserQuantity(item.id, quantity);
-    else updateGuestQty(item.variant_id, quantity);
+    if (userId) return;
+    updateGuestQty(item.variant_id, quantity);
   }
+
   function handleRemove(item) {
-    if (userId) removeUserItem(item.id);
-    else removeGuestItemFn(item.variant_id);
+    if (userId) return;
+    removeGuestItemFn(item.variant_id);
   }
+
   function getItemKey(item) {
     return userId ? item.id : item.variant_id;
   }
+  
+  function handleFormChange(e) {
+  const { name, value } = e.target;
 
-  //  RENDER
+  setGuestForm(prev => ({
+    ...prev,
+    [name]: value
+  }));
 
-  return (
+  if (formErrors[name]) {
+    setFormErrors(prev => ({
+      ...prev,
+      [name]: ""
+    }));
+  }
+}
+return (
     <div className='font-sans min-h-screen' style={{ backgroundColor: C.bg }}>
       <Navbar />
 
@@ -461,6 +354,11 @@ export default function CartPage() {
 
           {/* Main */}
           <div className='flex-1'>
+                  {guestIsSyncing && (
+        <p className="text-xs text-center mt-2 opacity-60">
+          Sinkronisasi harga & stok...
+        </p>
+      )}
             {loading || authLoading ? (
               <div className='space-y-4'>
                 {[1, 2, 3].map(i => (

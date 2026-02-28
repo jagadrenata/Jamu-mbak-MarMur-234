@@ -34,17 +34,28 @@ export async function POST(request) {
   if (response) return response;
 
   const body = await request.json();
-  const { name, address, is_default } = body;
+  const { name, address, is_default, phone, coords } = body;
 
-  if (!name || !address) return err("name and address are required");
+  if (!name || !address || !phone)
+    return err("name, address and phone are required");
 
   if (is_default) {
-    await supabase.from("user_addresses").update({ is_default: false }).eq("user_id", user.id);
+    await supabase
+      .from("user_addresses")
+      .update({ is_default: false })
+      .eq("user_id", user.id);
   }
 
   const { data, error } = await supabase
     .from("user_addresses")
-    .insert({ user_id: user.id, name, address, is_default: is_default ?? false })
+    .insert({
+      user_id: user.id,
+      name,
+      phone,
+      address,
+      coords,
+      is_default: is_default ?? false
+    })
     .select()
     .single();
 
@@ -60,20 +71,38 @@ export async function PATCH(request) {
   const id = searchParams.get("id");
   if (!id) return err("id is required");
 
-  const { data: existing } = await supabase.from("user_addresses").select("id").eq("id", id).eq("user_id", user.id).single();
+  const { data: existing } = await supabase
+    .from("user_addresses")
+    .select("id")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
   if (!existing) return err("Address not found", 404);
 
   const body = await request.json();
 
   if (body.is_default) {
-    await supabase.from("user_addresses").update({ is_default: false }).eq("user_id", user.id);
+    await supabase
+      .from("user_addresses")
+      .update({ is_default: false })
+      .eq("user_id", user.id);
   }
 
-  const allowed = ["name", "address", "is_default"];
-  const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)));
+  const allowed = ["name", "address", "is_default", "phone", "coords"];
+  const updates = Object.fromEntries(
+    Object.entries(body).filter(([k]) => allowed.includes(k))
+  );
+
   updates.updated_at = new Date().toISOString();
 
-  const { data, error } = await supabase.from("user_addresses").update(updates).eq("id", id).select().single();
+  const { data, error } = await supabase
+    .from("user_addresses")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
   if (error) return err(error.message, 500);
   return ok({ data, message: "Address updated" });
 }
@@ -86,10 +115,17 @@ export async function DELETE(request) {
   const id = searchParams.get("id");
   if (!id) return err("id is required");
 
-  const { data: existing } = await supabase.from("user_addresses").select("id").eq("id", id).eq("user_id", user.id).single();
+  const { data: existing } = await supabase
+    .from("user_addresses")
+    .select("id")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
   if (!existing) return err("Address not found", 404);
 
   const { error } = await supabase.from("user_addresses").delete().eq("id", id);
+
   if (error) return err(error.message, 500);
   return ok({ message: "Address deleted" });
 }

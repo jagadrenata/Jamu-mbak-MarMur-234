@@ -22,62 +22,62 @@ function idgenerator() {
   return result;
 }
 
-export async function GET(request) {
-  const supabase = createAdminClient();
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-  const email = searchParams.get("email");
-  const phone = searchParams.get("phone");
-  const status = searchParams.get("status");
-  const { limit, offset } = paginate(searchParams);
-
-  if (!email && !phone) return err("email atau phone diperlukan", 400);
-
-  if (id) {
-    const { data: order, error } = await supabase
-      .from("guest_orders")
-      .select("*, guest_order_items(*)")
-      .eq("id", id)
-      .single();
-
-    if (error || !order) return err("Order not found", 404);
-
-    const emailMatch = email && order.customer_email === email;
-    const phoneMatch = phone && order.customer_phone === phone;
-    if (!emailMatch && !phoneMatch) return err("Order not found", 404);
-
-    return ok({ data: { ...order, items: order.guest_order_items ?? [], guest_order_items: undefined, status_label: STATUS_LABEL[order.status] } });
-  }
-
-  let query = supabase
-    .from("guest_orders")
-    .select("*, guest_order_items(*)", { count: "exact" })
-    .order("created_at", { ascending: false })
-    .range(offset, offset + limit - 1);
-
-  if (email && phone) query = query.or(`customer_email.eq.${email},customer_phone.eq.${phone}`);
-  else if (email) query = query.eq("customer_email", email);
-  else query = query.eq("customer_phone", phone);
-
-  if (status) query = query.eq("status", status);
-
-  const { data, count, error } = await query;
-  if (error) return err(error.message, 500);
-
-  const normalized = (data ?? []).map(o => ({ ...o, items: o.guest_order_items ?? [], guest_order_items: undefined, status_label: STATUS_LABEL[o.status] }));
-  return ok({ data: normalized, total: count, limit, offset });
-}
-
 export async function POST(request) {
   const supabase = createAdminClient();
   const body = await request.json();
-  const { items, shipping_address, shipping_method_id, payment_method, customer_name, customer_email, customer_phone, promo_code_id, tax_id, shipping_price } = body;
+
+  const {
+    items,
+    shipping_address,
+    shipping_method_id,
+    payment_method,
+    customer_name,
+    customer_email,
+    customer_phone,
+    promo_code_id,
+    tax_id,
+    shipping_price
+  } = body;
 
   if (!items?.length) return err("items are required");
   if (!customer_name) return err("customer_name is required");
+  if (!customer_email) return err("customer_email is required");
+  if (!customer_phone) return err("customer_phone is required");
+  if (!shipping_address) return err("shipping_address is required");
+
+  //ambil data dari DB
+  const variantIds = items.map(i => i.variant_id);
+
+  const { data: variants, error: variantError } = await supabase
+    .from("product_variants")
+    .select("id, price, quantity")
+    .in("id", variantIds);
+
+  if (variantError) return err(variantError.message, 500);
+
+  const variantMap = Object.fromEntries(variants.map(v => [v.id, v]));
+
+  let total_price = 0;
+  const validatedItems = [];
+
+  for (const item of items) {
+    const variant = variantMap[item.variant_id];
+    if (!variant) return err(`Variant ${item.variant_id} not found`);
+
+    if (variant.quantity < item.quantity) {
+      return err(`Stock not enough for variant ${item.variant_id}`);
+    }
+
+    total_price += variant.price * item.quantity;
+
+    validatedItems.push({
+      variant_id: item.variant_id,
+      quantity: item.quantity,
+      price: variant.price,
+    });
+  }
 
   const orderId = idgenerator();
-  const total_price = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const { data: newOrder, error: orderError } = await supabase
     .from("guest_orders")
@@ -89,9 +89,9 @@ export async function POST(request) {
       discount_amount: 0,
       status: "pending",
       customer_name,
-      customer_email: customer_email ?? null,
-      customer_phone: customer_phone ?? null,
-      shipping_address: shipping_address ?? null,
+      customer_email,
+      customer_phone,
+      shipping_address,
       shipping_method_id: shipping_method_id ?? null,
       tax_id: tax_id ?? null,
       promo_code_id: promo_code_id ?? null,
@@ -104,10 +104,28 @@ export async function POST(request) {
 
   const { data: newItems, error: itemsError } = await supabase
     .from("guest_order_items")
-    .insert(items.map(item => ({ order_id: orderId, variant_id: item.variant_id, quantity: item.quantity, price: item.price })))
+    .insert(
+      validatedItems.map(item => ({
+        order_id: orderId,
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+        price: item.price,
+      }))
+    )
     .select();
 
-  if (itemsError) return err(itemsError.message, 500);
+  //rollback
+  if (itemsError) {
+    await supabase.from("guest_orders").delete().eq("id", orderId);
+    return err(itemsError.message, 500);
+  }
 
-  return ok({ data: { ...newOrder, items: newItems, status_label: STATUS_LABEL[newOrder.status] }, message: "Order created" }, 201);
+  return ok({
+    data: {
+      ...newOrder,
+      items: newItems,
+      status_label: STATUS_LABEL[newOrder.status],
+    },
+    message: "Order created",
+  }, 201);
 }

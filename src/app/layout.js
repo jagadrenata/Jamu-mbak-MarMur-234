@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono, Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
+import 'leaflet/dist/leaflet.css';
 import { Toaster } from "sonner";
 import Eruda from "@/components/Eruda";
 
