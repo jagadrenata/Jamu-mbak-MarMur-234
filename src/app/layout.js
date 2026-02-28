@@ -72,15 +72,11 @@ export const metadata = {
     }
   },
 
-  verification: {
-    google: "GANTI_DENGAN_KODE_VERIFIKASI_GOOGLE"
-  },
-
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    icon: "/favicon-32x32.png",
+    shortcut: "/favicon-32x32.png",
     apple: "/apple-touch-icon.png"
-  }
+  },
 
   openGraph: {
     type: "website",
