@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -63,13 +63,17 @@ export default function CartPage() {
   const [guestForm, setGuestForm] = useState(EMPTY_GUEST_FORM);
   const [formErrors, setFormErrors] = useState({});
 
+  // Track whether initial guest sync has been done
+  const initialSyncDone = useRef(false);
+
   const guestItems = useGuestCartStore(s => s.items);
   const guestUpdateQuantity = useGuestCartStore(s => s.updateQuantity);
   const guestRemoveItem = useGuestCartStore(s => s.removeItem);
   const guestClearCart = useGuestCartStore(s => s.clearCart);
   const guestSync = useGuestCartStore(s => s.syncWithServer);
   const guestIsSyncing = useGuestCartStore(s => s.isSyncing);
-  
+
+  // 1. Auth check - only runs once
   useEffect(() => {
     fetch("/api/user/me")
       .then(res => (res.ok ? res.json() : null))
@@ -83,25 +87,30 @@ export default function CartPage() {
       });
   }, []);
 
+  // 2. Load cart once after auth resolves
   useEffect(() => {
     if (authLoading) return;
-    if (userId) fetchUserCart();
-    else loadGuestCart();
-  }, [userId, authLoading]);
-
-  // AUTO RE-SYNC saat guestItems berubah
-  useEffect(() => {
-    if (!authLoading && !userId) {
+    if (userId) {
+      fetchUserCart();
+    } else {
+      // Only sync with server ONCE on initial load
       loadGuestCart();
     }
-  }, [guestItems]);
+  }, [userId, authLoading]);
+
+  // 3. REMOVED: the problematic useEffect that watched guestItems
+  //    It was causing an infinite loop:
+  //    guestSync() → updates store → guestItems changes → loadGuestCart() → guestSync() → ...
+  //
+  //    Instead, for guest UI updates (remove/qty change), we update local state directly
+  //    inside updateGuestQty and removeGuestItemFn — no need to re-sync.
 
   async function fetchUserCart() {
     setLoading(true);
     try {
       const res = await fetch(`/api/dashboard/cart`);
       const json = await res.json();
-      
+
       const normalized = (json.data || []).map(item => ({
         id: item.id,
         variant_id: item.variant_id,
@@ -124,11 +133,15 @@ export default function CartPage() {
   async function loadGuestCart() {
     setLoading(true);
     try {
-      await guestSync();
-      const items = useGuestCartStore.getState().items;
-      setItems(items);
-      setSubtotal(items.reduce((s, i) => s + i.variant_price * i.quantity, 0));
-      setTotalItems(items.reduce((s, i) => s + i.quantity, 0));
+      // Only hit Supabase on the FIRST load, not on every local cart change
+      if (!initialSyncDone.current) {
+        await guestSync();
+        initialSyncDone.current = true;
+      }
+      const latestItems = useGuestCartStore.getState().items;
+      setItems(latestItems);
+      setSubtotal(latestItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
+      setTotalItems(latestItems.reduce((s, i) => s + i.quantity, 0));
     } catch (err) {
       console.error("Failed to sync guest cart", err);
     } finally {
@@ -196,7 +209,6 @@ export default function CartPage() {
     setCheckoutError("");
 
     if (!userId) {
-      await guestSync();
       const errors = validateForm();
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
