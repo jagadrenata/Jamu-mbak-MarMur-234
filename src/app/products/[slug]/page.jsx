@@ -14,7 +14,6 @@ import {
   Package,
   Tag,
   Eye,
-  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -63,12 +62,6 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [slug]);
 
-  useEffect(() => {
-    fetch("/api/data/categories?parent_id=")
-      .then((r) => r.json())
-      .then((json) => setCategories(json.data || []))
-      .catch(() => {});
-  }, []);
 
   async function fetchProduct() {
     setLoading(true);
@@ -203,43 +196,6 @@ export default function ProductDetailPage() {
                 </ul>
               </div>
               <div style={{ borderTop: `1px solid ${C.border}` }} />
-              <div>
-                <p
-                  className="text-xs font-semibold uppercase tracking-widest mb-2 px-1"
-                  style={{ color: C.mid }}
-                >
-                  Kategori
-                </p>
-                <ul className="space-y-1">
-                  <li>
-                    <Link
-                      href="/"
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
-                      style={{ color: C.accent }}
-                    >
-                      Semua Produk
-                    </Link>
-                  </li>
-                  {categories.map((cat) => {
-                    const isActiveCat = product?.category?.id === cat.id;
-                    return (
-                      <li key={cat.id}>
-                        <Link
-                          href={`/?category_id=${cat.id}`}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
-                          style={
-                            isActiveCat
-                              ? { backgroundColor: C.accent, color: C.textLight }
-                              : { color: C.accent }
-                          }
-                        >
-                          {cat.name}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
             </div>
 
             {/* Mobile: back link */}
@@ -299,13 +255,7 @@ export default function ProductDetailPage() {
                     <ChevronLeft className="w-3.5 h-3.5" />
                     Produk
                   </button>
-                  <ChevronRight className="w-3 h-3" />
-                  {product.category && (
-                    <>
-                      <span style={{ color: C.mid }}>{product.category.name}</span>
-                      <ChevronRight className="w-3 h-3" />
-                    </>
-                  )}
+                  <ChevronLeft className="w-3 h-3" />
                   <span className="truncate max-w-[160px]" style={{ color: C.text }}>
                     {product.name}
                   </span>
@@ -372,20 +322,6 @@ export default function ProductDetailPage() {
 
               {/* ── Info section ── */}
               <div className="lg:w-[52%] flex flex-col gap-5">
-                {/* Category badge */}
-                {product.category && (
-                  <span
-                    className="text-xs font-medium px-2.5 py-1 self-start"
-                    style={{
-                      backgroundColor: C.bgCard,
-                      border: `1px solid ${C.border}`,
-                      color: C.mid,
-                    }}
-                  >
-                    {product.category.name}
-                  </span>
-                )}
-
                 {/* Name */}
                 <h1
                   className="text-2xl md:text-3xl font-bold leading-tight"

@@ -1,7 +1,7 @@
 import { createSessionClient, createAdminClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 
-const supabase = createAdminClient();
+const supabase = createAdminClient()
 
 function mapMidtransStatus(transactionStatus, fraudStatus) {
   if (transactionStatus === "capture") {
@@ -15,6 +15,14 @@ function mapMidtransStatus(transactionStatus, fraudStatus) {
   return null;
 }
 
+function timestampFields(status) {
+  const now = new Date().toISOString();
+  if (status === "paid") return { paid_at: now };
+  if (status === "delivered") return { delivered_at: now };
+  if (status === "completed") return { completed_at: now };
+  return {};
+}
+
 export async function POST(request) {
   const body = await request.json();
 
@@ -24,7 +32,7 @@ export async function POST(request) {
     gross_amount,
     signature_key,
     transaction_status,
-    fraud_status
+    fraud_status,
   } = body;
 
   const serverKey = process.env.MIDTRANS_SERVER_KEY;
@@ -34,28 +42,33 @@ export async function POST(request) {
     .digest("hex");
 
   if (signature_key !== expectedSignature) {
-    return new Response(JSON.stringify({ message: "Invalid signature" }), {
-      status: 401
-    });
+    return Response.json({ message: "Invalid signature" }, { status: 401 });
   }
 
   const newStatus = mapMidtransStatus(transaction_status, fraud_status);
   if (!newStatus) {
-    return new Response(JSON.stringify({ message: "Unhandled status" }), {
-      status: 200
-    });
+    return Response.json({ message: "Unhandled status" }, { status: 200 });
   }
 
-  const { error } = await supabase
+  const updatePayload = {
+    status: newStatus,
+    updated_at: new Date().toISOString(),
+    ...timestampFields(newStatus),
+  };
+
+  const { error: guestError } = await supabase
+    .from("guest_orders")
+    .update(updatePayload)
+    .eq("midtrans_order_id", order_id);
+
+  const { error: orderError } = await supabase
     .from("orders")
     .update({ status: newStatus })
     .eq("id", order_id);
 
-  if (error) {
-    return new Response(JSON.stringify({ message: "DB update failed" }), {
-      status: 500
-    });
+  if (guestError && orderError) {
+    return Response.json({ message: "DB update failed" }, { status: 500 });
   }
 
-  return new Response(JSON.stringify({ message: "OK" }), { status: 200 });
+  return Response.json({ message: "OK" }, { status: 200 });
 }
