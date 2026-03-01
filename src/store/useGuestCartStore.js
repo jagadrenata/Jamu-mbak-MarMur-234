@@ -75,7 +75,6 @@ export const useGuestCartStore = create(
       getTotalItems: () =>
         get().items.reduce((sum, i) => sum + i.quantity, 0),
 
-      // 🔥 CORE: RE-VALIDATION
       syncWithServer: async () => {
         const items = get().items;
         if (!items.length) return;
@@ -107,10 +106,10 @@ export const useGuestCartStore = create(
               .map((item) => {
                 const latest = data.find((d) => d.id === item.variant_id);
 
-                // ❌ variant tidak ditemukan
+                //variant tidak ditemukan
                 if (!latest) return null;
 
-                // ❌ tidak aktif / produk archived
+                //tidak aktif / produk archived
                 if (
                   !latest.is_active ||
                   latest.product?.status !== "active"

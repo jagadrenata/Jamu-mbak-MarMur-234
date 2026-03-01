@@ -1,5 +1,7 @@
 "use client"
+
 import React, {useState} from 'react'
+import { useAdmin } from "@/hooks/useAdmin";
 import Sidebar from '@/components/dashboard/Sidebar'
 import Navbar from '@/components/dashboard/Navbar'
 import {
@@ -82,7 +84,10 @@ const adminMenus = [
 
 
 export default function Page({ children }) {
+  const { admin, loading } = useAdmin({ redirectTo: "/login" });
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  if (loading) return <p>Loading...</p>;
   return (
     <div className="flex bg-beige-50">
       <Sidebar navMenus={adminMenus} />

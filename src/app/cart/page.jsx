@@ -16,11 +16,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import Navbar, { C } from "@/components/Navbar";
 import { useGuestCartStore } from "@/store/useGuestCartStore";
-
-const supabase = createClient();
 
 function formatRupiah(n) {
   return "Rp " + n.toLocaleString("id-ID");
@@ -70,16 +67,20 @@ export default function CartPage() {
   const guestUpdateQuantity = useGuestCartStore(s => s.updateQuantity);
   const guestRemoveItem = useGuestCartStore(s => s.removeItem);
   const guestClearCart = useGuestCartStore(s => s.clearCart);
-
-  // NEW
   const guestSync = useGuestCartStore(s => s.syncWithServer);
   const guestIsSyncing = useGuestCartStore(s => s.isSyncing);
-
+  
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUserId(data?.user?.id ?? false);
-      setAuthLoading(false);
-    });
+    fetch("/api/user/me")
+      .then(res => (res.ok ? res.json() : null))
+      .then(json => {
+        setUserId(json?.user?.id ?? false);
+        setAuthLoading(false);
+      })
+      .catch(() => {
+        setUserId(false);
+        setAuthLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -88,7 +89,7 @@ export default function CartPage() {
     else loadGuestCart();
   }, [userId, authLoading]);
 
-  // AUTO RE-SYNC
+  // AUTO RE-SYNC saat guestItems berubah
   useEffect(() => {
     if (!authLoading && !userId) {
       loadGuestCart();
@@ -100,26 +101,33 @@ export default function CartPage() {
     try {
       const res = await fetch(`/api/dashboard/cart`);
       const json = await res.json();
-      setItems(json.data || []);
+      
+      const normalized = (json.data || []).map(item => ({
+        id: item.id,
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+        product_name: item.variant?.product?.name ?? "-",
+        variant_name: item.variant?.name ?? "-",
+        variant_sku: item.variant?.sku ?? "-",
+        variant_price: item.variant?.price ?? 0,
+        stock: item.variant?.stock ?? 0,
+        product_image: item.variant?.product?.primary_image ?? null,
+      }));
+      setItems(normalized);
       setSubtotal(json.subtotal || 0);
-      setTotalItems(json.total_items || 0);
+      setTotalItems(json.total || 0);
     } finally {
       setLoading(false);
     }
   }
 
-  // NEW loadGuestCart (pakai sync)
   async function loadGuestCart() {
     setLoading(true);
     try {
       await guestSync();
-
       const items = useGuestCartStore.getState().items;
-
       setItems(items);
-      setSubtotal(
-        items.reduce((s, i) => s + i.variant_price * i.quantity, 0)
-      );
+      setSubtotal(items.reduce((s, i) => s + i.variant_price * i.quantity, 0));
       setTotalItems(items.reduce((s, i) => s + i.quantity, 0));
     } catch (err) {
       console.error("Failed to sync guest cart", err);
@@ -130,36 +138,58 @@ export default function CartPage() {
 
   function updateGuestQty(variant_id, quantity) {
     setUpdating(variant_id);
-
     const updatedItems = items.map(i =>
       i.variant_id === variant_id
         ? { ...i, quantity: Math.max(1, Math.min(quantity, i.stock)) }
         : i
     );
-
     setItems(updatedItems);
     guestUpdateQuantity(variant_id, quantity);
-
-    setSubtotal(
-      updatedItems.reduce((s, i) => s + i.variant_price * i.quantity, 0)
-    );
-    setTotalItems(
-      updatedItems.reduce((s, i) => s + i.quantity, 0)
-    );
-
+    setSubtotal(updatedItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
+    setTotalItems(updatedItems.reduce((s, i) => s + i.quantity, 0));
     setTimeout(() => setUpdating(null), 200);
+  }
+
+  async function updateUserQty(item, quantity) {
+    setUpdating(item.id);
+    try {
+      await fetch(`/api/dashboard/cart?id=${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity })
+      });
+      const updatedItems = items.map(i =>
+        i.id === item.id ? { ...i, quantity } : i
+      );
+      setItems(updatedItems);
+      setSubtotal(updatedItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
+      setTotalItems(updatedItems.reduce((s, i) => s + i.quantity, 0));
+    } finally {
+      setUpdating(null);
+    }
   }
 
   function removeGuestItemFn(variant_id) {
     setRemoving(variant_id);
     guestRemoveItem(variant_id);
-
     const newItems = items.filter(i => i.variant_id !== variant_id);
     setItems(newItems);
     setSubtotal(newItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
     setTotalItems(newItems.reduce((s, i) => s + i.quantity, 0));
-
     setTimeout(() => setRemoving(null), 200);
+  }
+
+  async function removeUserItemFn(item) {
+    setRemoving(item.id);
+    try {
+      await fetch(`/api/dashboard/cart?id=${item.id}`, { method: "DELETE" });
+      const newItems = items.filter(i => i.id !== item.id);
+      setItems(newItems);
+      setSubtotal(newItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
+      setTotalItems(newItems.reduce((s, i) => s + i.quantity, 0));
+    } finally {
+      setRemoving(null);
+    }
   }
 
   async function handleCheckout() {
@@ -167,7 +197,6 @@ export default function CartPage() {
 
     if (!userId) {
       await guestSync();
-
       const errors = validateForm();
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
@@ -184,19 +213,21 @@ export default function CartPage() {
         price: item.variant_price
       }));
 
-      const body = { items: orderItems };
+      const body = userId
+        ? { items: orderItems }
+        : { items: orderItems, ...guestForm };
 
-      const res = await fetch("/api/data/guest-orders", {
+      const endpoint = userId ? "/api/data/orders" : "/api/data/guest-orders";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error);
+      if (!res.ok) throw new Error(json.error || "Checkout gagal");
 
       if (!userId) guestClearCart();
-
       router.push("/orders");
     } catch (err) {
       setCheckoutError(err.message);
@@ -213,40 +244,34 @@ export default function CartPage() {
     return errors;
   }
 
+  function handleFormChange(e) {
+    const { name, value } = e.target;
+    setGuestForm(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  }
+
   const isGuest = !authLoading && !userId;
   const shippingCost = 10000;
   const grandTotal = subtotal + shippingCost;
 
   function handleUpdateQty(item, quantity) {
-    if (userId) return;
-    updateGuestQty(item.variant_id, quantity);
+    if (quantity < 1) return;
+    if (userId) updateUserQty(item, quantity);
+    else updateGuestQty(item.variant_id, quantity);
   }
 
   function handleRemove(item) {
-    if (userId) return;
-    removeGuestItemFn(item.variant_id);
+    if (userId) removeUserItemFn(item);
+    else removeGuestItemFn(item.variant_id);
   }
 
   function getItemKey(item) {
     return userId ? item.id : item.variant_id;
   }
-  
-  function handleFormChange(e) {
-  const { name, value } = e.target;
 
-  setGuestForm(prev => ({
-    ...prev,
-    [name]: value
-  }));
-
-  if (formErrors[name]) {
-    setFormErrors(prev => ({
-      ...prev,
-      [name]: ""
-    }));
-  }
-}
-return (
+  return (
     <div className='font-sans min-h-screen' style={{ backgroundColor: C.bg }}>
       <Navbar />
 
@@ -304,16 +329,11 @@ return (
                           className='w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all'
                           style={
                             isActive
-                              ? {
-                                  backgroundColor: C.accent,
-                                  color: C.textLight
-                                }
+                              ? { backgroundColor: C.accent, color: C.textLight }
                               : { color: C.accent }
                           }
                         >
-                          <span
-                            style={{ color: isActive ? C.textLight : C.mid }}
-                          >
+                          <span style={{ color: isActive ? C.textLight : C.mid }}>
                             {icon}
                           </span>
                           {label}
@@ -332,10 +352,7 @@ return (
                   >
                     Ringkasan
                   </p>
-                  <div
-                    className='px-4 space-y-2 text-sm'
-                    style={{ color: C.text }}
-                  >
+                  <div className='px-4 space-y-2 text-sm' style={{ color: C.text }}>
                     <div className='flex justify-between'>
                       <span className='opacity-70'>Item</span>
                       <span>{totalItems}</span>
@@ -354,36 +371,25 @@ return (
 
           {/* Main */}
           <div className='flex-1'>
-                  {guestIsSyncing && (
-        <p className="text-xs text-center mt-2 opacity-60">
-          Sinkronisasi harga & stok...
-        </p>
-      )}
+            {guestIsSyncing && (
+              <p className="text-xs text-center mb-3 opacity-60" style={{ color: C.text }}>
+                Sinkronisasi harga &amp; stok...
+              </p>
+            )}
+
             {loading || authLoading ? (
               <div className='space-y-4'>
                 {[1, 2, 3].map(i => (
                   <div
                     key={i}
                     className='p-5 animate-pulse'
-                    style={{
-                      border: `1px solid ${C.border}`,
-                      backgroundColor: C.bgCard
-                    }}
+                    style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
                   >
                     <div className='flex gap-4'>
-                      <div
-                        className='w-20 h-20'
-                        style={{ backgroundColor: C.border }}
-                      />
+                      <div className='w-20 h-20' style={{ backgroundColor: C.border }} />
                       <div className='flex-1 space-y-2'>
-                        <div
-                          className='h-4 w-2/3'
-                          style={{ backgroundColor: C.border }}
-                        />
-                        <div
-                          className='h-3 w-1/3'
-                          style={{ backgroundColor: C.border }}
-                        />
+                        <div className='h-4 w-2/3' style={{ backgroundColor: C.border }} />
+                        <div className='h-3 w-1/3' style={{ backgroundColor: C.border }} />
                       </div>
                     </div>
                   </div>
@@ -401,10 +407,7 @@ return (
                 >
                   Keranjang masih kosong
                 </p>
-                <p
-                  className='text-sm mb-6 opacity-60'
-                  style={{ color: C.text }}
-                >
+                <p className='text-sm mb-6 opacity-60' style={{ color: C.text }}>
                   Yuk belanja jamu sehat untuk keluarga!
                 </p>
                 <motion.button
@@ -426,16 +429,9 @@ return (
                         key={getItemKey(item)}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{
-                          opacity: 0,
-                          x: -20,
-                          transition: { duration: 0.2 }
-                        }}
+                        exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
                         className='overflow-hidden'
-                        style={{
-                          border: `1px solid ${C.border}`,
-                          backgroundColor: C.bgCard
-                        }}
+                        style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
                       >
                         <div className='flex gap-4 p-4'>
                           <div
@@ -446,32 +442,20 @@ return (
                               src={item.product_image}
                               alt={item.product_name}
                               className='w-full h-full object-cover'
-                              onError={e => {
-                                e.target.style.display = "none";
-                              }}
+                              onError={e => { e.target.style.display = "none"; }}
                             />
                           </div>
                           <div className='flex-1 min-w-0'>
                             <p
                               className='font-bold text-sm mb-0.5 truncate'
-                              style={{
-                                fontFamily: "'Georgia', serif",
-                                color: C.text
-                              }}
+                              style={{ fontFamily: "'Georgia', serif", color: C.text }}
                             >
                               {item.product_name}
                             </p>
-                            <p
-                              className='text-xs mb-2 opacity-60'
-                              style={{ color: C.text }}
-                            >
-                              Varian: {item.variant_name} · SKU:{" "}
-                              {item.variant_sku}
+                            <p className='text-xs mb-2 opacity-60' style={{ color: C.text }}>
+                              Varian: {item.variant_name} · SKU: {item.variant_sku}
                             </p>
-                            <p
-                              className='text-sm font-bold'
-                              style={{ color: C.accent }}
-                            >
+                            <p className='text-sm font-bold' style={{ color: C.accent }}>
                               {formatRupiah(item.variant_price)}
                             </p>
                           </div>
@@ -488,18 +472,10 @@ return (
                             <div className='flex items-center gap-2'>
                               <motion.button
                                 whileTap={{ scale: 0.9 }}
-                                onClick={() =>
-                                  handleUpdateQty(item, item.quantity - 1)
-                                }
-                                disabled={
-                                  updating === getItemKey(item) ||
-                                  item.quantity <= 1
-                                }
+                                onClick={() => handleUpdateQty(item, item.quantity - 1)}
+                                disabled={updating === getItemKey(item) || item.quantity <= 1}
                                 className='w-7 h-7 flex items-center justify-center'
-                                style={{
-                                  border: `1px solid ${C.border}`,
-                                  color: C.accent
-                                }}
+                                style={{ border: `1px solid ${C.border}`, color: C.accent }}
                               >
                                 <Minus className='w-3 h-3' />
                               </motion.button>
@@ -507,24 +483,17 @@ return (
                                 className='text-sm font-medium w-6 text-center'
                                 style={{ color: C.text }}
                               >
-                                {updating === getItemKey(item)
-                                  ? "…"
-                                  : item.quantity}
+                                {updating === getItemKey(item) ? "…" : item.quantity}
                               </span>
                               <motion.button
                                 whileTap={{ scale: 0.9 }}
-                                onClick={() =>
-                                  handleUpdateQty(item, item.quantity + 1)
-                                }
+                                onClick={() => handleUpdateQty(item, item.quantity + 1)}
                                 disabled={
                                   updating === getItemKey(item) ||
                                   item.quantity >= item.stock
                                 }
                                 className='w-7 h-7 flex items-center justify-center'
-                                style={{
-                                  border: `1px solid ${C.border}`,
-                                  color: C.accent
-                                }}
+                                style={{ border: `1px solid ${C.border}`, color: C.accent }}
                               >
                                 <Plus className='w-3 h-3' />
                               </motion.button>
@@ -546,41 +515,27 @@ return (
                     ))}
                   </AnimatePresence>
 
-                  {/*  FORM GUEST  */}
+                  {/* FORM GUEST */}
                   {isGuest && (
                     <div
                       id='guest-form'
                       className='mt-6 p-6 space-y-4'
-                      style={{
-                        border: `1px solid ${C.border}`,
-                        backgroundColor: C.bgCard
-                      }}
+                      style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
                     >
                       <div className='flex items-center gap-2 mb-4'>
                         <User className='w-4 h-4' style={{ color: C.accent }} />
                         <h3
                           className='text-base font-bold'
-                          style={{
-                            fontFamily: "'Georgia', serif",
-                            color: C.text
-                          }}
+                          style={{ fontFamily: "'Georgia', serif", color: C.text }}
                         >
                           Data Pengiriman
                         </h3>
                       </div>
-                      <p
-                        className='text-xs opacity-60 -mt-2'
-                        style={{ color: C.text }}
-                      >
-                        Kamu berbelanja sebagai tamu. Isi data di bawah untuk
-                        menyelesaikan pesanan.
+                      <p className='text-xs opacity-60 -mt-2' style={{ color: C.text }}>
+                        Kamu berbelanja sebagai tamu. Isi data di bawah untuk menyelesaikan pesanan.
                       </p>
 
-                      {/* Nama */}
-                      <Field
-                        label='Nama Lengkap'
-                        error={formErrors.customer_name}
-                      >
+                      <Field label='Nama Lengkap' error={formErrors.customer_name}>
                         <input
                           name='customer_name'
                           value={guestForm.customer_name}
@@ -595,7 +550,6 @@ return (
                       </Field>
 
                       <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                        {/* Email */}
                         <Field label='Email' error={formErrors.customer_email}>
                           <input
                             name='customer_email'
@@ -610,11 +564,7 @@ return (
                             }}
                           />
                         </Field>
-                        {/* No HP */}
-                        <Field
-                          label='Nomor HP'
-                          error={formErrors.customer_phone}
-                        >
+                        <Field label='Nomor HP' error={formErrors.customer_phone}>
                           <input
                             name='customer_phone'
                             value={guestForm.customer_phone}
@@ -629,7 +579,6 @@ return (
                         </Field>
                       </div>
 
-                      {/* Alamat */}
                       <Field label='Alamat Jalan' error={formErrors.street}>
                         <input
                           name='street'
@@ -686,7 +635,6 @@ return (
                         </Field>
                       </div>
 
-                      {/* Metode Pembayaran */}
                       <Field label='Metode Pembayaran'>
                         <select
                           name='payment_method'
@@ -712,10 +660,7 @@ return (
                 <div className='lg:w-72 flex-shrink-0'>
                   <div
                     className='p-6 sticky top-24'
-                    style={{
-                      border: `1px solid ${C.border}`,
-                      backgroundColor: C.bgCard
-                    }}
+                    style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
                   >
                     <h3
                       className='text-base font-bold mb-5'
@@ -723,14 +668,9 @@ return (
                     >
                       Ringkasan Pesanan
                     </h3>
-                    <div
-                      className='space-y-3 mb-5 text-sm'
-                      style={{ color: C.text }}
-                    >
+                    <div className='space-y-3 mb-5 text-sm' style={{ color: C.text }}>
                       <div className='flex justify-between'>
-                        <span className='opacity-70'>
-                          Subtotal ({totalItems} item)
-                        </span>
+                        <span className='opacity-70'>Subtotal ({totalItems} item)</span>
                         <span>{formatRupiah(subtotal)}</span>
                       </div>
                       <div className='flex justify-between'>
@@ -742,9 +682,7 @@ return (
                         style={{ borderTop: `1px solid ${C.border}` }}
                       >
                         <span>Total</span>
-                        <span style={{ color: C.accent }}>
-                          {formatRupiah(grandTotal)}
-                        </span>
+                        <span style={{ color: C.accent }}>{formatRupiah(grandTotal)}</span>
                       </div>
                     </div>
 
@@ -787,11 +725,7 @@ return (
                         style={{ color: C.text }}
                       >
                         Punya akun?{" "}
-                        <Link
-                          href='/login'
-                          className='underline'
-                          style={{ color: C.accent }}
-                        >
+                        <Link href='/login' className='underline' style={{ color: C.accent }}>
                           Login dulu
                         </Link>
                       </p>
@@ -800,10 +734,7 @@ return (
                     <button
                       onClick={() => router.push("/")}
                       className='w-full mt-3 py-2.5 text-sm font-medium text-center transition-colors'
-                      style={{
-                        border: `1px solid ${C.border}`,
-                        color: C.accent
-                      }}
+                      style={{ border: `1px solid ${C.border}`, color: C.accent }}
                     >
                       Lanjut Belanja
                     </button>
@@ -818,15 +749,10 @@ return (
   );
 }
 
-//  Helper component
-
 function Field({ label, error, children }) {
   return (
     <div>
-      <label
-        className='block text-xs font-semibold mb-1'
-        style={{ color: C.mid }}
-      >
+      <label className='block text-xs font-semibold mb-1' style={{ color: C.mid }}>
         {label}
       </label>
       {children}

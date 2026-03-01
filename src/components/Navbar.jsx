@@ -11,6 +11,7 @@ import {
   X
 } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 
 export const C = {
   bg: "#F5F0E8",
@@ -62,7 +63,7 @@ export default function Navbar() {
       >
         <div className='max-w-7xl mx-auto flex items-center justify-between h-16'>
           <Link href='/' className='flex items-center gap-2'>
-            <span className='text-2xl'>🌿</span>
+            <Image src='/logo.webp' alt='logo' width={6 * 8} height={6 * 8} />
             <span
               className='text-lg font-bold'
               style={{
@@ -71,7 +72,7 @@ export default function Navbar() {
                 color: C.text
               }}
             >
-              jamu mbak <span style={{ color: C.accent }}>MarMur</span>
+              jamu mbak <span style={{ color: C.accent }}>MarMur 234</span>
             </span>
           </Link>
 
@@ -98,11 +99,7 @@ export default function Navbar() {
 
           {/* Mobile: cart icon + hamburger */}
           <div className='md:hidden flex items-center gap-1'>
-            <Link
-              href='/cart'
-              className='p-2 '
-              style={{ color: C.accent }}
-            >
+            <Link href='/cart' className='p-2 ' style={{ color: C.accent }}>
               <ShoppingCart className='w-6 h-6' />
             </Link>
             <motion.button
@@ -147,13 +144,19 @@ export default function Navbar() {
                 }}
               >
                 <span
-                  className='font-bold'
+                  className='font-bold flex items-center'
                   style={{
                     fontFamily: "'Georgia', serif",
                     color: C.text
                   }}
                 >
-                  🌿 jamu mbak <span style={{ color: C.accent }}>MarMur</span>
+                  <Image
+                    src='/logo.webp'
+                    alt='logo'
+                    width={4 * 8}
+                    height={4 * 8}
+                  />
+                  jamu mbak <span style={{ color: C.accent }}>MarMur</span>
                 </span>
                 <motion.button
                   whileHover={{ scale: 1.1 }}

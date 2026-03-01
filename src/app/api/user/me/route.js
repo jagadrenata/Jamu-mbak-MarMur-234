@@ -14,12 +14,12 @@ async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
-        get: (name) => cookieStore.get(name)?.value,
+        get: name => cookieStore.get(name)?.value,
         set: (name, value, options) =>
           cookieStore.set({ name, value, ...options }),
         remove: (name, options) =>
-          cookieStore.set({ name, value: "", ...options }),
-      },
+          cookieStore.set({ name, value: "", ...options })
+      }
     }
   );
 }
@@ -79,6 +79,18 @@ export async function PATCH(req) {
   const phone = formData.get("phone")?.trim() || null;
   const avatarFile = formData.get("avatar");
 
+  const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+  if (avatarFile.size > MAX_SIZE) {
+    return NextResponse.json({ error: "File terlalu besar." }, { status: 400 });
+  }
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(avatarFile.type)) {
+    return NextResponse.json(
+      { error: "Tipe file tidak valid." },
+      { status: 400 }
+    );
+  }
   if (!name) {
     return NextResponse.json(
       { error: "Nama tidak boleh kosong." },
@@ -97,7 +109,7 @@ export async function PATCH(req) {
       .from("user-assets")
       .upload(filename, arrayBuffer, {
         contentType: avatarFile.type,
-        upsert: true,
+        upsert: true
       });
 
     if (uploadError) {
@@ -117,7 +129,7 @@ export async function PATCH(req) {
   const updates = {
     name,
     phone,
-    updated_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   };
 
   if (avatar_url) updates.avatar_url = avatar_url;

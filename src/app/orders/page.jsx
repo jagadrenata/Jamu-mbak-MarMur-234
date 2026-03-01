@@ -18,7 +18,6 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Navbar, { C } from "@/components/Navbar";
-import { createClient } from "@/lib/supabase/client";
 
 function formatRupiah(n) {
   return "Rp " + n.toLocaleString("id-ID");
@@ -65,9 +64,6 @@ const statusOptions = [
   { value: "cancelled", label: "Dibatalkan" }
 ];
 
-//  Guest Lookup Form 
-// API requires email OR phone (mandatory). ID is optional for filtering a
-// specific order. If ID is omitted the API returns all orders for that contact.
 function GuestLookupForm({ onFound }) {
   const [identifier, setIdentifier] = useState(""); // email or phone
   const [orderId, setOrderId] = useState("");        // optional
@@ -316,7 +312,7 @@ function OrderCard({ order, expandedId, setExpandedId }) {
                         className="text-sm font-medium truncate"
                         style={{ color: C.text }}
                       >
-                        {item.product_name ?? `Variant #${item.variant_id}`}
+                        {`${item.product_variants.products.name } - ${item.product_variants.name}`}
                       </p>
                       <p
                         className="text-xs opacity-60"
@@ -401,7 +397,7 @@ function OrderCard({ order, expandedId, setExpandedId }) {
 }
 
 //  Address Selector 
-function AddressSelector({ supabase, userId, value, onChange }) {
+function AddressSelector({ value, onChange }) {
   const [addresses, setAddresses] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
@@ -412,16 +408,11 @@ function AddressSelector({ supabase, userId, value, onChange }) {
   });
 
   useEffect(() => {
-    async function load() {
-      const { data } = await supabase
-        .from("user_addresses")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-      setAddresses(data ?? []);
-    }
-    load();
-  }, [userId]);
+    fetch("/api/dashboard/addresses")
+      .then(res => res.ok ? res.json() : { data: [] })
+      .then(json => setAddresses(json.data ?? []))
+      .catch(() => {});
+  }, []);
 
   function handleSelect(addr) {
     onChange({
@@ -434,14 +425,15 @@ function AddressSelector({ supabase, userId, value, onChange }) {
 
   async function handleAddNew(e) {
     e.preventDefault();
-    const { data, error } = await supabase
-      .from("user_addresses")
-      .insert({ user_id: userId, ...form })
-      .select()
-      .single();
-    if (!error && data) {
-      setAddresses(prev => [data, ...prev]);
-      handleSelect(data);
+    const res = await fetch("/api/dashboard/addresses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form)
+    });
+    const json = await res.json();
+    if (res.ok && json.data) {
+      setAddresses(prev => [json.data, ...prev]);
+      handleSelect(json.data);
       setShowForm(false);
       setForm({ street: "", city: "", province: "", postal_code: "" });
     }
@@ -622,7 +614,6 @@ function Sidebar({ pathname, filterStatus, setFilterStatus, showStatusFilter }) 
 //  Page 
 export default function OrdersPage() {
   const pathname = usePathname();
-  const supabase = createClient();
 
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -635,10 +626,16 @@ export default function OrdersPage() {
   const [guestOrder, setGuestOrder] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ?? null);
-      setAuthLoading(false);
-    });
+    fetch("/api/user/me")
+      .then(res => (res.ok ? res.json() : null))
+      .then(json => {
+        setUser(json?.user ?? null);
+        setAuthLoading(false);
+      })
+      .catch(() => {
+        setUser(null);
+        setAuthLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -687,7 +684,7 @@ export default function OrdersPage() {
               style={{ color: C.textLight }}
             >
               {user
-                ? `Halo, ${user.email}. Berikut riwayat pesananmu.`
+                ? `Halo, ${user.name || user.email}. Berikut riwayat pesananmu.`
                 : "Pesanan tetap aman tanpa login. Lacak menggunakan email/HP, atau login untuk melihat semua pesanan."}
             </p>
           </div>
