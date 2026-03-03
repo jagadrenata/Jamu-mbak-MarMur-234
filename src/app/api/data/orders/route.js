@@ -1,4 +1,4 @@
-import { ok, err, requireUser, paginate } from "@/lib/helpers";
+import { ok, err, requireUser, requireAdmin, paginate } from "@/lib/helpers";
 
 const STATUS_LABEL = {
   pending: "Menunggu Pembayaran",
@@ -77,7 +77,9 @@ async function createMidtransTransaction({ orderId, totalPrice, user, items, add
 }
 
 export async function GET(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin();
+  
   if (response) return response;
 
   const { searchParams } = new URL(request.url);
@@ -163,7 +165,9 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin()
+  
   if (response) return response;
 
   const body = await request.json();

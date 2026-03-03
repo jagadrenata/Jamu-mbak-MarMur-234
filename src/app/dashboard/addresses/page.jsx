@@ -24,7 +24,7 @@ const emptyForm = {
   name: "",
   phone: "",
   address: { province: "", city: "", detail: "" },
-  coords: null,
+  coordinates: null,
   is_default: false
 };
 
@@ -114,7 +114,7 @@ export default function AddressesPage() {
   function handleMapSelect(latlng) {
     setForm(f => ({
       ...f,
-      coords: latlng,
+      coordinates: latlng,
       address: {
         ...f.address,
         detail: `${latlng.lat}, ${latlng.lng}`
@@ -182,9 +182,9 @@ export default function AddressesPage() {
                 {item.address?.city}, {item.address?.province}
               </p>
 
-              {item.coords && (
+              {item.coordinates && (
                 <p className='text-xs text-gray-400 mt-1'>
-                  Lat: {item.coords.lat}, Lng: {item.coords.lng}
+                  Lat: {item.coordinates.lat}, Lng: {item.coordinates.lng}
                 </p>
               )}
             </Card>

@@ -1,7 +1,8 @@
-import { ok, err, requireUser } from "@/lib/helpers";
+import { ok, err, requireUser, requireAdmin } from "@/lib/helpers";
 
 export async function GET(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin();
   if (response) return response;
 
   const { data: raw, error } = await supabase
@@ -49,7 +50,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin();
   if (response) return response;
 
   const body = await request.json();
@@ -87,7 +89,8 @@ export async function POST(request) {
 }
 
 export async function PATCH(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin();
   if (response) return response;
 
   const { searchParams } = new URL(request.url);
@@ -113,7 +116,8 @@ export async function PATCH(request) {
 }
 
 export async function DELETE(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin();
   if (response) return response;
 
   const { searchParams } = new URL(request.url);

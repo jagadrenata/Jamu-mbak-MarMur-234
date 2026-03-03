@@ -19,7 +19,7 @@ import Link from "next/link";
 import { C } from "@/components/Navbar";
 import PublicLayout from "@/components/PublicLayout";
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+//  Helpers 
 function formatRupiah(n) {
   return "Rp " + n.toLocaleString("id-ID");
 }
@@ -33,7 +33,7 @@ function formatDate(str) {
   });
 }
 
-// ─── Constants ─────────────────────────────────────────────────────────────
+//  Constants 
 const STATUS_COLOR = {
   pending:    { bg: "#FFF3CD", text: "#856404" },
   processing: { bg: "#D1ECF1", text: "#0C5460" },
@@ -56,7 +56,7 @@ const statusOptions = [
   { value: "cancelled",  label: "Dibatalkan" }
 ];
 
-// ─── Status Filter (masuk ke sidebarExtra) ─────────────────────────────────
+//  Status Filter (masuk ke sidebarExtra) 
 function StatusFilter({ filterStatus, setFilterStatus }) {
   return (
     <>
@@ -110,7 +110,7 @@ function StatusFilter({ filterStatus, setFilterStatus }) {
   );
 }
 
-// ─── Guest Lookup Form ─────────────────────────────────────────────────────
+//  Guest Lookup Form 
 function GuestLookupForm({ onFound }) {
   const [identifier, setIdentifier] = useState("");
   const [orderId, setOrderId] = useState("");
@@ -222,7 +222,7 @@ function GuestLookupForm({ onFound }) {
   );
 }
 
-// ─── Guest Order List ──────────────────────────────────────────────────────
+//  Guest Order List 
 function GuestOrderList({ orders, onReset }) {
   const [expandedId, setExpandedId] = useState(null);
 
@@ -238,7 +238,7 @@ function GuestOrderList({ orders, onReset }) {
   );
 }
 
-// ─── Order Card ────────────────────────────────────────────────────────────
+//  Order Card 
 function OrderCard({ order, expandedId, setExpandedId }) {
   const isExpanded = expandedId === order.id;
   const sc = STATUS_COLOR[order.status] || { bg: C.border, text: C.text };
@@ -372,7 +372,7 @@ function OrderCard({ order, expandedId, setExpandedId }) {
   );
 }
 
-// ─── Address Selector ──────────────────────────────────────────────────────
+//  Address Selector 
 function AddressSelector({ value, onChange }) {
   const [addresses, setAddresses] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -465,7 +465,7 @@ function AddressSelector({ value, onChange }) {
   );
 }
 
-// ─── Page ──────────────────────────────────────────────────────────────────
+//  Page 
 export default function OrdersPage() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -530,7 +530,7 @@ export default function OrdersPage() {
     )
   };
 
-  // ── Loading ──
+  //  Loading 
   if (authLoading) {
     return (
       <PublicLayout {...layoutProps}>
@@ -541,7 +541,7 @@ export default function OrdersPage() {
     );
   }
 
-  // ── Guest ──
+  //  Guest 
   if (!user) {
     return (
       <PublicLayout {...layoutProps}>
@@ -563,7 +563,7 @@ export default function OrdersPage() {
     );
   }
 
-  // ── Logged in ──
+  //  Logged in 
   return (
     <PublicLayout
       {...layoutProps}

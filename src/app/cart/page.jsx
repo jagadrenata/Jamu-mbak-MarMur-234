@@ -10,20 +10,23 @@ import {
   ShoppingBag,
   ArrowRight,
   User,
-  AlertCircle,
   MapPin,
+  CheckCircle2,
+  Tag
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { toast } from "sonner";
 import { C } from "@/components/Navbar";
 import PublicLayout from "@/components/PublicLayout";
 import { useGuestCartStore } from "@/store/useGuestCartStore";
 
 const Map = dynamic(() => import("@/components/Map"), { ssr: false });
 
-//  Helpers 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
 function formatRupiah(n) {
-  return "Rp " + n.toLocaleString("id-ID");
+  return "Rp " + Number(n).toLocaleString("id-ID");
 }
 
 const EMPTY_GUEST_FORM = {
@@ -37,51 +40,186 @@ const EMPTY_GUEST_FORM = {
   province: "",
   postal_code: "",
   delivery_notes: "",
-  payment_method: "bank_transfer",
+  payment_method: "bank_transfer"
 };
 
-//Field helper 
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
 function Field({ label, error, children }) {
   return (
-    <div>
-      <label className="block text-xs font-semibold mb-1" style={{ color: C.mid }}>
+    <div className="space-y-1">
+      <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: C.mid }}>
         {label}
       </label>
       {children}
-      {error && (
-        <p className="mt-1 text-xs" style={{ color: "#e53e3e" }}>
-          {error}
-        </p>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-xs font-medium"
+            style={{ color: "#e53e3e" }}
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-//Sidebar summary 
-function CartSummary({ totalItems, subtotal }) {
+function InputBase({ error, ...props }) {
   return (
-    <div>
-      <p
-        className="text-xs font-semibold uppercase tracking-widest mb-2 px-1"
-        style={{ color: C.mid }}
-      >
-        Ringkasan
-      </p>
-      <div className="px-4 space-y-2 text-sm" style={{ color: C.text }}>
-        <div className="flex justify-between">
-          <span className="opacity-70">Item</span>
-          <span>{totalItems}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="opacity-70">Subtotal</span>
-          <span style={{ color: C.accent }} className="font-medium">
-            {formatRupiah(subtotal)}
-          </span>
+    <input
+      className="w-full px-3 py-2.5 text-sm outline-none bg-transparent transition-colors focus:ring-1 rounded-sm"
+      style={{
+        border: `1px solid ${error ? "#e53e3e" : C.border}`,
+        color: C.text,
+        "--tw-ring-color": C.accent,
+        focusBorderColor: C.accent,
+      }}
+      {...props}
+    />
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div
+      className="p-5 animate-pulse rounded-md"
+      style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
+    >
+      <div className="flex gap-4">
+        <div className="w-20 h-20 rounded-sm" style={{ backgroundColor: C.border }} />
+        <div className="flex-1 space-y-2 pt-1">
+          <div className="h-4 w-2/3 rounded" style={{ backgroundColor: C.border }} />
+          <div className="h-3 w-1/3 rounded" style={{ backgroundColor: C.border }} />
+          <div className="h-4 w-1/4 rounded" style={{ backgroundColor: C.border }} />
         </div>
       </div>
     </div>
   );
 }
+
+function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
+  const itemKey = item.id ?? item.variant_id;
+  const isUpdating = updating === itemKey;
+  const isRemoving = removing === itemKey;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: isRemoving ? 0.4 : 1, y: 0 }}
+      exit={{ opacity: 0, x: -30, transition: { duration: 0.22 } }}
+      className="rounded-md overflow-hidden"
+      style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
+    >
+      <div className="flex gap-4 p-4">
+        {/* Image */}
+        <div
+          className="w-20 h-20 flex-shrink-0 rounded-sm overflow-hidden"
+          style={{ backgroundColor: C.border }}
+        >
+          {item.product_image && (
+            <img
+              src={item.product_image}
+              alt={item.product_name}
+              className="w-full h-full object-cover"
+              onError={(e) => { e.target.style.display = "none"; }}
+            />
+          )}
+        </div>
+
+        {/* Details */}
+        <div className="flex-1 min-w-0">
+          <p
+            className="font-bold text-sm mb-0.5 truncate"
+            style={{ fontFamily: "'Georgia', serif", color: C.text }}
+          >
+            {item.product_name}
+          </p>
+          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+            <span
+              className="text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+              style={{ backgroundColor: C.accent + "18", color: C.accent }}
+            >
+              <Tag className="w-2.5 h-2.5" />
+              {item.variant_name}
+            </span>
+            <span className="text-xs opacity-40" style={{ color: C.text }}>
+              SKU: {item.variant_sku}
+            </span>
+          </div>
+          <p className="text-sm font-bold" style={{ color: C.accent }}>
+            {formatRupiah(item.variant_price)}
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col items-end justify-between gap-2 flex-shrink-0">
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={() => onRemove(item)}
+            disabled={isRemoving}
+            className="p-1.5 rounded-sm transition-colors hover:bg-red-50"
+            title="Hapus item"
+            style={{ color: "#e53e3e", opacity: isRemoving ? 0.4 : 0.6 }}
+          >
+            <Trash2 className="w-4 h-4" />
+          </motion.button>
+
+          {/* Qty stepper */}
+          <div
+            className="flex items-center rounded-sm overflow-hidden"
+            style={{ border: `1px solid ${C.border}` }}
+          >
+            <motion.button
+              whileTap={{ scale: 0.88 }}
+              onClick={() => onUpdateQty(item, item.quantity - 1)}
+              disabled={isUpdating || item.quantity <= 1}
+              className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5 disabled:opacity-30"
+              style={{ color: C.accent }}
+            >
+              <Minus className="w-3 h-3" />
+            </motion.button>
+            <span
+              className="text-sm font-semibold w-8 text-center select-none"
+              style={{ color: C.text }}
+            >
+              {isUpdating ? "·" : item.quantity}
+            </span>
+            <motion.button
+              whileTap={{ scale: 0.88 }}
+              onClick={() => onUpdateQty(item, item.quantity + 1)}
+              disabled={isUpdating || item.quantity >= item.stock}
+              className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5 disabled:opacity-30"
+              style={{ color: C.accent }}
+            >
+              <Plus className="w-3 h-3" />
+            </motion.button>
+          </div>
+        </div>
+      </div>
+
+      {/* Subtotal bar */}
+      <div
+        className="px-4 py-2 flex justify-between items-center"
+        style={{ borderTop: `1px solid ${C.border}`, backgroundColor: C.accent + "08" }}
+      >
+        <span className="text-xs opacity-50" style={{ color: C.text }}>
+          {item.quantity} × {formatRupiah(item.variant_price)}
+        </span>
+        <span className="text-xs font-bold" style={{ color: C.accent }}>
+          {formatRupiah(item.variant_price * item.quantity)}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function CartPage() {
   const router = useRouter();
@@ -90,13 +228,15 @@ export default function CartPage() {
   const [authLoading, setAuthLoading] = useState(true);
 
   const [items, setItems] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [addressesLoading, setAddressesLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [subtotal, setSubtotal] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const [updating, setUpdating] = useState(null);
   const [removing, setRemoving] = useState(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [checkoutError, setCheckoutError] = useState("");
 
   const [guestForm, setGuestForm] = useState(EMPTY_GUEST_FORM);
   const [formErrors, setFormErrors] = useState({});
@@ -112,6 +252,7 @@ export default function CartPage() {
   const guestSync = useGuestCartStore((s) => s.syncWithServer);
   const guestIsSyncing = useGuestCartStore((s) => s.isSyncing);
 
+  // ── Auth check ──
   useEffect(() => {
     fetch("/api/user/me")
       .then((res) => (res.ok ? res.json() : null))
@@ -125,16 +266,42 @@ export default function CartPage() {
       });
   }, []);
 
+  // ── Load cart ──
   useEffect(() => {
     if (authLoading) return;
     if (userId) fetchUserCart();
     else loadGuestCart();
   }, [userId, authLoading]);
 
+  // ── Load addresses (logged-in) ──
+  useEffect(() => {
+    if (!userId || authLoading) return;
+    async function fetchAddresses() {
+      setAddressesLoading(true);
+      try {
+        const res = await fetch("/api/dashboard/addresses");
+        const json = await res.json();
+        if (res.ok && json.data) {
+          setAddresses(json.data);
+          const defaultAddr = json.data.find((a) => a.is_default);
+          setSelectedAddressId(
+            defaultAddr ? defaultAddr.id : json.data[0]?.id ?? null
+          );
+        }
+      } catch {
+        toast.error("Gagal memuat alamat tersimpan.");
+      } finally {
+        setAddressesLoading(false);
+      }
+    }
+    fetchAddresses();
+  }, [userId, authLoading]);
+
+  // ── Cart fetchers ──
   async function fetchUserCart() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/dashboard/cart`);
+      const res = await fetch("/api/dashboard/cart");
       const json = await res.json();
       const normalized = (json.data || []).map((item) => ({
         id: item.id,
@@ -150,6 +317,8 @@ export default function CartPage() {
       setItems(normalized);
       setSubtotal(json.subtotal || 0);
       setTotalItems(json.total || 0);
+    } catch {
+      toast.error("Gagal memuat keranjang.");
     } finally {
       setLoading(false);
     }
@@ -166,13 +335,14 @@ export default function CartPage() {
       setItems(latestItems);
       setSubtotal(latestItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
       setTotalItems(latestItems.reduce((s, i) => s + i.quantity, 0));
-    } catch (err) {
-      console.error("Failed to sync guest cart", err);
+    } catch {
+      toast.error("Gagal memuat keranjang.");
     } finally {
       setLoading(false);
     }
   }
 
+  // ── Quantity update ──
   function updateGuestQty(variant_id, quantity) {
     setUpdating(variant_id);
     const updatedItems = items.map((i) =>
@@ -182,64 +352,82 @@ export default function CartPage() {
     );
     setItems(updatedItems);
     guestUpdateQuantity(variant_id, quantity);
-    setSubtotal(updatedItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
-    setTotalItems(updatedItems.reduce((s, i) => s + i.quantity, 0));
+    recalc(updatedItems);
     setTimeout(() => setUpdating(null), 200);
   }
 
   async function updateUserQty(item, quantity) {
     setUpdating(item.id);
     try {
-      await fetch(`/api/dashboard/cart?id=${item.id}`, {
+      const res = await fetch(`/api/dashboard/cart?id=${item.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ quantity }),
       });
+      if (!res.ok) throw new Error();
       const updatedItems = items.map((i) => (i.id === item.id ? { ...i, quantity } : i));
       setItems(updatedItems);
-      setSubtotal(updatedItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
-      setTotalItems(updatedItems.reduce((s, i) => s + i.quantity, 0));
+      recalc(updatedItems);
+    } catch {
+      toast.error("Gagal mengubah jumlah item.");
     } finally {
       setUpdating(null);
     }
   }
 
+  // ── Remove item ──
   function removeGuestItemFn(variant_id) {
     setRemoving(variant_id);
+    const itemName = items.find((i) => i.variant_id === variant_id)?.product_name ?? "Item";
     guestRemoveItem(variant_id);
     const newItems = items.filter((i) => i.variant_id !== variant_id);
     setItems(newItems);
-    setSubtotal(newItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
-    setTotalItems(newItems.reduce((s, i) => s + i.quantity, 0));
-    setTimeout(() => setRemoving(null), 200);
+    recalc(newItems);
+    toast.success(`${itemName} dihapus dari keranjang.`);
+    setTimeout(() => setRemoving(null), 300);
   }
 
   async function removeUserItemFn(item) {
     setRemoving(item.id);
     try {
-      await fetch(`/api/dashboard/cart?id=${item.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/dashboard/cart?id=${item.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
       const newItems = items.filter((i) => i.id !== item.id);
       setItems(newItems);
-      setSubtotal(newItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
-      setTotalItems(newItems.reduce((s, i) => s + i.quantity, 0));
+      recalc(newItems);
+      toast.success(`${item.product_name} dihapus dari keranjang.`);
+    } catch {
+      toast.error("Gagal menghapus item.");
     } finally {
       setRemoving(null);
     }
   }
 
-  async function handleCheckout() {
-    setCheckoutError("");
+  function recalc(list) {
+    setSubtotal(list.reduce((s, i) => s + i.variant_price * i.quantity, 0));
+    setTotalItems(list.reduce((s, i) => s + i.quantity, 0));
+  }
 
+  // ── Checkout ──
+  async function handleCheckout() {
     if (!userId) {
       const errors = validateForm();
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
+        toast.error("Lengkapi data pengiriman terlebih dahulu.");
         document.getElementById("guest-form")?.scrollIntoView({ behavior: "smooth" });
         return;
       }
     }
 
+    if (userId && !selectedAddressId) {
+      toast.error("Pilih alamat pengiriman terlebih dahulu.");
+      return;
+    }
+
+    const toastId = toast.loading("Memproses pesanan...");
     setCheckoutLoading(true);
+
     try {
       const orderItems = items.map((item) => ({
         variant_id: item.variant_id,
@@ -247,28 +435,25 @@ export default function CartPage() {
         price: item.variant_price,
       }));
 
-      let body;
-      if (userId) {
-        body = { items: orderItems };
-      } else {
-        body = {
-          items: orderItems,
-          customer_name: guestForm.customer_name,
-          customer_email: guestForm.customer_email,
-          customer_phone: guestForm.customer_phone,
-          shipping_address: {
-            street: guestForm.street,
-            village: guestForm.village,
-            district: guestForm.district,
-            city: guestForm.city,
-            province: guestForm.province,
-            postal_code: guestForm.postal_code,
-            delivery_notes: guestForm.delivery_notes,
-          },
-          coordinate: coordinate ?? null,
-          payment_method: guestForm.payment_method,
-        };
-      }
+      const body = userId
+        ? { items: orderItems, address_id: selectedAddressId }
+        : {
+            items: orderItems,
+            customer_name: guestForm.customer_name,
+            customer_email: guestForm.customer_email,
+            customer_phone: guestForm.customer_phone,
+            shipping_address: {
+              street: guestForm.street,
+              village: guestForm.village,
+              district: guestForm.district,
+              city: guestForm.city,
+              province: guestForm.province,
+              postal_code: guestForm.postal_code,
+              delivery_notes: guestForm.delivery_notes,
+            },
+            coordinate: coordinate ?? null,
+            payment_method: guestForm.payment_method,
+          };
 
       const endpoint = userId ? "/api/data/orders" : "/api/data/guest-orders";
       const res = await fetch(endpoint, {
@@ -280,6 +465,8 @@ export default function CartPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Checkout gagal");
 
+      toast.success("Pesanan berhasil dibuat!", { id: toastId });
+
       if (json.data?.midtrans_payment_url) {
         if (!userId) guestClearCart();
         window.location.href = json.data.midtrans_payment_url;
@@ -289,7 +476,7 @@ export default function CartPage() {
       if (!userId) guestClearCart();
       router.push("/orders");
     } catch (err) {
-      setCheckoutError(err.message);
+      toast.error(err.message || "Checkout gagal. Coba lagi.", { id: toastId });
     } finally {
       setCheckoutLoading(false);
     }
@@ -297,20 +484,18 @@ export default function CartPage() {
 
   function validateForm() {
     const errors = {};
-    if (!guestForm.customer_name) errors.customer_name = "Wajib diisi";
-    if (!guestForm.customer_email) errors.customer_email = "Wajib diisi";
-    if (!guestForm.customer_phone) errors.customer_phone = "Wajib diisi";
-    if (!guestForm.city) errors.city = "Pilih lokasi di peta";
-    if (!guestForm.postal_code) errors.postal_code = "Wajib diisi";
+    if (!guestForm.customer_name.trim()) errors.customer_name = "Wajib diisi";
+    if (!guestForm.customer_email.trim()) errors.customer_email = "Wajib diisi";
+    if (!guestForm.customer_phone.trim()) errors.customer_phone = "Wajib diisi";
+    if (!guestForm.city.trim()) errors.city = "Pilih lokasi di peta";
+    if (!guestForm.postal_code.trim()) errors.postal_code = "Wajib diisi";
     return errors;
   }
 
   function handleFormChange(e) {
     const { name, value } = e.target;
     setGuestForm((prev) => ({ ...prev, [name]: value }));
-    if (formErrors[name]) {
-      setFormErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if (formErrors[name]) setFormErrors((prev) => ({ ...prev, [name]: "" }));
   }
 
   function handleMapGeocode(geoResult, latlng) {
@@ -325,14 +510,20 @@ export default function CartPage() {
       province: geoResult.province || "",
     }));
     setFormErrors((prev) => ({ ...prev, city: "" }));
+    toast.success("Lokasi berhasil dipilih dari peta.");
   }
 
+  // ── Derived values ──
   const isGuest = !authLoading && !userId;
   const shippingCost = 10000;
   const grandTotal = subtotal + shippingCost;
 
   function handleUpdateQty(item, quantity) {
     if (quantity < 1) return;
+    if (quantity > item.stock) {
+      toast.warning(`Stok tersedia hanya ${item.stock} item.`);
+      return;
+    }
     if (userId) updateUserQty(item, quantity);
     else updateGuestQty(item.variant_id, quantity);
   }
@@ -342,9 +533,7 @@ export default function CartPage() {
     else removeGuestItemFn(item.variant_id);
   }
 
-  function getItemKey(item) {
-    return userId ? item.id : item.variant_id;
-  }
+  // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
     <PublicLayout
@@ -356,206 +545,159 @@ export default function CartPage() {
       }
       sectionTitle="Keranjang Belanja"
       sidebarExtra={
-        !loading && items.length > 0
-          ? <CartSummary totalItems={totalItems} subtotal={subtotal} />
-          : null
+        !loading && items.length > 0 ? (
+          <div>
+            <p
+              className="text-xs font-semibold uppercase tracking-widest mb-2 px-1"
+              style={{ color: C.mid }}
+            >
+              Ringkasan
+            </p>
+            <div className="px-4 space-y-2 text-sm" style={{ color: C.text }}>
+              <div className="flex justify-between">
+                <span className="opacity-70">Item</span>
+                <span>{totalItems}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="opacity-70">Subtotal</span>
+                <span style={{ color: C.accent }} className="font-medium">
+                  {formatRupiah(subtotal)}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : null
       }
     >
-      {/* Sinkronisasi guest */}
-      {guestIsSyncing && (
-        <p className="text-xs text-center mb-3 opacity-60" style={{ color: C.text }}>
-          Sinkronisasi harga &amp; stok...
-        </p>
-      )}
+      {/* Sync indicator */}
+      <AnimatePresence>
+        {guestIsSyncing && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-xs text-center mb-3 opacity-60"
+            style={{ color: C.text }}
+          >
+            Sinkronisasi harga &amp; stok...
+          </motion.p>
+        )}
+      </AnimatePresence>
 
       {/* Loading skeleton */}
       {loading || authLoading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="p-5 animate-pulse"
-              style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
-            >
-              <div className="flex gap-4">
-                <div className="w-20 h-20" style={{ backgroundColor: C.border }} />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-2/3" style={{ backgroundColor: C.border }} />
-                  <div className="h-3 w-1/3" style={{ backgroundColor: C.border }} />
-                </div>
-              </div>
-            </div>
+            <SkeletonCard key={i} />
           ))}
         </div>
-
       ) : items.length === 0 ? (
         /* Empty state */
-        <div className="text-center py-24">
-          <ShoppingBag className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: C.accent }} />
-          <p className="text-lg mb-2" style={{ fontFamily: "'Georgia', serif", color: C.text }}>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-28"
+        >
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
+            style={{ backgroundColor: C.accent + "18" }}
+          >
+            <ShoppingBag className="w-9 h-9" style={{ color: C.accent }} />
+          </div>
+          <p
+            className="text-xl mb-2"
+            style={{ fontFamily: "'Georgia', serif", color: C.text }}
+          >
             Keranjang masih kosong
           </p>
-          <p className="text-sm mb-6 opacity-60" style={{ color: C.text }}>
+          <p className="text-sm mb-8 opacity-60" style={{ color: C.text }}>
             Yuk belanja jamu sehat untuk keluarga!
           </p>
           <motion.button
-            whileTap={{ scale: 0.96 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => router.push("/")}
-            className="px-6 py-2.5 text-sm font-medium"
+            className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold rounded-sm"
             style={{ backgroundColor: C.accent, color: C.textLight }}
           >
             Lihat Produk
+            <ArrowRight className="w-4 h-4" />
           </motion.button>
-        </div>
-
+        </motion.div>
       ) : (
         /* Cart content */
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Item list + guest form */}
+          {/* Left column: items + guest form */}
           <div className="flex-1 space-y-4">
-            <AnimatePresence>
+            <AnimatePresence mode="popLayout">
               {items.map((item) => (
-                <motion.div
-                  key={getItemKey(item)}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
-                  className="overflow-hidden"
-                  style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
-                >
-                  <div className="flex gap-4 p-4">
-                    <div
-                      className="w-20 h-20 flex-shrink-0 overflow-hidden"
-                      style={{ backgroundColor: C.border }}
-                    >
-                      <img
-                        src={item.product_image}
-                        alt={item.product_name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.style.display = "none"; }}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="font-bold text-sm mb-0.5 truncate"
-                        style={{ fontFamily: "'Georgia', serif", color: C.text }}
-                      >
-                        {item.product_name}
-                      </p>
-                      <p className="text-xs mb-2 opacity-60" style={{ color: C.text }}>
-                        Varian: {item.variant_name} · SKU: {item.variant_sku}
-                      </p>
-                      <p className="text-sm font-bold" style={{ color: C.accent }}>
-                        {formatRupiah(item.variant_price)}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end justify-between gap-2 flex-shrink-0">
-                      <motion.button
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleRemove(item)}
-                        disabled={removing === getItemKey(item)}
-                        className="p-1.5 opacity-50 hover:opacity-100 transition-opacity"
-                        style={{ color: C.accent }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </motion.button>
-                      <div className="flex items-center gap-2">
-                        <motion.button
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handleUpdateQty(item, item.quantity - 1)}
-                          disabled={updating === getItemKey(item) || item.quantity <= 1}
-                          className="w-7 h-7 flex items-center justify-center"
-                          style={{ border: `1px solid ${C.border}`, color: C.accent }}
-                        >
-                          <Minus className="w-3 h-3" />
-                        </motion.button>
-                        <span className="text-sm font-medium w-6 text-center" style={{ color: C.text }}>
-                          {updating === getItemKey(item) ? "…" : item.quantity}
-                        </span>
-                        <motion.button
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handleUpdateQty(item, item.quantity + 1)}
-                          disabled={updating === getItemKey(item) || item.quantity >= item.stock}
-                          className="w-7 h-7 flex items-center justify-center"
-                          style={{ border: `1px solid ${C.border}`, color: C.accent }}
-                        >
-                          <Plus className="w-3 h-3" />
-                        </motion.button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="px-4 py-2 flex justify-end" style={{ borderTop: `1px solid ${C.border}` }}>
-                    <span className="text-xs" style={{ color: C.mid }}>
-                      Subtotal:{" "}
-                      <strong style={{ color: C.accent }}>
-                        {formatRupiah(item.variant_price * item.quantity)}
-                      </strong>
-                    </span>
-                  </div>
-                </motion.div>
+                <CartItemCard
+                  key={item.id ?? item.variant_id}
+                  item={item}
+                  updating={updating}
+                  removing={removing}
+                  onUpdateQty={handleUpdateQty}
+                  onRemove={handleRemove}
+                />
               ))}
             </AnimatePresence>
 
             {/* Guest form */}
             {isGuest && (
-              <div
+              <motion.div
                 id="guest-form"
-                className="mt-6 p-6 space-y-4"
-                style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 p-6 space-y-5 rounded-md"
+                style={{
+                  border: `1px solid ${C.border}`,
+                  backgroundColor: C.bgCard,
+                }}
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <User className="w-4 h-4" style={{ color: C.accent }} />
-                  <h3
-                    className="text-base font-bold"
-                    style={{ fontFamily: "'Georgia', serif", color: C.text }}
-                  >
-                    Data Pengiriman
-                  </h3>
+                {/* Header */}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <User className="w-4 h-4" style={{ color: C.accent }} />
+                    <h3
+                      className="text-base font-bold"
+                      style={{ fontFamily: "'Georgia', serif", color: C.text }}
+                    >
+                      Data Pengiriman
+                    </h3>
+                  </div>
+                  <p className="text-xs opacity-60" style={{ color: C.text }}>
+                    Kamu berbelanja sebagai tamu. Isi data di bawah untuk menyelesaikan pesanan.
+                  </p>
                 </div>
-                <p className="text-xs opacity-60" style={{ color: C.text }}>
-                  Kamu berbelanja sebagai tamu. Isi data di bawah untuk menyelesaikan pesanan.
-                </p>
 
                 <Field label="Nama Lengkap" error={formErrors.customer_name}>
-                  <input
+                  <InputBase
                     name="customer_name"
                     value={guestForm.customer_name}
                     onChange={handleFormChange}
                     placeholder="Dewi Sartika"
-                    className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                    style={{
-                      border: `1px solid ${formErrors.customer_name ? "#e53e3e" : C.border}`,
-                      color: C.text,
-                    }}
+                    error={formErrors.customer_name}
                   />
                 </Field>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="Email" error={formErrors.customer_email}>
-                    <input
+                    <InputBase
                       name="customer_email"
                       type="email"
                       value={guestForm.customer_email}
                       onChange={handleFormChange}
                       placeholder="email@contoh.com"
-                      className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                      style={{
-                        border: `1px solid ${formErrors.customer_email ? "#e53e3e" : C.border}`,
-                        color: C.text,
-                      }}
+                      error={formErrors.customer_email}
                     />
                   </Field>
                   <Field label="Nomor HP" error={formErrors.customer_phone}>
-                    <input
+                    <InputBase
                       name="customer_phone"
                       value={guestForm.customer_phone}
                       onChange={handleFormChange}
                       placeholder="081234567890"
-                      className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                      style={{
-                        border: `1px solid ${formErrors.customer_phone ? "#e53e3e" : C.border}`,
-                        color: C.text,
-                      }}
+                      error={formErrors.customer_phone}
                     />
                   </Field>
                 </div>
@@ -564,18 +706,23 @@ export default function CartPage() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label
-                      className="text-xs font-semibold"
+                      className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1"
                       style={{ color: formErrors.city ? "#e53e3e" : C.mid }}
                     >
                       Lokasi di Peta
+                      {coordinate && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                      )}
                       {formErrors.city && (
-                        <span className="ml-1 font-normal">— {formErrors.city}</span>
+                        <span className="font-normal normal-case ml-1 text-red-500">
+                          — {formErrors.city}
+                        </span>
                       )}
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowMap((v) => !v)}
-                      className="flex items-center gap-1 text-xs font-medium underline"
+                      className="flex items-center gap-1 text-xs font-medium underline transition-opacity hover:opacity-70"
                       style={{ color: C.accent }}
                     >
                       <MapPin className="w-3 h-3" />
@@ -604,86 +751,68 @@ export default function CartPage() {
                 </div>
 
                 <Field label="Alamat Jalan">
-                  <input
+                  <InputBase
                     name="street"
                     value={guestForm.street}
                     onChange={handleFormChange}
                     placeholder="Jl. Mawar No. 5 (terisi otomatis dari peta)"
-                    className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                    style={{ border: `1px solid ${C.border}`, color: C.text }}
                   />
                 </Field>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="Kelurahan / Desa">
-                    <input
+                    <InputBase
                       name="village"
                       value={guestForm.village}
                       onChange={handleFormChange}
                       placeholder="Terisi otomatis dari peta"
-                      className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                      style={{ border: `1px solid ${C.border}`, color: C.text }}
                     />
                   </Field>
                   <Field label="Kecamatan">
-                    <input
+                    <InputBase
                       name="district"
                       value={guestForm.district}
                       onChange={handleFormChange}
                       placeholder="Terisi otomatis dari peta"
-                      className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                      style={{ border: `1px solid ${C.border}`, color: C.text }}
                     />
                   </Field>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <Field label="Kota / Kabupaten" error={formErrors.city}>
-                    <input
+                    <InputBase
                       name="city"
                       value={guestForm.city}
                       onChange={handleFormChange}
                       placeholder="Yogyakarta"
-                      className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                      style={{
-                        border: `1px solid ${formErrors.city ? "#e53e3e" : C.border}`,
-                        color: C.text,
-                      }}
+                      error={formErrors.city}
                     />
                   </Field>
                   <Field label="Provinsi">
-                    <input
+                    <InputBase
                       name="province"
                       value={guestForm.province}
                       onChange={handleFormChange}
                       placeholder="DI Yogyakarta"
-                      className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                      style={{ border: `1px solid ${C.border}`, color: C.text }}
                     />
                   </Field>
                   <Field label="Kode Pos" error={formErrors.postal_code}>
-                    <input
+                    <InputBase
                       name="postal_code"
                       value={guestForm.postal_code}
                       onChange={handleFormChange}
                       placeholder="55281"
-                      className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                      style={{
-                        border: `1px solid ${formErrors.postal_code ? "#e53e3e" : C.border}`,
-                        color: C.text,
-                      }}
+                      error={formErrors.postal_code}
                     />
                   </Field>
                 </div>
 
                 <Field label="Keterangan Pengantaran">
-                  <input
+                  <InputBase
                     name="delivery_notes"
                     value={guestForm.delivery_notes}
                     onChange={handleFormChange}
                     placeholder="cth: Rumah No. 5A, pagar besi warna hijau, depan warung"
-                    className="w-full px-3 py-2 text-sm outline-none bg-transparent"
-                    style={{ border: `1px solid ${C.border}`, color: C.text }}
                   />
                 </Field>
 
@@ -692,7 +821,7 @@ export default function CartPage() {
                     name="payment_method"
                     value={guestForm.payment_method}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 text-sm outline-none appearance-none"
+                    className="w-full px-3 py-2.5 text-sm outline-none appearance-none rounded-sm transition-colors"
                     style={{
                       border: `1px solid ${C.border}`,
                       backgroundColor: C.bgCard,
@@ -704,14 +833,104 @@ export default function CartPage() {
                     <option value="e_wallet">E-Wallet</option>
                   </select>
                 </Field>
-              </div>
+              </motion.div>
             )}
           </div>
 
-          {/* Order summary card */}
-          <div className="lg:w-72 flex-shrink-0">
+          {/* Right column: address + order summary */}
+          <div className="lg:w-72 flex-shrink-0 space-y-4">
+            {/* Address picker (logged-in only) */}
+            {!isGuest && !loading && items.length > 0 && (
+              <div
+                className="p-5 rounded-md space-y-4"
+                style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
+              >
+                <div className="flex items-center justify-between">
+                  <h3
+                    className="text-sm font-bold"
+                    style={{ fontFamily: "'Georgia', serif", color: C.text }}
+                  >
+                    Alamat Pengiriman
+                  </h3>
+                  <Link
+                    href="/dashboard/addresses"
+                    className="text-xs underline flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
+                    style={{ color: C.accent }}
+                  >
+                    <Plus size={12} /> Tambah
+                  </Link>
+                </div>
+
+                {addressesLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="h-16 animate-pulse rounded-sm"
+                        style={{ backgroundColor: C.border }}
+                      />
+                    ))}
+                  </div>
+                ) : addresses.length === 0 ? (
+                  <div className="text-center py-4 opacity-60 text-xs" style={{ color: C.text }}>
+                    Belum ada alamat tersimpan.{" "}
+                    <Link href="/dashboard/addresses" className="underline" style={{ color: C.accent }}>
+                      Tambah sekarang
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {addresses.map((addr) => (
+                      <label
+                        key={addr.id}
+                        className="flex items-start gap-3 p-3 rounded-sm cursor-pointer transition-all"
+                        style={{
+                          border: `1px solid ${selectedAddressId === addr.id ? C.accent : C.border}`,
+                          backgroundColor:
+                            selectedAddressId === addr.id ? C.accent + "0a" : "transparent",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="address"
+                          checked={selectedAddressId === addr.id}
+                          onChange={() => setSelectedAddressId(addr.id)}
+                          className="mt-0.5 accent-current"
+                          style={{ accentColor: C.accent }}
+                        />
+                        <div className="flex-1 text-xs" style={{ color: C.text }}>
+                          <div className="font-semibold mb-0.5 flex items-center gap-1.5">
+                            {addr.recipient_name || "—"}
+                            {addr.is_default && (
+                              <span
+                                className="text-xs px-1.5 py-0.5 rounded-full"
+                                style={{ backgroundColor: C.accent + "22", color: C.accent }}
+                              >
+                                Utama
+                              </span>
+                            )}
+                          </div>
+                          <div className="opacity-70 leading-snug">
+                            {addr.street}, {addr.village}, {addr.district},{" "}
+                            {addr.city}, {addr.province} {addr.postal_code}
+                          </div>
+                          {addr.phone && (
+                            <div className="opacity-60 mt-0.5">{addr.phone}</div>
+                          )}
+                          {addr.notes && (
+                            <div className="opacity-50 mt-0.5 italic">{addr.notes}</div>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Order summary */}
             <div
-              className="p-6 sticky top-24"
+              className="p-6 rounded-md sticky top-24"
               style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
             >
               <h3
@@ -720,6 +939,7 @@ export default function CartPage() {
               >
                 Ringkasan Pesanan
               </h3>
+
               <div className="space-y-3 mb-5 text-sm" style={{ color: C.text }}>
                 <div className="flex justify-between">
                   <span className="opacity-70">Subtotal ({totalItems} item)</span>
@@ -730,7 +950,7 @@ export default function CartPage() {
                   <span>{formatRupiah(shippingCost)}</span>
                 </div>
                 <div
-                  className="pt-3 flex justify-between font-bold"
+                  className="pt-3 flex justify-between font-bold text-base"
                   style={{ borderTop: `1px solid ${C.border}` }}
                 >
                   <span>Total</span>
@@ -738,39 +958,38 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {checkoutError && (
-                <div
-                  className="mb-3 flex items-start gap-2 text-xs p-3"
-                  style={{
-                    backgroundColor: "#fff5f5",
-                    border: "1px solid #fed7d7",
-                    color: "#c53030",
-                  }}
-                >
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  {checkoutError}
-                </div>
-              )}
-
               <motion.button
+                whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleCheckout}
                 disabled={checkoutLoading}
-                className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold rounded-sm transition-opacity"
                 style={{
                   backgroundColor: C.accent,
                   color: C.textLight,
                   opacity: checkoutLoading ? 0.7 : 1,
                 }}
               >
-                {checkoutLoading ? "Memproses..." : isGuest ? "Checkout sebagai Tamu" : "Checkout"}
-                {!checkoutLoading && <ArrowRight className="w-4 h-4" />}
+                {checkoutLoading ? (
+                  <>
+                    <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    Memproses...
+                  </>
+                ) : (
+                  <>
+                    {isGuest ? "Checkout sebagai Tamu" : "Checkout"}
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </motion.button>
 
               {isGuest && (
-                <p className="mt-3 text-xs text-center opacity-60" style={{ color: C.text }}>
+                <p
+                  className="mt-3 text-xs text-center opacity-60"
+                  style={{ color: C.text }}
+                >
                   Punya akun?{" "}
-                  <Link href="/login" className="underline" style={{ color: C.accent }}>
+                  <Link href="/login" className="underline font-medium" style={{ color: C.accent }}>
                     Login dulu
                   </Link>
                 </p>
@@ -778,7 +997,7 @@ export default function CartPage() {
 
               <button
                 onClick={() => router.push("/")}
-                className="w-full mt-3 py-2.5 text-sm font-medium text-center transition-colors"
+                className="w-full mt-3 py-2.5 text-xs font-medium text-center rounded-sm transition-colors hover:opacity-80"
                 style={{ border: `1px solid ${C.border}`, color: C.accent }}
               >
                 Lanjut Belanja

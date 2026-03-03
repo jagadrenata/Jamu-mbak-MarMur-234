@@ -1,7 +1,8 @@
-import { ok, err, requireUser } from "@/lib/helpers";
+import { ok, err, requireUser, requireAdmin } from "@/lib/helpers";
 
 export async function GET(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin();
   if (response) return response;
 
   const { searchParams } = new URL(request.url);
@@ -30,11 +31,12 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin();
   if (response) return response;
 
   const body = await request.json();
-  const { name, address, is_default, phone, coords } = body;
+  const { name, address, is_default, phone, coordinates, } = body;
 
   if (!name || !address || !phone)
     return err("name, address and phone are required");
@@ -53,7 +55,7 @@ export async function POST(request) {
       name,
       phone,
       address,
-      coords,
+      coordinates,
       is_default: is_default ?? false
     })
     .select()
@@ -64,7 +66,8 @@ export async function POST(request) {
 }
 
 export async function PATCH(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin();
   if (response) return response;
 
   const { searchParams } = new URL(request.url);
@@ -108,7 +111,8 @@ export async function PATCH(request) {
 }
 
 export async function DELETE(request) {
-  const { supabase, user, response } = await requireUser();
+  const { user, response } = await requireUser();
+  const { supabase } = await requireAdmin();
   if (response) return response;
 
   const { searchParams } = new URL(request.url);
