@@ -59,9 +59,9 @@ export async function POST(request) {
   const { error: guestError } = await supabase
     .from("guest_orders")
     .update(updatePayload)
-    .eq("midtrans_order_id", order_id);
+    .eq("id", order_id);
 
-  const { error: orderError } = await supabase
+  const { error: orderError } = await supabase 
     .from("orders")
     .update({ status: newStatus })
     .eq("id", order_id);

@@ -16,19 +16,24 @@ const STATUS_LABEL = {
 
 function idgenerator() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  let result = "";
-  for (let i = 0; i < 3; i++)
-    result += chars[Math.floor(Math.random() * chars.length)];
-  result += "-";
-  new Date()
-    .toISOString()
-    .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
-    .slice(1)
-    .forEach(d => {
-      result += d;
-    });
-  return result;
+  let prefix = "";
+  for (let i = 0; i < 3; i++) {
+    prefix += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  const now = new Date();
+  const timestamp =
+    now.getFullYear().toString() +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    String(now.getDate()).padStart(2, "0") +
+    String(now.getHours()).padStart(2, "0") +
+    String(now.getMinutes()).padStart(2, "0") +
+    String(now.getSeconds()).padStart(2, "0") +
+    String(now.getMilliseconds()).padStart(3, "0");
+
+  return `${prefix}-${timestamp}`;
 }
+
 
 async function createMidtransTransaction({
   orderId,

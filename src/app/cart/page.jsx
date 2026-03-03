@@ -20,10 +20,11 @@ import { toast } from "sonner";
 import { C } from "@/components/Navbar";
 import PublicLayout from "@/components/PublicLayout";
 import { useGuestCartStore } from "@/store/useGuestCartStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const Map = dynamic(() => import("@/components/Map"), { ssr: false });
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+//  Helpers
 
 function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
@@ -43,12 +44,15 @@ const EMPTY_GUEST_FORM = {
   payment_method: "bank_transfer"
 };
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
+//  Sub-components
 
 function Field({ label, error, children }) {
   return (
-    <div className="space-y-1">
-      <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: C.mid }}>
+    <div className='space-y-1'>
+      <label
+        className='block text-xs font-semibold uppercase tracking-wider'
+        style={{ color: C.mid }}
+      >
         {label}
       </label>
       {children}
@@ -58,7 +62,7 @@ function Field({ label, error, children }) {
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="text-xs font-medium"
+            className='text-xs font-medium'
             style={{ color: "#e53e3e" }}
           >
             {error}
@@ -72,12 +76,12 @@ function Field({ label, error, children }) {
 function InputBase({ error, ...props }) {
   return (
     <input
-      className="w-full px-3 py-2.5 text-sm outline-none bg-transparent transition-colors focus:ring-1 rounded-sm"
+      className='w-full px-3 py-2.5 text-sm outline-none bg-transparent transition-colors focus:ring-1 rounded-sm'
       style={{
         border: `1px solid ${error ? "#e53e3e" : C.border}`,
         color: C.text,
         "--tw-ring-color": C.accent,
-        focusBorderColor: C.accent,
+        focusBorderColor: C.accent
       }}
       {...props}
     />
@@ -87,15 +91,27 @@ function InputBase({ error, ...props }) {
 function SkeletonCard() {
   return (
     <div
-      className="p-5 animate-pulse rounded-md"
+      className='p-5 animate-pulse rounded-md'
       style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
     >
-      <div className="flex gap-4">
-        <div className="w-20 h-20 rounded-sm" style={{ backgroundColor: C.border }} />
-        <div className="flex-1 space-y-2 pt-1">
-          <div className="h-4 w-2/3 rounded" style={{ backgroundColor: C.border }} />
-          <div className="h-3 w-1/3 rounded" style={{ backgroundColor: C.border }} />
-          <div className="h-4 w-1/4 rounded" style={{ backgroundColor: C.border }} />
+      <div className='flex gap-4'>
+        <div
+          className='w-20 h-20 rounded-sm'
+          style={{ backgroundColor: C.border }}
+        />
+        <div className='flex-1 space-y-2 pt-1'>
+          <div
+            className='h-4 w-2/3 rounded'
+            style={{ backgroundColor: C.border }}
+          />
+          <div
+            className='h-3 w-1/3 rounded'
+            style={{ backgroundColor: C.border }}
+          />
+          <div
+            className='h-4 w-1/4 rounded'
+            style={{ backgroundColor: C.border }}
+          />
         </div>
       </div>
     </div>
@@ -113,79 +129,81 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: isRemoving ? 0.4 : 1, y: 0 }}
       exit={{ opacity: 0, x: -30, transition: { duration: 0.22 } }}
-      className="rounded-md overflow-hidden"
+      className='rounded-md overflow-hidden'
       style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
     >
-      <div className="flex gap-4 p-4">
+      <div className='flex gap-4 p-4'>
         {/* Image */}
         <div
-          className="w-20 h-20 flex-shrink-0 rounded-sm overflow-hidden"
+          className='w-20 h-20 flex-shrink-0 rounded-sm overflow-hidden'
           style={{ backgroundColor: C.border }}
         >
           {item.product_image && (
             <img
               src={item.product_image}
               alt={item.product_name}
-              className="w-full h-full object-cover"
-              onError={(e) => { e.target.style.display = "none"; }}
+              className='w-full h-full object-cover'
+              onError={e => {
+                e.target.style.display = "none";
+              }}
             />
           )}
         </div>
 
         {/* Details */}
-        <div className="flex-1 min-w-0">
+        <div className='flex-1 min-w-0'>
           <p
-            className="font-bold text-sm mb-0.5 truncate"
+            className='font-bold text-sm mb-0.5 truncate'
             style={{ fontFamily: "'Georgia', serif", color: C.text }}
           >
             {item.product_name}
           </p>
-          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+          <div className='flex items-center gap-1.5 mb-2 flex-wrap'>
             <span
-              className="text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+              className='text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1'
               style={{ backgroundColor: C.accent + "18", color: C.accent }}
             >
-              <Tag className="w-2.5 h-2.5" />
+              <Tag className='w-2.5 h-2.5' />
               {item.variant_name}
             </span>
-            <span className="text-xs opacity-40" style={{ color: C.text }}>
+            <span className='text-xs opacity-40' style={{ color: C.text }}>
               SKU: {item.variant_sku}
             </span>
           </div>
-          <p className="text-sm font-bold" style={{ color: C.accent }}>
+          <p className='text-sm font-bold' style={{ color: C.accent }}>
             {formatRupiah(item.variant_price)}
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col items-end justify-between gap-2 flex-shrink-0">
+        <div className='flex flex-col items-end justify-between gap-2 flex-shrink-0'>
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={() => onRemove(item)}
             disabled={isRemoving}
-            className="p-1.5 rounded-sm transition-colors hover:bg-red-50"
-            title="Hapus item"
+            className='p-1.5 rounded-sm transition-colors hover:bg-red-50'
+            title='Hapus item'
             style={{ color: "#e53e3e", opacity: isRemoving ? 0.4 : 0.6 }}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className='w-4 h-4' />
           </motion.button>
 
           {/* Qty stepper */}
           <div
-            className="flex items-center rounded-sm overflow-hidden"
+            className='flex items-center rounded-sm overflow-hidden'
             style={{ border: `1px solid ${C.border}` }}
           >
             <motion.button
               whileTap={{ scale: 0.88 }}
               onClick={() => onUpdateQty(item, item.quantity - 1)}
               disabled={isUpdating || item.quantity <= 1}
-              className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5 disabled:opacity-30"
+              className='w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5 disabled:opacity-30'
               style={{ color: C.accent }}
             >
-              <Minus className="w-3 h-3" />
+              <Minus className='w-3 h-3' />
             </motion.button>
             <span
-              className="text-sm font-semibold w-8 text-center select-none"
+              className='text-sm font-semibold w-8 text-center select-none'
               style={{ color: C.text }}
             >
               {isUpdating ? "·" : item.quantity}
@@ -194,10 +212,10 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
               whileTap={{ scale: 0.88 }}
               onClick={() => onUpdateQty(item, item.quantity + 1)}
               disabled={isUpdating || item.quantity >= item.stock}
-              className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5 disabled:opacity-30"
+              className='w-8 h-8 flex items-center justify-center transition-colors hover:bg-black/5 disabled:opacity-30'
               style={{ color: C.accent }}
             >
-              <Plus className="w-3 h-3" />
+              <Plus className='w-3 h-3' />
             </motion.button>
           </div>
         </div>
@@ -205,13 +223,16 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
 
       {/* Subtotal bar */}
       <div
-        className="px-4 py-2 flex justify-between items-center"
-        style={{ borderTop: `1px solid ${C.border}`, backgroundColor: C.accent + "08" }}
+        className='px-4 py-2 flex justify-between items-center'
+        style={{
+          borderTop: `1px solid ${C.border}`,
+          backgroundColor: C.accent + "08"
+        }}
       >
-        <span className="text-xs opacity-50" style={{ color: C.text }}>
+        <span className='text-xs opacity-50' style={{ color: C.text }}>
           {item.quantity} × {formatRupiah(item.variant_price)}
         </span>
-        <span className="text-xs font-bold" style={{ color: C.accent }}>
+        <span className='text-xs font-bold' style={{ color: C.accent }}>
           {formatRupiah(item.variant_price * item.quantity)}
         </span>
       </div>
@@ -219,13 +240,10 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
   );
 }
 
-// ─── Main Page ───────────────────────────────────────────────────────────────
+//  Main Page
 
 export default function CartPage() {
   const router = useRouter();
-
-  const [userId, setUserId] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
 
   const [items, setItems] = useState([]);
   const [addresses, setAddresses] = useState([]);
@@ -246,34 +264,27 @@ export default function CartPage() {
 
   const initialSyncDone = useRef(false);
 
-  const guestUpdateQuantity = useGuestCartStore((s) => s.updateQuantity);
-  const guestRemoveItem = useGuestCartStore((s) => s.removeItem);
-  const guestClearCart = useGuestCartStore((s) => s.clearCart);
-  const guestSync = useGuestCartStore((s) => s.syncWithServer);
-  const guestIsSyncing = useGuestCartStore((s) => s.isSyncing);
+  const guestUpdateQuantity = useGuestCartStore(s => s.updateQuantity);
+  const guestRemoveItem = useGuestCartStore(s => s.removeItem);
+  const guestClearCart = useGuestCartStore(s => s.clearCart);
+  const guestSync = useGuestCartStore(s => s.syncWithServer);
+  const guestIsSyncing = useGuestCartStore(s => s.isSyncing);
+  
+  const { user, loading: authLoading, fetchUser } = useAuthStore();
+  const userId = user?.id ?? (authLoading ? undefined : false);
 
-  // ── Auth check ──
   useEffect(() => {
-    fetch("/api/user/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => {
-        setUserId(json?.user?.id ?? false);
-        setAuthLoading(false);
-      })
-      .catch(() => {
-        setUserId(false);
-        setAuthLoading(false);
-      });
-  }, []);
+    fetchUser();
+  }, [fetchUser]);
 
-  // ── Load cart ──
+  //  Load cart
   useEffect(() => {
     if (authLoading) return;
     if (userId) fetchUserCart();
     else loadGuestCart();
   }, [userId, authLoading]);
 
-  // ── Load addresses (logged-in) ──
+  //  Load addresses (logged-in)
   useEffect(() => {
     if (!userId || authLoading) return;
     async function fetchAddresses() {
@@ -283,9 +294,9 @@ export default function CartPage() {
         const json = await res.json();
         if (res.ok && json.data) {
           setAddresses(json.data);
-          const defaultAddr = json.data.find((a) => a.is_default);
+          const defaultAddr = json.data.find(a => a.is_default);
           setSelectedAddressId(
-            defaultAddr ? defaultAddr.id : json.data[0]?.id ?? null
+            defaultAddr ? defaultAddr.id : (json.data[0]?.id ?? null)
           );
         }
       } catch {
@@ -297,13 +308,13 @@ export default function CartPage() {
     fetchAddresses();
   }, [userId, authLoading]);
 
-  // ── Cart fetchers ──
+  //  Cart fetchers
   async function fetchUserCart() {
     setLoading(true);
     try {
       const res = await fetch("/api/dashboard/cart");
       const json = await res.json();
-      const normalized = (json.data || []).map((item) => ({
+      const normalized = (json.data || []).map(item => ({
         id: item.id,
         variant_id: item.variant_id,
         quantity: item.quantity,
@@ -312,7 +323,7 @@ export default function CartPage() {
         variant_sku: item.variant?.sku ?? "-",
         variant_price: item.variant?.price ?? 0,
         stock: item.variant?.stock ?? 0,
-        product_image: item.variant?.product?.primary_image ?? null,
+        product_image: item.variant?.product?.primary_image ?? null
       }));
       setItems(normalized);
       setSubtotal(json.subtotal || 0);
@@ -333,7 +344,9 @@ export default function CartPage() {
       }
       const latestItems = useGuestCartStore.getState().items;
       setItems(latestItems);
-      setSubtotal(latestItems.reduce((s, i) => s + i.variant_price * i.quantity, 0));
+      setSubtotal(
+        latestItems.reduce((s, i) => s + i.variant_price * i.quantity, 0)
+      );
       setTotalItems(latestItems.reduce((s, i) => s + i.quantity, 0));
     } catch {
       toast.error("Gagal memuat keranjang.");
@@ -342,10 +355,10 @@ export default function CartPage() {
     }
   }
 
-  // ── Quantity update ──
+  //  Quantity update
   function updateGuestQty(variant_id, quantity) {
     setUpdating(variant_id);
-    const updatedItems = items.map((i) =>
+    const updatedItems = items.map(i =>
       i.variant_id === variant_id
         ? { ...i, quantity: Math.max(1, Math.min(quantity, i.stock)) }
         : i
@@ -362,10 +375,12 @@ export default function CartPage() {
       const res = await fetch(`/api/dashboard/cart?id=${item.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity }),
+        body: JSON.stringify({ quantity })
       });
       if (!res.ok) throw new Error();
-      const updatedItems = items.map((i) => (i.id === item.id ? { ...i, quantity } : i));
+      const updatedItems = items.map(i =>
+        i.id === item.id ? { ...i, quantity } : i
+      );
       setItems(updatedItems);
       recalc(updatedItems);
     } catch {
@@ -375,12 +390,13 @@ export default function CartPage() {
     }
   }
 
-  // ── Remove item ──
+  //  Remove item
   function removeGuestItemFn(variant_id) {
     setRemoving(variant_id);
-    const itemName = items.find((i) => i.variant_id === variant_id)?.product_name ?? "Item";
+    const itemName =
+      items.find(i => i.variant_id === variant_id)?.product_name ?? "Item";
     guestRemoveItem(variant_id);
-    const newItems = items.filter((i) => i.variant_id !== variant_id);
+    const newItems = items.filter(i => i.variant_id !== variant_id);
     setItems(newItems);
     recalc(newItems);
     toast.success(`${itemName} dihapus dari keranjang.`);
@@ -390,9 +406,11 @@ export default function CartPage() {
   async function removeUserItemFn(item) {
     setRemoving(item.id);
     try {
-      const res = await fetch(`/api/dashboard/cart?id=${item.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/dashboard/cart?id=${item.id}`, {
+        method: "DELETE"
+      });
       if (!res.ok) throw new Error();
-      const newItems = items.filter((i) => i.id !== item.id);
+      const newItems = items.filter(i => i.id !== item.id);
       setItems(newItems);
       recalc(newItems);
       toast.success(`${item.product_name} dihapus dari keranjang.`);
@@ -408,14 +426,16 @@ export default function CartPage() {
     setTotalItems(list.reduce((s, i) => s + i.quantity, 0));
   }
 
-  // ── Checkout ──
+  //  Checkout
   async function handleCheckout() {
     if (!userId) {
       const errors = validateForm();
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
         toast.error("Lengkapi data pengiriman terlebih dahulu.");
-        document.getElementById("guest-form")?.scrollIntoView({ behavior: "smooth" });
+        document
+          .getElementById("guest-form")
+          ?.scrollIntoView({ behavior: "smooth" });
         return;
       }
     }
@@ -429,10 +449,10 @@ export default function CartPage() {
     setCheckoutLoading(true);
 
     try {
-      const orderItems = items.map((item) => ({
+      const orderItems = items.map(item => ({
         variant_id: item.variant_id,
         quantity: item.quantity,
-        price: item.variant_price,
+        price: item.variant_price
       }));
 
       const body = userId
@@ -449,17 +469,17 @@ export default function CartPage() {
               city: guestForm.city,
               province: guestForm.province,
               postal_code: guestForm.postal_code,
-              delivery_notes: guestForm.delivery_notes,
+              delivery_notes: guestForm.delivery_notes
             },
             coordinate: coordinate ?? null,
-            payment_method: guestForm.payment_method,
+            payment_method: guestForm.payment_method
           };
 
       const endpoint = userId ? "/api/data/orders" : "/api/data/guest-orders";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(body)
       });
 
       const json = await res.json();
@@ -494,26 +514,26 @@ export default function CartPage() {
 
   function handleFormChange(e) {
     const { name, value } = e.target;
-    setGuestForm((prev) => ({ ...prev, [name]: value }));
-    if (formErrors[name]) setFormErrors((prev) => ({ ...prev, [name]: "" }));
+    setGuestForm(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: "" }));
   }
 
   function handleMapGeocode(geoResult, latlng) {
     setMapGeoLoading(false);
     setCoordinate({ lat: latlng.lat, lng: latlng.lng });
-    setGuestForm((prev) => ({
+    setGuestForm(prev => ({
       ...prev,
       street: geoResult.street || prev.street,
       village: geoResult.village || "",
       district: geoResult.district || "",
       city: geoResult.city || "",
-      province: geoResult.province || "",
+      province: geoResult.province || ""
     }));
-    setFormErrors((prev) => ({ ...prev, city: "" }));
+    setFormErrors(prev => ({ ...prev, city: "" }));
     toast.success("Lokasi berhasil dipilih dari peta.");
   }
 
-  // ── Derived values ──
+  //  Derived values
   const isGuest = !authLoading && !userId;
   const shippingCost = 10000;
   const grandTotal = subtotal + shippingCost;
@@ -533,34 +553,34 @@ export default function CartPage() {
     else removeGuestItemFn(item.variant_id);
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  //  Render
 
   return (
     <PublicLayout
-      heroTitle="Keranjang"
+      heroTitle='Keranjang'
       heroSubtitle={
         isGuest
           ? "Isi data pengiriman dan checkout sebagai tamu — atau login agar pesanan tersimpan di akunmu."
           : "Pesanan tersimpan di akun kamu."
       }
-      sectionTitle="Keranjang Belanja"
+      sectionTitle='Keranjang Belanja'
       sidebarExtra={
         !loading && items.length > 0 ? (
           <div>
             <p
-              className="text-xs font-semibold uppercase tracking-widest mb-2 px-1"
+              className='text-xs font-semibold uppercase tracking-widest mb-2 px-1'
               style={{ color: C.mid }}
             >
               Ringkasan
             </p>
-            <div className="px-4 space-y-2 text-sm" style={{ color: C.text }}>
-              <div className="flex justify-between">
-                <span className="opacity-70">Item</span>
+            <div className='px-4 space-y-2 text-sm' style={{ color: C.text }}>
+              <div className='flex justify-between'>
+                <span className='opacity-70'>Item</span>
                 <span>{totalItems}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="opacity-70">Subtotal</span>
-                <span style={{ color: C.accent }} className="font-medium">
+              <div className='flex justify-between'>
+                <span className='opacity-70'>Subtotal</span>
+                <span style={{ color: C.accent }} className='font-medium'>
                   {formatRupiah(subtotal)}
                 </span>
               </div>
@@ -576,7 +596,7 @@ export default function CartPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="text-xs text-center mb-3 opacity-60"
+            className='text-xs text-center mb-3 opacity-60'
             style={{ color: C.text }}
           >
             Sinkronisasi harga &amp; stok...
@@ -586,8 +606,8 @@ export default function CartPage() {
 
       {/* Loading skeleton */}
       {loading || authLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
+        <div className='space-y-4'>
+          {[1, 2, 3].map(i => (
             <SkeletonCard key={i} />
           ))}
         </div>
@@ -596,41 +616,41 @@ export default function CartPage() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center py-28"
+          className='text-center py-28'
         >
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5"
+            className='w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5'
             style={{ backgroundColor: C.accent + "18" }}
           >
-            <ShoppingBag className="w-9 h-9" style={{ color: C.accent }} />
+            <ShoppingBag className='w-9 h-9' style={{ color: C.accent }} />
           </div>
           <p
-            className="text-xl mb-2"
+            className='text-xl mb-2'
             style={{ fontFamily: "'Georgia', serif", color: C.text }}
           >
             Keranjang masih kosong
           </p>
-          <p className="text-sm mb-8 opacity-60" style={{ color: C.text }}>
+          <p className='text-sm mb-8 opacity-60' style={{ color: C.text }}>
             Yuk belanja jamu sehat untuk keluarga!
           </p>
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => router.push("/")}
-            className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold rounded-sm"
+            className='inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold rounded-sm'
             style={{ backgroundColor: C.accent, color: C.textLight }}
           >
             Lihat Produk
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className='w-4 h-4' />
           </motion.button>
         </motion.div>
       ) : (
         /* Cart content */
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className='flex flex-col lg:flex-row gap-8'>
           {/* Left column: items + guest form */}
-          <div className="flex-1 space-y-4">
-            <AnimatePresence mode="popLayout">
-              {items.map((item) => (
+          <div className='flex-1 space-y-4'>
+            <AnimatePresence mode='popLayout'>
+              {items.map(item => (
                 <CartItemCard
                   key={item.id ?? item.variant_id}
                   item={item}
@@ -645,58 +665,59 @@ export default function CartPage() {
             {/* Guest form */}
             {isGuest && (
               <motion.div
-                id="guest-form"
+                id='guest-form'
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-6 p-6 space-y-5 rounded-md"
+                className='mt-6 p-6 space-y-5 rounded-md'
                 style={{
                   border: `1px solid ${C.border}`,
-                  backgroundColor: C.bgCard,
+                  backgroundColor: C.bgCard
                 }}
               >
                 {/* Header */}
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <User className="w-4 h-4" style={{ color: C.accent }} />
+                  <div className='flex items-center gap-2 mb-1'>
+                    <User className='w-4 h-4' style={{ color: C.accent }} />
                     <h3
-                      className="text-base font-bold"
+                      className='text-base font-bold'
                       style={{ fontFamily: "'Georgia', serif", color: C.text }}
                     >
                       Data Pengiriman
                     </h3>
                   </div>
-                  <p className="text-xs opacity-60" style={{ color: C.text }}>
-                    Kamu berbelanja sebagai tamu. Isi data di bawah untuk menyelesaikan pesanan.
+                  <p className='text-xs opacity-60' style={{ color: C.text }}>
+                    Kamu berbelanja sebagai tamu. Isi data di bawah untuk
+                    menyelesaikan pesanan.
                   </p>
                 </div>
 
-                <Field label="Nama Lengkap" error={formErrors.customer_name}>
+                <Field label='Nama Lengkap' error={formErrors.customer_name}>
                   <InputBase
-                    name="customer_name"
+                    name='customer_name'
                     value={guestForm.customer_name}
                     onChange={handleFormChange}
-                    placeholder="Dewi Sartika"
+                    placeholder='Dewi Sartika'
                     error={formErrors.customer_name}
                   />
                 </Field>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Email" error={formErrors.customer_email}>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <Field label='Email' error={formErrors.customer_email}>
                     <InputBase
-                      name="customer_email"
-                      type="email"
+                      name='customer_email'
+                      type='email'
                       value={guestForm.customer_email}
                       onChange={handleFormChange}
-                      placeholder="email@contoh.com"
+                      placeholder='email@contoh.com'
                       error={formErrors.customer_email}
                     />
                   </Field>
-                  <Field label="Nomor HP" error={formErrors.customer_phone}>
+                  <Field label='Nomor HP' error={formErrors.customer_phone}>
                     <InputBase
-                      name="customer_phone"
+                      name='customer_phone'
                       value={guestForm.customer_phone}
                       onChange={handleFormChange}
-                      placeholder="081234567890"
+                      placeholder='081234567890'
                       error={formErrors.customer_phone}
                     />
                   </Field>
@@ -704,28 +725,28 @@ export default function CartPage() {
 
                 {/* Map picker */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className='flex items-center justify-between mb-2'>
                     <label
-                      className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1"
+                      className='text-xs font-semibold uppercase tracking-wider flex items-center gap-1'
                       style={{ color: formErrors.city ? "#e53e3e" : C.mid }}
                     >
                       Lokasi di Peta
                       {coordinate && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                        <CheckCircle2 className='w-3.5 h-3.5 text-green-500' />
                       )}
                       {formErrors.city && (
-                        <span className="font-normal normal-case ml-1 text-red-500">
+                        <span className='font-normal normal-case ml-1 text-red-500'>
                           — {formErrors.city}
                         </span>
                       )}
                     </label>
                     <button
-                      type="button"
-                      onClick={() => setShowMap((v) => !v)}
-                      className="flex items-center gap-1 text-xs font-medium underline transition-opacity hover:opacity-70"
+                      type='button'
+                      onClick={() => setShowMap(v => !v)}
+                      className='flex items-center gap-1 text-xs font-medium underline transition-opacity hover:opacity-70'
                       style={{ color: C.accent }}
                     >
-                      <MapPin className="w-3 h-3" />
+                      <MapPin className='w-3 h-3' />
                       {showMap ? "Sembunyikan Peta" : "Pilih dari Peta"}
                     </button>
                   </div>
@@ -735,102 +756,106 @@ export default function CartPage() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
+                        className='overflow-hidden'
                       >
                         <Map
                           isLoading={mapGeoLoading}
                           onSelect={() => setMapGeoLoading(true)}
                           onGeocode={handleMapGeocode}
                         />
-                        <p className="mt-1.5 text-xs opacity-50" style={{ color: C.text }}>
-                          Klik pada peta untuk mengisi otomatis kota, provinsi, dan jalan.
+                        <p
+                          className='mt-1.5 text-xs opacity-50'
+                          style={{ color: C.text }}
+                        >
+                          Klik pada peta untuk mengisi otomatis kota, provinsi,
+                          dan jalan.
                         </p>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
 
-                <Field label="Alamat Jalan">
+                <Field label='Alamat Jalan'>
                   <InputBase
-                    name="street"
+                    name='street'
                     value={guestForm.street}
                     onChange={handleFormChange}
-                    placeholder="Jl. Mawar No. 5 (terisi otomatis dari peta)"
+                    placeholder='Jl. Mawar No. 5 (terisi otomatis dari peta)'
                   />
                 </Field>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Kelurahan / Desa">
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <Field label='Kelurahan / Desa'>
                     <InputBase
-                      name="village"
+                      name='village'
                       value={guestForm.village}
                       onChange={handleFormChange}
-                      placeholder="Terisi otomatis dari peta"
+                      placeholder='Terisi otomatis dari peta'
                     />
                   </Field>
-                  <Field label="Kecamatan">
+                  <Field label='Kecamatan'>
                     <InputBase
-                      name="district"
+                      name='district'
                       value={guestForm.district}
                       onChange={handleFormChange}
-                      placeholder="Terisi otomatis dari peta"
+                      placeholder='Terisi otomatis dari peta'
                     />
                   </Field>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <Field label="Kota / Kabupaten" error={formErrors.city}>
+                <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
+                  <Field label='Kota / Kabupaten' error={formErrors.city}>
                     <InputBase
-                      name="city"
+                      name='city'
                       value={guestForm.city}
                       onChange={handleFormChange}
-                      placeholder="Yogyakarta"
+                      placeholder='Yogyakarta'
                       error={formErrors.city}
                     />
                   </Field>
-                  <Field label="Provinsi">
+                  <Field label='Provinsi'>
                     <InputBase
-                      name="province"
+                      name='province'
                       value={guestForm.province}
                       onChange={handleFormChange}
-                      placeholder="DI Yogyakarta"
+                      placeholder='DI Yogyakarta'
                     />
                   </Field>
-                  <Field label="Kode Pos" error={formErrors.postal_code}>
+                  <Field label='Kode Pos' error={formErrors.postal_code}>
                     <InputBase
-                      name="postal_code"
+                      name='postal_code'
                       value={guestForm.postal_code}
                       onChange={handleFormChange}
-                      placeholder="55281"
+                      placeholder='55281'
                       error={formErrors.postal_code}
                     />
                   </Field>
                 </div>
 
-                <Field label="Keterangan Pengantaran">
+                <Field label='Keterangan Pengantaran'>
                   <InputBase
-                    name="delivery_notes"
+                    name='delivery_notes'
                     value={guestForm.delivery_notes}
                     onChange={handleFormChange}
-                    placeholder="cth: Rumah No. 5A, pagar besi warna hijau, depan warung"
+                    placeholder='cth: Rumah No. 5A, pagar besi warna hijau, depan warung'
                   />
                 </Field>
 
-                <Field label="Metode Pembayaran">
+                <Field label='Metode Pembayaran'>
                   <select
-                    name="payment_method"
+                    name='payment_method'
                     value={guestForm.payment_method}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2.5 text-sm outline-none appearance-none rounded-sm transition-colors"
+                    className='w-full px-3 py-2.5 text-sm outline-none appearance-none rounded-sm transition-colors'
                     style={{
                       border: `1px solid ${C.border}`,
                       backgroundColor: C.bgCard,
-                      color: C.text,
+                      color: C.text
                     }}
                   >
-                    <option value="bank_transfer">Transfer Bank</option>
-                    <option value="cod">Bayar di Tempat (COD)</option>
-                    <option value="e_wallet">E-Wallet</option>
+                    <option value='bank_transfer'>Transfer Bank</option>
+                    <option value='cod'>Bayar di Tempat (COD)</option>
+                    <option value='e_wallet'>E-Wallet</option>
                   </select>
                 </Field>
               </motion.div>
@@ -838,23 +863,26 @@ export default function CartPage() {
           </div>
 
           {/* Right column: address + order summary */}
-          <div className="lg:w-72 flex-shrink-0 space-y-4">
+          <div className='lg:w-72 flex-shrink-0 space-y-4'>
             {/* Address picker (logged-in only) */}
             {!isGuest && !loading && items.length > 0 && (
               <div
-                className="p-5 rounded-md space-y-4"
-                style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
+                className='p-5 rounded-md space-y-4'
+                style={{
+                  border: `1px solid ${C.border}`,
+                  backgroundColor: C.bgCard
+                }}
               >
-                <div className="flex items-center justify-between">
+                <div className='flex items-center justify-between'>
                   <h3
-                    className="text-sm font-bold"
+                    className='text-sm font-bold'
                     style={{ fontFamily: "'Georgia', serif", color: C.text }}
                   >
                     Alamat Pengiriman
                   </h3>
                   <Link
-                    href="/dashboard/addresses"
-                    className="text-xs underline flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
+                    href='/dashboard/addresses'
+                    className='text-xs underline flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity'
                     style={{ color: C.accent }}
                   >
                     <Plus size={12} /> Tambah
@@ -862,63 +890,82 @@ export default function CartPage() {
                 </div>
 
                 {addressesLoading ? (
-                  <div className="space-y-2">
-                    {[1, 2].map((i) => (
+                  <div className='space-y-2'>
+                    {[1, 2].map(i => (
                       <div
                         key={i}
-                        className="h-16 animate-pulse rounded-sm"
+                        className='h-16 animate-pulse rounded-sm'
                         style={{ backgroundColor: C.border }}
                       />
                     ))}
                   </div>
                 ) : addresses.length === 0 ? (
-                  <div className="text-center py-4 opacity-60 text-xs" style={{ color: C.text }}>
+                  <div
+                    className='text-center py-4 opacity-60 text-xs'
+                    style={{ color: C.text }}
+                  >
                     Belum ada alamat tersimpan.{" "}
-                    <Link href="/dashboard/addresses" className="underline" style={{ color: C.accent }}>
+                    <Link
+                      href='/dashboard/addresses'
+                      className='underline'
+                      style={{ color: C.accent }}
+                    >
                       Tambah sekarang
                     </Link>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    {addresses.map((addr) => (
+                  <div className='space-y-2'>
+                    {addresses.map(addr => (
                       <label
                         key={addr.id}
-                        className="flex items-start gap-3 p-3 rounded-sm cursor-pointer transition-all"
+                        className='flex items-start gap-3 p-3 rounded-sm cursor-pointer transition-all'
                         style={{
                           border: `1px solid ${selectedAddressId === addr.id ? C.accent : C.border}`,
                           backgroundColor:
-                            selectedAddressId === addr.id ? C.accent + "0a" : "transparent",
+                            selectedAddressId === addr.id
+                              ? C.accent + "0a"
+                              : "transparent"
                         }}
                       >
                         <input
-                          type="radio"
-                          name="address"
+                          type='radio'
+                          name='address'
                           checked={selectedAddressId === addr.id}
                           onChange={() => setSelectedAddressId(addr.id)}
-                          className="mt-0.5 accent-current"
+                          className='mt-0.5 accent-current'
                           style={{ accentColor: C.accent }}
                         />
-                        <div className="flex-1 text-xs" style={{ color: C.text }}>
-                          <div className="font-semibold mb-0.5 flex items-center gap-1.5">
+                        <div
+                          className='flex-1 text-xs'
+                          style={{ color: C.text }}
+                        >
+                          <div className='font-semibold mb-0.5 flex items-center gap-1.5'>
                             {addr.recipient_name || "—"}
                             {addr.is_default && (
                               <span
-                                className="text-xs px-1.5 py-0.5 rounded-full"
-                                style={{ backgroundColor: C.accent + "22", color: C.accent }}
+                                className='text-xs px-1.5 py-0.5 rounded-full'
+                                style={{
+                                  backgroundColor: C.accent + "22",
+                                  color: C.accent
+                                }}
                               >
                                 Utama
                               </span>
                             )}
                           </div>
-                          <div className="opacity-70 leading-snug">
+                          <div className='opacity-70 leading-snug'>
                             {addr.street}, {addr.village}, {addr.district},{" "}
                             {addr.city}, {addr.province} {addr.postal_code}
                           </div>
                           {addr.phone && (
-                            <div className="opacity-60 mt-0.5">{addr.phone}</div>
+                            <div className='opacity-60 mt-0.5'>
+                              {addr.phone}
+                            </div>
                           )}
                           {addr.notes && (
-                            <div className="opacity-50 mt-0.5 italic">{addr.notes}</div>
+                            <div className='opacity-50 mt-0.5 italic'>
+                              {addr.notes}
+                            </div>
                           )}
                         </div>
                       </label>
@@ -930,31 +977,38 @@ export default function CartPage() {
 
             {/* Order summary */}
             <div
-              className="p-6 rounded-md sticky top-24"
-              style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
+              className='p-6 rounded-md sticky top-24'
+              style={{
+                border: `1px solid ${C.border}`,
+                backgroundColor: C.bgCard
+              }}
             >
               <h3
-                className="text-base font-bold mb-5"
+                className='text-base font-bold mb-5'
                 style={{ fontFamily: "'Georgia', serif", color: C.text }}
               >
                 Ringkasan Pesanan
               </h3>
 
-              <div className="space-y-3 mb-5 text-sm" style={{ color: C.text }}>
-                <div className="flex justify-between">
-                  <span className="opacity-70">Subtotal ({totalItems} item)</span>
+              <div className='space-y-3 mb-5 text-sm' style={{ color: C.text }}>
+                <div className='flex justify-between'>
+                  <span className='opacity-70'>
+                    Subtotal ({totalItems} item)
+                  </span>
                   <span>{formatRupiah(subtotal)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="opacity-70">Ongkos Kirim</span>
+                <div className='flex justify-between'>
+                  <span className='opacity-70'>Ongkos Kirim</span>
                   <span>{formatRupiah(shippingCost)}</span>
                 </div>
                 <div
-                  className="pt-3 flex justify-between font-bold text-base"
+                  className='pt-3 flex justify-between font-bold text-base'
                   style={{ borderTop: `1px solid ${C.border}` }}
                 >
                   <span>Total</span>
-                  <span style={{ color: C.accent }}>{formatRupiah(grandTotal)}</span>
+                  <span style={{ color: C.accent }}>
+                    {formatRupiah(grandTotal)}
+                  </span>
                 </div>
               </div>
 
@@ -963,33 +1017,37 @@ export default function CartPage() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleCheckout}
                 disabled={checkoutLoading}
-                className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold rounded-sm transition-opacity"
+                className='w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold rounded-sm transition-opacity'
                 style={{
                   backgroundColor: C.accent,
                   color: C.textLight,
-                  opacity: checkoutLoading ? 0.7 : 1,
+                  opacity: checkoutLoading ? 0.7 : 1
                 }}
               >
                 {checkoutLoading ? (
                   <>
-                    <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <span className='inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin' />
                     Memproses...
                   </>
                 ) : (
                   <>
                     {isGuest ? "Checkout sebagai Tamu" : "Checkout"}
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className='w-4 h-4' />
                   </>
                 )}
               </motion.button>
 
               {isGuest && (
                 <p
-                  className="mt-3 text-xs text-center opacity-60"
+                  className='mt-3 text-xs text-center opacity-60'
                   style={{ color: C.text }}
                 >
                   Punya akun?{" "}
-                  <Link href="/login" className="underline font-medium" style={{ color: C.accent }}>
+                  <Link
+                    href='/login'
+                    className='underline font-medium'
+                    style={{ color: C.accent }}
+                  >
                     Login dulu
                   </Link>
                 </p>
@@ -997,7 +1055,7 @@ export default function CartPage() {
 
               <button
                 onClick={() => router.push("/")}
-                className="w-full mt-3 py-2.5 text-xs font-medium text-center rounded-sm transition-colors hover:opacity-80"
+                className='w-full mt-3 py-2.5 text-xs font-medium text-center rounded-sm transition-colors hover:opacity-80'
                 style={{ border: `1px solid ${C.border}`, color: C.accent }}
               >
                 Lanjut Belanja
