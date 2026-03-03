@@ -64,7 +64,7 @@ async function createMidtransTransaction({
 
   const payload = {
     transaction_details: {
-      order_id: `${orderId}-${Date.now()}`,
+      order_id: orderId,
       gross_amount: totalPrice,
     },
     customer_details: {
