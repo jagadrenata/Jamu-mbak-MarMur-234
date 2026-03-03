@@ -89,7 +89,7 @@ export async function PATCH(request) {
       .eq("user_id", user.id);
   }
 
-  const allowed = ["name", "address", "is_default", "phone", "coords"];
+  const allowed = ["name", "address", "is_default", "phone", "coordinates"];
   const updates = Object.fromEntries(
     Object.entries(body).filter(([k]) => allowed.includes(k))
   );

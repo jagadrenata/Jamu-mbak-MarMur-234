@@ -49,7 +49,7 @@ export default function FeedbacksPage() {
           <div className="relative flex-1 max-w-sm">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-cream-500"
+              className="w-full pl-9 pr-3 py-2 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-cream-500"
               placeholder="Cari feedback..."
               value={search}
               onChange={e => { setSearch(e.target.value); setOffset(0); }}
@@ -99,12 +99,12 @@ export default function FeedbacksPage() {
             </div>
             <div>
               <p className="text-gray-500 mb-1">Pesan:</p>
-              <p className="text-gray-900 p-3 bg-cream-50 rounded">{modal.message}</p>
+              <p className="text-gray-900 p-3 bg-cream-50 ">{modal.message}</p>
             </div>
             {modal.screenshot_url && (
               <div>
                 <p className="text-gray-500 mb-1">Screenshot:</p>
-                <img src={modal.screenshot_url} alt="Screenshot" className="max-w-full rounded border border-gray-200" />
+                <img src={modal.screenshot_url} alt="Screenshot" className="max-w-full  border border-gray-200" />
               </div>
             )}
           </div>

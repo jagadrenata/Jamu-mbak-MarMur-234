@@ -8,10 +8,12 @@ import {
   ShoppingCart,
   ClipboardList,
   Menu,
-  X
+  X,
+  Loader2
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export const C = {
   bg: "#F5F0E8",
@@ -26,22 +28,80 @@ export const C = {
 };
 
 const navItems = [
-  { label: "Products", href: "/", icon: <ShoppingBag className='w-5 h-5' /> },
-  {
-    label: "Cart",
-    href: "/cart",
-    icon: <ShoppingCart className='w-5 h-5' />
-  },
+  { label: "Products", href: "/", icon: <ShoppingBag className="w-5 h-5" /> },
+  { label: "Cart", href: "/cart", icon: <ShoppingCart className="w-5 h-5" /> },
   {
     label: "My Orders",
     href: "/orders",
-    icon: <ClipboardList className='w-5 h-5' />
+    icon: <ClipboardList className="w-5 h-5" />
   }
 ];
+
+function AuthButtons({ user, loading, mobile = false, onClose }) {
+  const baseClass = mobile
+    ? "w-full text-center py-2.5 text-sm font-medium"
+    : "px-4 py-2 text-sm font-medium transition-colors";
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2" style={{ color: C.mid }}>
+        <Loader2 className="w-4 h-4 animate-spin" />
+        {mobile && <span className="text-sm">Memuat...</span>}
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <Link
+        href="/dashboard"
+        className={`${baseClass} flex items-center justify-center gap-2`}
+        style={{ backgroundColor: C.accent, color: C.textLight }}
+        onClick={onClose}
+      >
+        Dashboard
+      </Link>
+    );
+  }
+
+  return (
+    <>
+      <Link
+        href="/login"
+        className={baseClass}
+        style={
+          mobile
+            ? { border: `1px solid ${C.border}`, color: C.accent }
+            : { color: C.accent }
+        }
+        onClick={onClose}
+      >
+        Login
+      </Link>
+      <Link
+        href="/signup"
+        className={baseClass}
+        style={{ backgroundColor: C.accent, color: C.textLight }}
+        onClick={onClose}
+      >
+        Sign Up
+      </Link>
+    </>
+  );
+}
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+
+  const { user, loading, fetchUser } = useAuthStore();
+
+  // Fetch sekali saat Navbar pertama mount.
+  // Karena state ada di Zustand (module scope), kalau user navigasi
+  // ke page lain dan Navbar re-mount, hasFetched = true → tidak fetch ulang.
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const sidebarVariants = {
     hidden: { x: "100%" },
@@ -59,13 +119,14 @@ export default function Navbar() {
           backgroundColor: C.bg,
           borderBottom: `1px solid ${C.border}`
         }}
-        className='relative w-full px-5 sm:px-8'
+        className="relative w-full px-5 sm:px-8"
       >
-        <div className='max-w-7xl mx-auto flex items-center justify-between h-16'>
-          <Link href='/' className='flex items-center gap-2'>
-            <Image src='/logo.webp' alt='logo' width={6 * 8} height={6 * 8} />
+        <div className="max-w-7xl mx-auto flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/logo.webp" alt="logo" width={48} height={48} />
             <span
-              className='text-lg font-bold'
+              className="text-lg font-bold"
               style={{
                 fontFamily: "'Georgia', serif",
                 letterSpacing: "-0.5px",
@@ -76,86 +137,61 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop auth buttons only */}
-          <div className='hidden md:flex items-center gap-3'>
-            <Link
-              href='/login'
-              className='px-4 py-2 text-sm font-medium transition-colors'
-              style={{ color: C.accent }}
-            >
-              Login
-            </Link>
-            <Link
-              href='/signup'
-              className='px-4 py-2 text-sm font-medium  transition-colors'
-              style={{
-                backgroundColor: C.accent,
-                color: C.textLight
-              }}
-            >
-              Sign Up
-            </Link>
+          {/* Desktop auth buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            <AuthButtons user={user} loading={loading} />
           </div>
 
-          {/* Mobile: cart icon + hamburger */}
-          <div className='md:hidden flex items-center gap-1'>
-            <Link href='/cart' className='p-2 ' style={{ color: C.accent }}>
-              <ShoppingCart className='w-6 h-6' />
+          {/* Mobile: cart + hamburger */}
+          <div className="md:hidden flex items-center gap-1">
+            <Link href="/cart" className="p-2" style={{ color: C.accent }}>
+              <ShoppingCart className="w-6 h-6" />
             </Link>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className='p-2 '
+              className="p-2"
               style={{ color: C.accent }}
               onClick={() => setOpen(true)}
             >
-              <Menu className='w-6 h-6' />
+              <Menu className="w-6 h-6" />
             </motion.button>
           </div>
         </div>
       </header>
 
-      {/* Mobile sidebar */}
+      {/* Mobile Sidebar */}
       <AnimatePresence>
         {open && (
           <>
             <motion.div
-              className='fixed inset-0 bg-black z-40 md:hidden'
+              className="fixed inset-0 bg-black z-40 md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.4 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
             />
             <motion.div
-              className='fixed inset-y-0 right-0 z-50 w-72 md:hidden flex flex-col'
+              className="fixed inset-y-0 right-0 z-50 w-72 md:hidden flex flex-col"
               style={{
                 backgroundColor: C.bg,
                 boxShadow: `-4px 0 24px rgba(44,24,16,0.2)`
               }}
               variants={sidebarVariants}
-              initial='hidden'
-              animate='visible'
-              exit='exit'
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
+              {/* Sidebar Header */}
               <div
-                className='p-6 flex justify-between items-center'
-                style={{
-                  borderBottom: `1px solid ${C.border}`
-                }}
+                className="p-6 flex justify-between items-center"
+                style={{ borderBottom: `1px solid ${C.border}` }}
               >
                 <span
-                  className='font-bold flex items-center'
-                  style={{
-                    fontFamily: "'Georgia', serif",
-                    color: C.text
-                  }}
+                  className="font-bold flex items-center gap-2"
+                  style={{ fontFamily: "'Georgia', serif", color: C.text }}
                 >
-                  <Image
-                    src='/logo.webp'
-                    alt='logo'
-                    width={4 * 8}
-                    height={4 * 8}
-                  />
+                  <Image src="/logo.webp" alt="logo" width={32} height={32} />
                   jamu mbak <span style={{ color: C.accent }}>MarMur</span>
                 </span>
                 <motion.button
@@ -164,34 +200,27 @@ export default function Navbar() {
                   onClick={() => setOpen(false)}
                   style={{ color: C.accent }}
                 >
-                  <X className='w-6 h-6' />
+                  <X className="w-6 h-6" />
                 </motion.button>
               </div>
 
-              {/* Nav items in mobile sidebar */}
-              <nav className='flex-1 px-6 py-8 space-y-2'>
+              {/* Nav Items */}
+              <nav className="flex-1 px-6 py-8 space-y-2">
                 {navItems.map(({ label, href, icon }) => {
                   const isActive = pathname === href;
                   return (
                     <Link
                       key={label}
                       href={href}
-                      className='flex items-center gap-3 px-4 py-3  text-base font-medium transition-colors'
+                      className="flex items-center gap-3 px-4 py-3 text-base font-medium transition-colors"
                       style={
                         isActive
-                          ? {
-                              backgroundColor: C.accent,
-                              color: C.textLight
-                            }
+                          ? { backgroundColor: C.accent, color: C.textLight }
                           : { color: C.accent }
                       }
                       onClick={() => setOpen(false)}
                     >
-                      <span
-                        style={{
-                          color: isActive ? C.textLight : C.mid
-                        }}
-                      >
+                      <span style={{ color: isActive ? C.textLight : C.mid }}>
                         {icon}
                       </span>
                       {label}
@@ -200,32 +229,17 @@ export default function Navbar() {
                 })}
               </nav>
 
+              {/* Mobile Auth Buttons */}
               <div
-                className='px-6 py-6 flex flex-col gap-3'
+                className="px-6 py-6 flex flex-col gap-3"
                 style={{ borderTop: `1px solid ${C.border}` }}
               >
-                <Link
-                  href='/login'
-                  className='w-full text-center py-2.5  text-sm font-medium'
-                  style={{
-                    border: `1px solid ${C.border}`,
-                    color: C.accent
-                  }}
-                  onClick={() => setOpen(false)}
-                >
-                  Login
-                </Link>
-                <Link
-                  href='/signup'
-                  className='w-full text-center py-2.5  text-sm font-medium'
-                  style={{
-                    backgroundColor: C.accent,
-                    color: C.textLight
-                  }}
-                  onClick={() => setOpen(false)}
-                >
-                  Sign Up
-                </Link>
+                <AuthButtons
+                  user={user}
+                  loading={loading}
+                  mobile
+                  onClose={() => setOpen(false)}
+                />
               </div>
             </motion.div>
           </>

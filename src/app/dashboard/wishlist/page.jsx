@@ -34,7 +34,7 @@ export default function WishlistPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {items.map(item => (
-            <div key={item.product_id} className="bg-cream-100 rounded shadow-sm overflow-hidden">
+            <div key={item.product_id} className="bg-cream-100  shadow-sm overflow-hidden">
               {item.product?.primary_image && (
                 <img src={item.product.primary_image} alt={item.product.name} className="w-full h-48 object-cover" />
               )}
@@ -46,7 +46,7 @@ export default function WishlistPage() {
                 </p>
                 <div className="flex gap-2 mt-3">
                   <Button size="sm" className="flex-1">Beli Sekarang</Button>
-                  <button onClick={() => remove(item.product_id)} className="p-2 text-red-400 hover:text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors">
+                  <button onClick={() => remove(item.product_id)} className="p-2 text-red-400 hover:text-red-600 bg-red-50  hover:bg-red-100 transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>

@@ -19,6 +19,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Navbar, { C } from "@/components/Navbar";
 import HeroSlider from "@/components/HeroSlider";
+import { Sidebar } from "@/components/PublicLayout";
 import { useGuestCartStore } from "@/store/useGuestCartStore";
 
 const navItems = [
@@ -163,40 +164,8 @@ export default function ProductDetailPage() {
 
       <div className="px-5 sm:px-8 py-10 md:py-12 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* ── Sidebar — identik dengan homepage ── */}
-          <aside className="md:w-44 lg:w-48 flex-shrink-0">
-            <div className="hidden md:block sticky top-24 space-y-6">
-              <div>
-                <p
-                  className="text-xs font-semibold uppercase tracking-widest mb-2 px-1"
-                  style={{ color: C.mid }}
-                >
-                  Menu
-                </p>
-                <ul className="space-y-1">
-                  {navItems.map(({ label, href, icon }) => {
-                    const isActive = pathname === href;
-                    return (
-                      <li key={label}>
-                        <Link
-                          href={href}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
-                          style={
-                            isActive
-                              ? { backgroundColor: C.accent, color: C.textLight }
-                              : { color: C.accent }
-                          }
-                        >
-                          <span style={{ color: isActive ? C.textLight : C.mid }}>{icon}</span>
-                          {label}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-              <div style={{ borderTop: `1px solid ${C.border}` }} />
-            </div>
+          {/*  Sidebar  */}
+          <Sidebar pathname />
 
             {/* Mobile: back link */}
             <div className="md:hidden mb-6">
@@ -209,9 +178,8 @@ export default function ProductDetailPage() {
                 Kembali ke Produk
               </button>
             </div>
-          </aside>
-
-          {/* ── Main content ── */}
+            
+          {/*  Main content  */}
           <div className="flex-1">
             {loading ? (
               /* Skeleton */
@@ -262,7 +230,7 @@ export default function ProductDetailPage() {
                 </div>
 
             <div className="flex flex-col lg:flex-row gap-10">
-              {/* ── Image section ── */}
+              {/*  Image section  */}
               <div className="lg:w-[48%]">
                 {/* Main image */}
                 <motion.div
@@ -320,7 +288,7 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* ── Info section ── */}
+              {/*  Info section  */}
               <div className="lg:w-[52%] flex flex-col gap-5">
                 {/* Name */}
                 <h1

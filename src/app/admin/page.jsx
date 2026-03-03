@@ -76,7 +76,7 @@ export default function AdminDashboard() {
     for (let d = 1; d <= daysInMonth; d++) {
       const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
       days.push(
-        <div key={d} className={`p-2 text-center rounded text-sm cursor-pointer transition-colors ${isToday ? 'bg-cream-700 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+        <div key={d} className={`p-2 text-center  text-sm cursor-pointer transition-colors ${isToday ? 'bg-cream-700 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
           {d}
         </div>
       );
@@ -97,9 +97,9 @@ export default function AdminDashboard() {
             {statCards.map((s, i) => {
               const Icon = s.icon;
               return (
-                <div key={i} className="bg-cream-100 rounded shadow-sm p-6 hover:shadow-md transition-shadow">
+                <div key={i} className="bg-cream-100  shadow-sm p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="bg-cream-700 p-3 rounded">
+                    <div className="bg-cream-700 p-3 ">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     <div className={`flex items-center text-sm font-medium ${s.pos ? 'text-green-600' : 'text-red-600'}`}>
@@ -115,10 +115,10 @@ export default function AdminDashboard() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div className="lg:col-span-2 bg-cream-100 rounded shadow-sm p-6">
+            <div className="lg:col-span-2 bg-cream-100  shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Statistik Pengunjung</h2>
-                <select className="px-4 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-cream-500">
+                <select className="px-4 py-2 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-cream-500">
                   <option>7 Hari Terakhir</option>
                   <option>30 Hari Terakhir</option>
                 </select>
@@ -135,14 +135,14 @@ export default function AdminDashboard() {
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-cream-100 rounded shadow-sm p-6">
+            <div className="bg-cream-100  shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900">Kalender</h2>
               </div>
               <div className="flex items-center justify-between mb-4">
-                <button onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1))} className="p-2 hover:bg-gray-100 rounded transition-colors">←</button>
+                <button onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1))} className="p-2 hover:bg-gray-100  transition-colors">←</button>
                 <span className="font-semibold text-gray-900 text-sm">{monthNames[selectedDate.getMonth()]} {selectedDate.getFullYear()}</span>
-                <button onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1))} className="p-2 hover:bg-gray-100 rounded transition-colors">→</button>
+                <button onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1))} className="p-2 hover:bg-gray-100  transition-colors">→</button>
               </div>
               <div className="grid grid-cols-7 gap-1 text-xs mb-2">
                 {['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(d => (
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div className="bg-cream-100 rounded shadow-sm p-6">
+            <div className="bg-cream-100  shadow-sm p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Penjualan (6 Bulan Terakhir)</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={salesData}>
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-cream-100 rounded shadow-sm p-6">
+            <div className="bg-cream-100  shadow-sm p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Sumber Traffic</h2>
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-2 gap-3 mt-3">
                 {trafficData.map((item, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i] }} />
+                    <div className="w-3 h-3 -full" style={{ backgroundColor: COLORS[i] }} />
                     <span className="text-sm text-gray-600">{item.name}: {item.value}</span>
                   </div>
                 ))}
@@ -189,21 +189,21 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-cream-100 rounded shadow-sm p-6">
+          <div className="bg-cream-100  shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Pesanan Terbaru</h2>
               <TrendingUp className="w-5 h-5 text-gray-400" />
             </div>
             <div className="space-y-3">
               {stats?.recentOrders?.map(order => (
-                <div key={order.id} className="flex items-center justify-between p-4 hover:bg-cream-200 rounded transition-colors">
+                <div key={order.id} className="flex items-center justify-between p-4 hover:bg-cream-200  transition-colors">
                   <div>
                     <p className="font-medium text-gray-900 font-mono text-sm">{order.id}</p>
                     <p className="text-sm text-gray-500">{order.customer_name} • {new Date(order.created_at).toLocaleDateString('id-ID')}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-gray-900">Rp {(order.final_price || 0).toLocaleString('id-ID')}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded font-medium ${order.status === 'completed' ? 'bg-green-100 text-green-700' : order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
+                    <span className={`text-xs px-2 py-0.5  font-medium ${order.status === 'completed' ? 'bg-green-100 text-green-700' : order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
                       {order.status_label || order.status}
                     </span>
                   </div>

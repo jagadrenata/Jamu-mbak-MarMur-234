@@ -67,11 +67,11 @@ export default function CartPage() {
                   <Td>Rp {(item.variant?.price || 0).toLocaleString('id-ID')}</Td>
                   <Td>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => updateQty(item.id, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center bg-cream-200 rounded hover:bg-cream-300">
+                      <button onClick={() => updateQty(item.id, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center bg-cream-200  hover:bg-cream-300">
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="w-8 text-center font-medium">{item.quantity}</span>
-                      <button onClick={() => updateQty(item.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center bg-cream-200 rounded hover:bg-cream-300">
+                      <button onClick={() => updateQty(item.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center bg-cream-200  hover:bg-cream-300">
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
@@ -86,7 +86,7 @@ export default function CartPage() {
               ))}
             </Table>
             <div className="mt-6 flex justify-end">
-              <div className="bg-cream-50 rounded p-4 min-w-48">
+              <div className="bg-cream-50  p-4 min-w-48">
                 <div className="flex justify-between font-bold text-gray-900 text-lg">
                   <span>Total</span>
                   <span>Rp {subtotal.toLocaleString('id-ID')}</span>
