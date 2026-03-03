@@ -27,53 +27,108 @@ function idgenerator() {
   return result;
 }
 
-async function createMidtransTransaction({ orderId, totalPrice, user, items, address }) {
+
+async function createMidtransTransaction({
+  orderId,
+  totalPrice,
+  user,
+  items,
+  address,
+}) {
   const serverKey = process.env.MIDTRANS_SERVER_KEY;
   const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
+
+  if (!serverKey) {
+    throw new Error("Midtrans server key is missing");
+  }
+
   const baseUrl = isProduction
-    ? "https://app.midtrans.com/snap/v1/transactions"
-    : "https://app.sandbox.midtrans.com/snap/v1/transactions";
+    ? "https://api.midtrans.com/snap/v1/transactions"
+    : "https://api.sandbox.midtrans.com/snap/v1/transactions";
+
+  const calculatedTotal = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
+  if (calculatedTotal !== totalPrice) {
+    throw new Error(
+      `Invalid gross_amount. Expected ${calculatedTotal}, got ${totalPrice}`
+    );
+  }
 
   const payload = {
     transaction_details: {
-      order_id: orderId,
+      order_id: `${orderId}-${Date.now()}`,
       gross_amount: totalPrice,
     },
     customer_details: {
       first_name: user.user_metadata?.full_name ?? user.email,
       email: user.email,
       shipping_address: {
-        first_name: address.name,
-        address: address.address?.street ?? JSON.stringify(address.address),
-        city: address.address?.city ?? "",
-        postal_code: address.address?.postal_code ?? "",
+        first_name: address.name || "Customer",
+        address:
+          typeof address.address === "object"
+            ? address.address?.street || JSON.stringify(address.address)
+            : address.address,
+        city: address.address?.city || "",
+        postal_code: address.address?.postal_code || "",
         country_code: "IDN",
       },
     },
     item_details: items.map((item) => ({
       id: String(item.variant_id),
-      price: item.price,
-      quantity: item.quantity,
-      name: item.name ?? `Variant #${item.variant_id}`,
+      price: Number(item.price),
+      quantity: Number(item.quantity),
+      name: (item.name || `Variant ${item.variant_id}`).slice(0, 50), 
     })),
   };
 
+  const authString = Buffer.from(serverKey + ":").toString("base64");
+
+  console.log("MIDTRANS DEBUG:", {
+    baseUrl,
+    auth: authString,
+    payload,
+  });
+
   const response = await fetch(baseUrl, {
     method: "POST",
+    cache: "no-store", 
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Basic " + Buffer.from(serverKey + ":").toString("base64"),
+      Authorization: "Basic " + authString,
     },
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json();
+  const text = await response.text();
+  console.log("MIDTRANS RAW RESPONSE:", text);
 
-  if (!response.ok) {
-    throw new Error(data?.error_messages?.[0] ?? "Midtrans error");
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error("Midtrans response bukan JSON");
   }
 
-  return { token: data.token, redirect_url: data.redirect_url };
+  if (!response.ok) {
+    console.error("MIDTRANS ERROR FULL:", data);
+    throw new Error(
+      data?.error_messages?.join(", ") ||
+        data?.status_message ||
+        "Midtrans error"
+    );
+  }
+
+  if (!data.token) {
+    throw new Error("Midtrans token tidak ada di response");
+  }
+
+  return {
+    token: data.token,
+    redirect_url: data.redirect_url,
+  };
 }
 
 export async function GET(request) {
@@ -214,6 +269,24 @@ export async function POST(request) {
   }
 
   const orderId = idgenerator();
+  let midtransToken = null;
+  let midtransUrl = null;
+
+  try {
+    const midtrans = await createMidtransTransaction({
+      orderId,
+      totalPrice: total_price,
+      user,
+      items: validatedItems,
+      address,
+    });
+
+    midtransToken = midtrans.token;
+    midtransUrl = midtrans.redirect_url;
+
+  } catch (midtransError) {
+    return err("Payment gateway error: " + midtransError.message, 502);
+  }
 
   const { data: newOrder, error: orderError } = await supabase
     .from("orders")
@@ -223,6 +296,7 @@ export async function POST(request) {
       address_id,
       total_price,
       status: "pending",
+      midtrans_token: midtransToken, midtrans_url: midtransUrl 
     })
     .select()
     .single();
@@ -246,30 +320,7 @@ export async function POST(request) {
     return err(itemsError.message, 500);
   }
 
-  let midtransToken = null;
-  let midtransUrl = null;
-
-  try {
-    const midtrans = await createMidtransTransaction({
-      orderId,
-      totalPrice: total_price,
-      user,
-      items: validatedItems,
-      address,
-    });
-
-    midtransToken = midtrans.token;
-    midtransUrl = midtrans.redirect_url;
-
-    await supabase
-      .from("orders")
-      .update({ midtrans_token: midtransToken, midtrans_url: midtransUrl })
-      .eq("id", orderId);
-  } catch (midtransError) {
-    await supabase.from("order_items").delete().eq("order_id", orderId);
-    await supabase.from("orders").delete().eq("id", orderId);
-    return err("Payment gateway error: " + midtransError.message, 502);
-  }
+  
 
   return ok(
     {

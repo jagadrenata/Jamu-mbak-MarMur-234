@@ -274,7 +274,7 @@ function OrderCard({ order, expandedId, setExpandedId }) {
             <div className="text-right">
               <p className="text-xs opacity-60 mb-0.5" style={{ color: C.text }}>Total Pembayaran</p>
               <p className="text-sm font-bold" style={{ color: C.accent }}>
-                {formatRupiah(order.final_price)}
+                {formatRupiah(order.total_price)}
               </p>
             </div>
             {isExpanded
@@ -337,25 +337,26 @@ function OrderCard({ order, expandedId, setExpandedId }) {
                 )}
                 <div className="flex justify-between font-bold pt-2" style={{ borderTop: `1px solid ${C.border}` }}>
                   <span>Total</span>
-                  <span style={{ color: C.accent }}>{formatRupiah(order.final_price)}</span>
+                  <span style={{ color: C.accent }}>{formatRupiah(order.total_price)}</span>
                 </div>
               </div>
 
               {/* Shipping address */}
-              {order.shipping_address && (
+              {order.address && (
                 <div className="text-xs opacity-60" style={{ color: C.text }}>
                   <p className="font-medium mb-0.5 opacity-100">Alamat Pengiriman</p>
                   <p>
-                    {order.shipping_address.street}, {order.shipping_address.city},{" "}
-                    {order.shipping_address.province} {order.shipping_address.postal_code}
+                    {typeof order.address.address === "object"
+                      ? [order.address.address?.street, order.address.address?.city, order.address.address?.province, order.address.address?.postal_code].filter(Boolean).join(", ")
+                      : order.address.address ?? order.address.name}
                   </p>
                 </div>
               )}
 
               {/* Pay now */}
-              {order.midtrans_payment_url && order.status === "pending" && (
+              {order.midtrans_url && order.status === "pending" && (
                 <a
-                  href={order.midtrans_payment_url}
+                  href={order.midtrans_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full text-center py-2.5 text-sm font-medium transition-colors"
