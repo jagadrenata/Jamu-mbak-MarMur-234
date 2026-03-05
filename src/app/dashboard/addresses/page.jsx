@@ -22,6 +22,7 @@ const Map = dynamic(() => import("@/components/Map"), {
 
 const emptyForm = {
   name: "",
+  recipient_name: "",
   phone: "",
   address: {
     street: "",
@@ -29,8 +30,7 @@ const emptyForm = {
     district: "",
     city: "",
     province: "",
-    postal_code: "",
-    detail: ""
+    postal_code: ""
   },
   notes: "",
   coordinates: null,
@@ -69,8 +69,15 @@ export default function AddressesPage() {
   }
 
   async function save() {
-    if (!form.name || !form.phone || !form.address.street) {
-      toast.warning("Nama, nomor HP, dan jalan wajib diisi");
+    if (
+      !form.name ||
+      !form.recipient_name ||
+      !form.phone ||
+      !form.address.street
+    ) {
+      toast.warning(
+        "Nama alamat, nama penerima, nomor HP, dan jalan wajib diisi"
+      );
       return;
     }
 
@@ -132,7 +139,6 @@ export default function AddressesPage() {
       const json = await res.json();
       const a = json?.address ?? {};
 
-      // Mapping Nominatim → form fields, hanya isi yang tersedia
       const patch = {};
       if (a.road) patch.street = a.road;
       if (a.village ?? a.hamlet ?? a.neighbourhood)
@@ -144,10 +150,7 @@ export default function AddressesPage() {
       if (a.province ?? a.state) patch.province = a.province ?? a.state;
       if (a.postcode) patch.postal_code = a.postcode;
 
-      setForm(f => ({
-        ...f,
-        address: { ...f.address, ...patch }
-      }));
+      setForm(f => ({ ...f, address: { ...f.address, ...patch } }));
 
       const filled = Object.keys(patch).length;
       if (filled > 0) {
@@ -185,6 +188,7 @@ export default function AddressesPage() {
         <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
           {items.map(item => (
             <Card key={item.id}>
+              {/* Header: label alamat + badge utama + aksi */}
               <div className='flex items-start justify-between mb-2'>
                 <div className='flex items-center gap-2'>
                   <h3 className='font-semibold text-gray-900'>{item.name}</h3>
@@ -194,7 +198,6 @@ export default function AddressesPage() {
                     </span>
                   )}
                 </div>
-
                 <div className='flex gap-2'>
                   {!item.is_default && (
                     <button
@@ -204,7 +207,6 @@ export default function AddressesPage() {
                       <Star className='w-4 h-4' />
                     </button>
                   )}
-
                   <button
                     onClick={() => remove(item.id)}
                     className='text-gray-400 hover:text-red-500'
@@ -214,7 +216,18 @@ export default function AddressesPage() {
                 </div>
               </div>
 
-              <p className='text-sm text-gray-600'>
+              {/* Penerima & HP */}
+              <p className='text-sm font-medium text-gray-800'>
+                {item.recipient_name}
+                {item.phone && (
+                  <span className='font-normal text-gray-500 ml-2'>
+                    · {item.phone}
+                  </span>
+                )}
+              </p>
+
+              {/* Baris alamat */}
+              <p className='text-sm text-gray-600 mt-0.5'>
                 {[
                   item.address?.street,
                   item.address?.village,
@@ -233,15 +246,10 @@ export default function AddressesPage() {
                   .join(", ")}
               </p>
 
+              {/* Catatan */}
               {item.notes && (
                 <p className='text-xs text-gray-400 mt-1 italic'>
                   Catatan: {item.notes}
-                </p>
-              )}
-
-              {item.coordinates && (
-                <p className='text-xs text-gray-400 mt-1'>
-                  Lat: {item.coordinates.lat}, Lng: {item.coordinates.lng}
                 </p>
               )}
             </Card>
@@ -265,72 +273,75 @@ export default function AddressesPage() {
         }
       >
         <div className='space-y-4'>
+          {/* Identitas */}
           <Input
-            label='Nama Alamat'
+            label='Label Alamat'
             value={form.name}
             onChange={e => setField("name", e.target.value)}
+            placeholder='Contoh: Rumah, Kantor'
           />
-
           <Input
-            label='Nomor HP'
+            label='Nama Penerima'
+            value={form.recipient_name}
+            onChange={e => setField("recipient_name", e.target.value)}
+            placeholder='Nama lengkap penerima paket'
+          />
+          <Input
+            label='Nomor HP Penerima'
             value={form.phone}
             onChange={e => setField("phone", e.target.value)}
             placeholder='08xxxxxxxxxx'
           />
 
+          {/* Peta */}
+          <div>
+            <p className='text-xs text-gray-500 mb-2'>
+              Klik peta untuk mengisi alamat otomatis
+            </p>
+            <Map onSelect={handleMapSelect} />
+          </div>
+
+          {/* Detail alamat */}
           <Input
             label='Jalan / No. Rumah'
             value={form.address.street}
             onChange={e => setAddrField("street", e.target.value)}
             placeholder='Jl. Contoh No. 123'
           />
-
           <Input
             label='Kelurahan / Desa'
             value={form.address.village}
             onChange={e => setAddrField("village", e.target.value)}
             placeholder='Nama Kelurahan/Desa'
           />
-
           <Input
             label='Kecamatan'
             value={form.address.district}
             onChange={e => setAddrField("district", e.target.value)}
             placeholder='Nama Kecamatan'
           />
-
           <Input
             label='Kota / Kabupaten'
             value={form.address.city}
             onChange={e => setAddrField("city", e.target.value)}
           />
-
           <Input
             label='Provinsi'
             value={form.address.province}
             onChange={e => setAddrField("province", e.target.value)}
           />
-
           <Input
             label='Kode Pos'
             value={form.address.postal_code}
             onChange={e => setAddrField("postal_code", e.target.value)}
             placeholder='12345'
           />
-
           <Input
             label='Catatan Pengiriman (opsional)'
             value={form.notes}
             onChange={e => setField("notes", e.target.value)}
             placeholder='Contoh: Rumah cat putih, pagar besi'
           />
-
-          <div>
-            <p className='text-xs text-gray-500 mb-2'>
-              Klik peta untuk memilih lokasi
-            </p>
-            <Map onSelect={handleMapSelect} />
-          </div>
 
           <label className='flex items-center gap-2 text-sm text-gray-700 cursor-pointer'>
             <input
