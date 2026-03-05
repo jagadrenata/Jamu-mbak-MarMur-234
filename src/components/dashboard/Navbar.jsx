@@ -12,7 +12,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 md:relative h-16 bg-cream-100 border-b border-gray-200 shadow-sm z-40">
+    <nav className="fixed top-0 left-0 right-0 md:relative h-16 bg-cream-100 border-b border-gray-200 shadow-sm z-30">
       <div className="flex items-center justify-between h-full px-4 md:px-8">
         {/* Left Side - Search/Title */}
         <div className="flex-1 flex items-center gap-4">

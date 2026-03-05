@@ -537,9 +537,12 @@ function AddressSelector({ value, onChange }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     street: "",
+    village: "",
+    district: "",
     city: "",
     province: "",
-    postal_code: ""
+    postal_code: "",
+    notes: ""
   });
 
   useEffect(() => {
@@ -552,9 +555,12 @@ function AddressSelector({ value, onChange }) {
   function handleSelect(addr) {
     onChange({
       street: addr.street,
+      village: addr.village,
+      district: addr.district,
       city: addr.city,
       province: addr.province,
-      postal_code: addr.postal_code
+      postal_code: addr.postal_code,
+      notes: addr.notes
     });
   }
 
@@ -570,7 +576,7 @@ function AddressSelector({ value, onChange }) {
       setAddresses(prev => [json.data, ...prev]);
       handleSelect(json.data);
       setShowForm(false);
-      setForm({ street: "", city: "", province: "", postal_code: "" });
+      setForm({ street: "", village: "", district: "", city: "", province: "", postal_code: "", notes: "" });
     }
   }
 
@@ -600,7 +606,9 @@ function AddressSelector({ value, onChange }) {
                   style={{ color: C.accent }}
                 />
                 <span>
-                  {addr.street}, {addr.city}, {addr.province} {addr.postal_code}
+                  {[addr.street, addr.village, addr.district, addr.city, addr.province, addr.postal_code]
+                    .filter(Boolean)
+                    .join(", ")}
                 </span>
               </button>
             );
@@ -619,13 +627,16 @@ function AddressSelector({ value, onChange }) {
         <form onSubmit={handleAddNew} className='space-y-2 pt-1'>
           {[
             { key: "street", placeholder: "Jalan / No. Rumah" },
-            { key: "city", placeholder: "Kota" },
+            { key: "village", placeholder: "Kelurahan / Desa" },
+            { key: "district", placeholder: "Kecamatan" },
+            { key: "city", placeholder: "Kota / Kabupaten" },
             { key: "province", placeholder: "Provinsi" },
-            { key: "postal_code", placeholder: "Kode Pos" }
-          ].map(({ key, placeholder }) => (
+            { key: "postal_code", placeholder: "Kode Pos" },
+            { key: "notes", placeholder: "Catatan Pengiriman (opsional)", required: false }
+          ].map(({ key, placeholder, required = true }) => (
             <input
               key={key}
-              required
+              required={required}
               value={form[key]}
               onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
               placeholder={placeholder}

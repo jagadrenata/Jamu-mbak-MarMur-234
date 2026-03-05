@@ -23,7 +23,16 @@ const Map = dynamic(() => import("@/components/Map"), {
 const emptyForm = {
   name: "",
   phone: "",
-  address: { province: "", city: "", detail: "" },
+  address: {
+    street: "",
+    village: "",
+    district: "",
+    city: "",
+    province: "",
+    postal_code: "",
+    detail: ""
+  },
+  notes: "",
   coordinates: null,
   is_default: false
 };
@@ -60,8 +69,8 @@ export default function AddressesPage() {
   }
 
   async function save() {
-    if (!form.name || !form.phone || !form.address.detail) {
-      toast.warning("Nama, nomor HP, dan detail alamat wajib diisi");
+    if (!form.name || !form.phone || !form.address.street) {
+      toast.warning("Nama, nomor HP, dan jalan wajib diisi");
       return;
     }
 
@@ -111,16 +120,44 @@ export default function AddressesPage() {
     }));
   }
 
-  function handleMapSelect(latlng) {
-    setForm(f => ({
-      ...f,
-      coordinates: latlng,
-      address: {
-        ...f.address,
-        detail: `${latlng.lat}, ${latlng.lng}`
+  async function handleMapSelect(latlng) {
+    setForm(f => ({ ...f, coordinates: latlng }));
+    toast.info("Mengambil data lokasi...");
+
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json&addressdetails=1`,
+        { headers: { "Accept-Language": "id" } }
+      );
+      const json = await res.json();
+      const a = json?.address ?? {};
+
+      // Mapping Nominatim → form fields, hanya isi yang tersedia
+      const patch = {};
+      if (a.road) patch.street = a.road;
+      if (a.village ?? a.hamlet ?? a.neighbourhood)
+        patch.village = a.village ?? a.hamlet ?? a.neighbourhood;
+      if (a.suburb ?? a.city_district)
+        patch.district = a.suburb ?? a.city_district;
+      if (a.city ?? a.regency ?? a.county)
+        patch.city = a.city ?? a.regency ?? a.county;
+      if (a.province ?? a.state) patch.province = a.province ?? a.state;
+      if (a.postcode) patch.postal_code = a.postcode;
+
+      setForm(f => ({
+        ...f,
+        address: { ...f.address, ...patch }
+      }));
+
+      const filled = Object.keys(patch).length;
+      if (filled > 0) {
+        toast.success(`${filled} field terisi otomatis dari peta`);
+      } else {
+        toast.warning("Lokasi dipilih, tapi data alamat tidak tersedia");
       }
-    }));
-    toast.info("Lokasi dipilih dari peta");
+    } catch {
+      toast.error("Gagal mengambil data lokasi");
+    }
   }
 
   return (
@@ -177,10 +214,30 @@ export default function AddressesPage() {
                 </div>
               </div>
 
-              <p className='text-sm text-gray-600'>{item.address?.detail}</p>
-              <p className='text-sm text-gray-500'>
-                {item.address?.city}, {item.address?.province}
+              <p className='text-sm text-gray-600'>
+                {[
+                  item.address?.street,
+                  item.address?.village,
+                  item.address?.district
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
               </p>
+              <p className='text-sm text-gray-500'>
+                {[
+                  item.address?.city,
+                  item.address?.province,
+                  item.address?.postal_code
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+
+              {item.notes && (
+                <p className='text-xs text-gray-400 mt-1 italic'>
+                  Catatan: {item.notes}
+                </p>
+              )}
 
               {item.coordinates && (
                 <p className='text-xs text-gray-400 mt-1'>
@@ -215,17 +272,6 @@ export default function AddressesPage() {
           />
 
           <Input
-            label='Provinsi'
-            value={form.address.province}
-            onChange={e => setAddrField("province", e.target.value)}
-          />
-
-          <Input
-            label='Kota'
-            value={form.address.city}
-            onChange={e => setAddrField("city", e.target.value)}
-          />
-          <Input
             label='Nomor HP'
             value={form.phone}
             onChange={e => setField("phone", e.target.value)}
@@ -233,9 +279,50 @@ export default function AddressesPage() {
           />
 
           <Input
-            label='Detail Alamat'
-            value={form.address.detail}
-            onChange={e => setAddrField("detail", e.target.value)}
+            label='Jalan / No. Rumah'
+            value={form.address.street}
+            onChange={e => setAddrField("street", e.target.value)}
+            placeholder='Jl. Contoh No. 123'
+          />
+
+          <Input
+            label='Kelurahan / Desa'
+            value={form.address.village}
+            onChange={e => setAddrField("village", e.target.value)}
+            placeholder='Nama Kelurahan/Desa'
+          />
+
+          <Input
+            label='Kecamatan'
+            value={form.address.district}
+            onChange={e => setAddrField("district", e.target.value)}
+            placeholder='Nama Kecamatan'
+          />
+
+          <Input
+            label='Kota / Kabupaten'
+            value={form.address.city}
+            onChange={e => setAddrField("city", e.target.value)}
+          />
+
+          <Input
+            label='Provinsi'
+            value={form.address.province}
+            onChange={e => setAddrField("province", e.target.value)}
+          />
+
+          <Input
+            label='Kode Pos'
+            value={form.address.postal_code}
+            onChange={e => setAddrField("postal_code", e.target.value)}
+            placeholder='12345'
+          />
+
+          <Input
+            label='Catatan Pengiriman (opsional)'
+            value={form.notes}
+            onChange={e => setField("notes", e.target.value)}
+            placeholder='Contoh: Rumah cat putih, pagar besi'
           />
 
           <div>

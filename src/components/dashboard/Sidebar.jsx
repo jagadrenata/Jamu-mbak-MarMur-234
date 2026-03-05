@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 
-export default function Sidebar({ navMenus = [] }) {
+export default function Sidebar({ navMenus = [], admin = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState({});
 
@@ -34,8 +34,8 @@ export default function Sidebar({ navMenus = [] }) {
       >
         {/* Logo */}
         <div className='h-10 flex items-center gap-2 font-semibold text-cream-900'>
-          <img src='/next.svg' className='h-5' alt='logo' />
-          <span>Admin</span>
+          <img src='/logowithtext.png' className='h-5' alt='logo' />
+          {admin ? <span>Admin</span> : ""}
         </div>
 
         {/* Menu */}

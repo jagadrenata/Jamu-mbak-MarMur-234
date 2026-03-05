@@ -36,7 +36,7 @@ export async function POST(request) {
   if (response) return response;
 
   const body = await request.json();
-  const { name, address, is_default, phone, coordinates, } = body;
+  const { name, address, is_default, phone, coordinates, notes } = body;
 
   if (!name || !address || !phone)
     return err("name, address and phone are required");
@@ -56,6 +56,7 @@ export async function POST(request) {
       phone,
       address,
       coordinates,
+      notes: notes ?? "",
       is_default: is_default ?? false
     })
     .select()
@@ -92,7 +93,7 @@ export async function PATCH(request) {
       .eq("user_id", user.id);
   }
 
-  const allowed = ["name", "address", "is_default", "phone", "coordinates"];
+  const allowed = ["name", "address", "is_default", "phone", "coordinates", "notes"];
   const updates = Object.fromEntries(
     Object.entries(body).filter(([k]) => allowed.includes(k))
   );

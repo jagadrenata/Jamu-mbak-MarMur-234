@@ -90,7 +90,7 @@ export default function Page({ children }) {
   if (loading) return <p>Loading...</p>;
   return (
     <div className="flex bg-beige-50">
-      <Sidebar navMenus={adminMenus} />
+      <Sidebar navMenus={adminMenus} admin={true} />
 
       <div className="flex-1">
         <Navbar />
