@@ -76,7 +76,7 @@ function Field({ label, error, children }) {
 function InputBase({ error, ...props }) {
   return (
     <input
-      className='w-full px-3 py-2.5 text-sm outline-none bg-transparent transition-colors focus:ring-1 rounded-sm'
+      className='w-full px-3 py-2.5 text-sm outline-none bg-transparent transition-colors focus:ring-1 '
       style={{
         border: `1px solid ${error ? "#e53e3e" : C.border}`,
         color: C.text,
@@ -91,12 +91,12 @@ function InputBase({ error, ...props }) {
 function SkeletonCard() {
   return (
     <div
-      className='p-5 animate-pulse rounded-md'
+      className='p-5 animate-pulse '
       style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
     >
       <div className='flex gap-4'>
         <div
-          className='w-20 h-20 rounded-sm'
+          className='w-20 h-20 '
           style={{ backgroundColor: C.border }}
         />
         <div className='flex-1 space-y-2 pt-1'>
@@ -129,13 +129,13 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: isRemoving ? 0.4 : 1, y: 0 }}
       exit={{ opacity: 0, x: -30, transition: { duration: 0.22 } }}
-      className='rounded-md overflow-hidden'
+      className=' overflow-hidden'
       style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
     >
       <div className='flex gap-4 p-4'>
         {/* Image */}
         <div
-          className='w-20 h-20 flex-shrink-0 rounded-sm overflow-hidden'
+          className='w-20 h-20 flex-shrink-0  overflow-hidden'
           style={{ backgroundColor: C.border }}
         >
           {item.product_image && (
@@ -181,7 +181,7 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
             whileTap={{ scale: 0.85 }}
             onClick={() => onRemove(item)}
             disabled={isRemoving}
-            className='p-1.5 rounded-sm transition-colors hover:bg-red-50'
+            className='p-1.5  transition-colors hover:bg-red-50'
             title='Hapus item'
             style={{ color: "#e53e3e", opacity: isRemoving ? 0.4 : 0.6 }}
           >
@@ -190,7 +190,7 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
 
           {/* Qty stepper */}
           <div
-            className='flex items-center rounded-sm overflow-hidden'
+            className='flex items-center  overflow-hidden'
             style={{ border: `1px solid ${C.border}` }}
           >
             <motion.button
@@ -637,7 +637,7 @@ export default function CartPage() {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => router.push("/")}
-            className='inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold rounded-sm'
+            className='inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold '
             style={{ backgroundColor: C.accent, color: C.textLight }}
           >
             Lihat Produk
@@ -668,7 +668,7 @@ export default function CartPage() {
                 id='guest-form'
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                className='mt-6 p-6 space-y-5 rounded-md'
+                className='mt-6 p-6 space-y-5 '
                 style={{
                   border: `1px solid ${C.border}`,
                   backgroundColor: C.bgCard
@@ -846,7 +846,7 @@ export default function CartPage() {
                     name='payment_method'
                     value={guestForm.payment_method}
                     onChange={handleFormChange}
-                    className='w-full px-3 py-2.5 text-sm outline-none appearance-none rounded-sm transition-colors'
+                    className='w-full px-3 py-2.5 text-sm outline-none appearance-none  transition-colors'
                     style={{
                       border: `1px solid ${C.border}`,
                       backgroundColor: C.bgCard,
@@ -867,7 +867,7 @@ export default function CartPage() {
             {/* Address picker (logged-in only) */}
             {!isGuest && !loading && items.length > 0 && (
               <div
-                className='p-5 rounded-md space-y-4'
+                className='p-5  space-y-4'
                 style={{
                   border: `1px solid ${C.border}`,
                   backgroundColor: C.bgCard
@@ -894,7 +894,7 @@ export default function CartPage() {
                     {[1, 2].map(i => (
                       <div
                         key={i}
-                        className='h-16 animate-pulse rounded-sm'
+                        className='h-16 animate-pulse '
                         style={{ backgroundColor: C.border }}
                       />
                     ))}
@@ -918,7 +918,7 @@ export default function CartPage() {
                     {addresses.map(addr => (
                       <label
                         key={addr.id}
-                        className='flex items-start gap-3 p-3 rounded-sm cursor-pointer transition-all'
+                        className='flex items-start gap-3 p-3  cursor-pointer transition-all'
                         style={{
                           border: `1px solid ${selectedAddressId === addr.id ? C.accent : C.border}`,
                           backgroundColor:
@@ -977,7 +977,7 @@ export default function CartPage() {
 
             {/* Order summary */}
             <div
-              className='p-6 rounded-md sticky top-24'
+              className='p-6  sticky top-24'
               style={{
                 border: `1px solid ${C.border}`,
                 backgroundColor: C.bgCard
@@ -1017,7 +1017,7 @@ export default function CartPage() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleCheckout}
                 disabled={checkoutLoading}
-                className='w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold rounded-sm transition-opacity'
+                className='w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold  transition-opacity'
                 style={{
                   backgroundColor: C.accent,
                   color: C.textLight,
@@ -1055,7 +1055,7 @@ export default function CartPage() {
 
               <button
                 onClick={() => router.push("/")}
-                className='w-full mt-3 py-2.5 text-xs font-medium text-center rounded-sm transition-colors hover:opacity-80'
+                className='w-full mt-3 py-2.5 text-xs font-medium text-center  transition-colors hover:opacity-80'
                 style={{ border: `1px solid ${C.border}`, color: C.accent }}
               >
                 Lanjut Belanja

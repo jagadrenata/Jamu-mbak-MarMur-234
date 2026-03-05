@@ -13,12 +13,16 @@ import {
   LogIn,
   User,
   Plus,
-  MapPin
+  MapPin,
+  MessageCircle,
+  CheckCircle,
+  Star
 } from "lucide-react";
 import Link from "next/link";
 import { C } from "@/components/Navbar";
 import PublicLayout from "@/components/PublicLayout";
 import { useAuthStore } from "@/store/useAuthStore";
+import { siteConfig } from "@/lib/siteConfig";
 
 //  Helpers
 function formatRupiah(n) {
@@ -267,9 +271,33 @@ function GuestOrderList({ orders, onReset }) {
 }
 
 //  Order Card
-function OrderCard({ order, expandedId, setExpandedId }) {
+function OrderCard({ order, expandedId, setExpandedId, isLoggedInUser = false, onOrderCompleted }) {
   const isExpanded = expandedId === order.id;
   const sc = STATUS_COLOR[order.status] || { bg: C.border, text: C.text };
+  const [completing, setCompleting] = useState(false);
+
+  // Ambil slug produk pertama untuk link rating
+  const firstItemSlug =
+    order.items?.[0]?.product_variants?.products?.slug ?? null;
+
+  async function handleCompleteOrder() {
+    if (!window.confirm("Tandai pesanan ini sebagai selesai?")) return;
+    setCompleting(true);
+    try {
+      const res = await fetch(`/api/data/orders/${order.id}/complete`, {
+        method: "PATCH"
+      });
+      if (res.ok) {
+        onOrderCompleted?.(order.id);
+      } else {
+        alert("Gagal menyelesaikan pesanan. Coba lagi.");
+      }
+    } catch {
+      alert("Terjadi kesalahan. Coba lagi.");
+    } finally {
+      setCompleting(false);
+    }
+  }
 
   return (
     <motion.div
@@ -432,18 +460,69 @@ function OrderCard({ order, expandedId, setExpandedId }) {
                 </div>
               )}
 
-              {/* Pay now */}
-              {order.midtrans_url && order.status === "pending" && (
+              {/* ── Action Buttons ── */}
+              <div className='space-y-2 pt-1'>
+
+                {/* 1. Bayar Sekarang — hanya saat pending */}
+                {order.midtrans_url && order.status === "pending" && (
+                  <a
+                    href={order.midtrans_url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='flex items-center justify-center gap-2 w-full text-center py-2.5 text-sm font-medium transition-colors'
+                    style={{ backgroundColor: C.accent, color: C.textLight }}
+                  >
+                    Bayar Sekarang
+                  </a>
+                )}
+
+                {/* 2. Hubungi Penjual via WhatsApp — selalu tampil */}
                 <a
-                  href={order.midtrans_url}
+                  href={siteConfig.whatsappOrderMessage(order.id)}
                   target='_blank'
                   rel='noopener noreferrer'
-                  className='block w-full text-center py-2.5 text-sm font-medium transition-colors'
-                  style={{ backgroundColor: C.accent, color: C.textLight }}
+                  className='flex items-center justify-center gap-2 w-full text-center py-2.5 text-sm font-medium transition-colors'
+                  style={{
+                    border: `1px solid #25D366`,
+                    color: "#25D366",
+                    backgroundColor: "transparent"
+                  }}
                 >
-                  Bayar Sekarang
+                  <MessageCircle className='w-4 h-4' />
+                  Hubungi Penjual
                 </a>
-              )}
+
+                {/* 3. Selesaikan Pesanan — hanya buyer, hanya saat status delivered */}
+                {isLoggedInUser && order.status === "delivered" && (
+                  <button
+                    onClick={handleCompleteOrder}
+                    disabled={completing}
+                    className='flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium transition-opacity disabled:opacity-60'
+                    style={{ backgroundColor: "#155724", color: "#fff" }}
+                  >
+                    <CheckCircle className='w-4 h-4' />
+                    {completing ? "Memproses..." : "Selesaikan Pesanan"}
+                  </button>
+                )}
+
+                {/* 4. Beri Rating — hanya saat status completed */}
+                {order.status === "completed" && firstItemSlug && (
+                  <Link
+                    href={`/products/${firstItemSlug}/rating`}
+                    className='flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium transition-colors'
+                    style={{
+                      border: `1px solid ${C.accent}`,
+                      color: C.accent,
+                      backgroundColor: "transparent"
+                    }}
+                  >
+                    <Star className='w-4 h-4' />
+                    Beri Rating Produk
+                  </Link>
+                )}
+              </div>
+              {/* ── End Action Buttons ── */}
+
             </div>
           </motion.div>
         )}
@@ -609,6 +688,17 @@ export default function OrdersPage() {
     }
   }
 
+  // Callback ketika pesanan berhasil diselesaikan — update status lokal
+  function handleOrderCompleted(orderId) {
+    setOrders(prev =>
+      prev.map(o =>
+        o.id === orderId
+          ? { ...o, status: "completed", status_label: "Selesai" }
+          : o
+      )
+    );
+  }
+
   // Props PublicLayout yang sama untuk semua state
   const layoutProps = {
     heroTitle: "Pesananmu",
@@ -654,10 +744,12 @@ export default function OrdersPage() {
             >
               ← Cari pesanan lain
             </button>
+            {/* Guest tidak bisa selesaikan pesanan, isLoggedInUser=false */}
             <OrderCard
               order={guestOrder}
               expandedId={expandedId}
               setExpandedId={setExpandedId}
+              isLoggedInUser={false}
             />
           </div>
         ) : (
@@ -721,6 +813,8 @@ export default function OrdersPage() {
               order={order}
               expandedId={expandedId}
               setExpandedId={setExpandedId}
+              isLoggedInUser={true}
+              onOrderCompleted={handleOrderCompleted}
             />
           ))}
         </div>
