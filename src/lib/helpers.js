@@ -39,22 +39,38 @@ export async function requireUser() {
   }
 }
 
-
 export async function requireAdmin() {
   const supabase = createAdminClient();
-  const sessionClient = await createSessionClient();
-  const { data: { user } } = await sessionClient.auth.getUser();
-  if (!user) return { supabase, admin: null, response: err("Unauthorized", 401) };
+  const token = (await cookies()).get("token");
 
-  const { data: admin } = await supabase
-    .from("admins")
-    .select("id, role")
-    .eq("id", user.id)
-    .single();
+  if (!token) {
+    return { supabase, admin: null, response: err("Unauthorized", 401) };
+  }
 
-  if (!admin) return { supabase, admin: null, response: err("Forbidden", 403) };
-  return { supabase, admin, response: null };
+  try {
+    const { payload } = await jwtVerify(token.value, JWT_SECRET);
+
+    const { data: admin } = await supabase
+      .from("admins")
+      .select("id, role")
+      .eq("id", payload.sub)
+      .single();
+
+    if (!admin) {
+      return { supabase, admin: null, response: err("Forbidden", 403) };
+    }
+
+    return {
+      supabase,
+      admin,
+      response: null
+    };
+
+  } catch {
+    return { supabase, admin: null, response: err("Unauthorized", 401) };
+  }
 }
+
 
 export function paginate(searchParams) {
   const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);

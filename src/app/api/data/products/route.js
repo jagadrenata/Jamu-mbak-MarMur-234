@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { ok, err, requireAdmin, paginate } from "@/lib/helpers";
 
 export async function GET(request) {
@@ -9,7 +8,49 @@ export async function GET(request) {
   const category_id = searchParams.get("category_id");
   const status = searchParams.get("status");
   const search = searchParams.get("search");
+  const detail = searchParams.get("detail");
   const { limit, offset } = paginate(searchParams);
+
+  if (id && detail) {
+    const { data: raw, error } = await supabase
+      .from("products")
+      .select(
+        `id, category_id, name, slug, sku, description, status, views_count, created_at, updated_at,
+         categories ( id, name, slug ),
+         product_images ( id, url, alt_text, description, is_primary, position, created_at ),
+         product_variants (
+           id, name, sku, price, cost_price, quantity, weight, attributes, is_active, created_at, updated_at,
+           product_variant_images ( id, url, alt_text, is_primary, position )
+         )`
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) return err(error.message, 500);
+
+    // Sort images by position
+    const productImages = (raw.product_images || []).sort(
+      (a, b) => a.position - b.position
+    );
+    const productVariants = (raw.product_variants || []).map(v => ({
+      ...v,
+      product_variant_images: (v.product_variant_images || []).sort(
+        (a, b) => a.position - b.position
+      )
+    }));
+
+    return ok({
+      data: {
+        ...raw,
+        categories: undefined,
+        product_images: undefined,
+        product_variants: undefined,
+        category: raw.categories ?? null,
+        images: productImages,
+        variants: productVariants
+      }
+    });
+  }
 
   let query = supabase
     .from("products")
@@ -25,15 +66,19 @@ export async function GET(request) {
   if (id) query = query.eq("id", id);
   if (category_id) query = query.eq("category_id", category_id);
   if (status) query = query.eq("status", status);
-  if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+  if (search)
+    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
   query = query.range(offset, offset + limit - 1);
 
   const { data: raw, count, error } = await query;
   if (error) return err(error.message, 500);
 
   const data = (raw || []).map(p => {
-    const primaryImg = (p.product_images || []).find(i => i.is_primary) ?? p.product_images?.[0];
-    const activePrices = (p.product_variants || []).filter(v => v.is_active).map(v => v.price);
+    const primaryImg =
+      (p.product_images || []).find(i => i.is_primary) ?? p.product_images?.[0];
+    const activePrices = (p.product_variants || [])
+      .filter(v => v.is_active)
+      .map(v => v.price);
     return {
       id: p.id,
       category_id: p.category_id,
@@ -48,8 +93,9 @@ export async function GET(request) {
       category_name: p.categories?.name ?? null,
       category_slug: p.categories?.slug ?? null,
       primary_image: primaryImg?.url ?? null,
+      variant_count: (p.product_variants || []).length,
       min_price: activePrices.length ? Math.min(...activePrices) : null,
-      max_price: activePrices.length ? Math.max(...activePrices) : null,
+      max_price: activePrices.length ? Math.max(...activePrices) : null
     };
   });
 
@@ -67,7 +113,14 @@ export async function POST(request) {
 
   const { data, error } = await supabase
     .from("products")
-    .insert({ name, slug, sku, description, status: status ?? "active", category_id: category_id ?? null })
+    .insert({
+      name,
+      slug: slug || null,
+      sku: sku || null,
+      description: description || null,
+      status: status ?? "active",
+      category_id: category_id ? parseInt(category_id) : null
+    })
     .select()
     .single();
 
@@ -84,8 +137,17 @@ export async function PATCH(request) {
   if (!id) return err("id is required");
 
   const body = await request.json();
-  const allowed = ["name", "slug", "sku", "description", "status", "category_id"];
-  const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)));
+  const allowed = [
+    "name",
+    "slug",
+    "sku",
+    "description",
+    "status",
+    "category_id"
+  ];
+  const updates = Object.fromEntries(
+    Object.entries(body).filter(([k]) => allowed.includes(k))
+  );
   updates.updated_at = new Date().toISOString();
 
   const { data, error } = await supabase

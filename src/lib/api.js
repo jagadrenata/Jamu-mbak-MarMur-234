@@ -2,12 +2,23 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {
-    credentials: "include",
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}), },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options,
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+async function upload(path, formData) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    credentials: 'include',
+    method: 'POST',
+    body: formData, // no Content-Type header → browser sets multipart boundary
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Upload failed');
   return data;
 }
 
@@ -16,8 +27,10 @@ export const api = {
   post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }),
   patch: (path, body) => request(path, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: (path) => request(path, { method: 'DELETE' }),
+  upload,
 };
 
+//  Products 
 export const products = {
   list: (params = {}) => api.get(`/api/data/products?${new URLSearchParams(params)}`),
   get: (id) => api.get(`/api/data/products?id=${id}`),
@@ -26,26 +39,31 @@ export const products = {
   delete: (id) => api.delete(`/api/data/products?id=${id}`),
 };
 
+//  Product Variants 
 export const variants = {
-  list: (productId) => api.get(`/api/data/product-variants?product_id=${productId}`),
+  list: (params = {}) => api.get(`/api/data/product-variants?${new URLSearchParams(params)}`),
   get: (id) => api.get(`/api/data/product-variants?id=${id}`),
   create: (body) => api.post('/api/data/product-variants', body),
   update: (id, body) => api.patch(`/api/data/product-variants?id=${id}`, body),
   delete: (id) => api.delete(`/api/data/product-variants?id=${id}`),
 };
 
-export const productImages = {
-  list: (productId) => api.get(`/api/data/product-images?product_id=${productId}`),
-  create: (body) => api.post('/api/data/product-images', body),
-  delete: (id) => api.delete(`/api/data/product-images?id=${id}`),
+//  Images (product & variant) 
+export const images = {
+  // list images for a product or variant
+  listByProduct: (productId) => api.get(`/api/data/images?product_id=${productId}`),
+  listByVariant: (variantId) => api.get(`/api/data/images?variant_id=${variantId}`),
+  // add via URL
+  addUrl: (body) => api.post('/api/data/images', body),
+  // add via file upload (FormData)
+  uploadFile: (formData) => api.upload('/api/data/images', formData),
+  // update metadata (alt_text, is_primary, position)
+  update: (id, type, body) => api.patch(`/api/data/images?id=${id}&type=${type}`, body),
+  // delete (removes from bucket too if applicable)
+  delete: (id, type) => api.delete(`/api/data/images?id=${id}&type=${type}`),
 };
 
-export const reviews = {
-  list: (productId, params = {}) => api.get(`/api/data/product-reviews?product_id=${productId}&${new URLSearchParams(params)}`),
-  create: (body) => api.post('/api/data/product-reviews', body),
-  delete: (id) => api.delete(`/api/data/product-reviews?id=${id}`),
-};
-
+//  Categories 
 export const categories = {
   list: (params = {}) => api.get(`/api/data/categories?${new URLSearchParams(params)}`),
   get: (id) => api.get(`/api/data/categories?id=${id}`),
@@ -54,6 +72,7 @@ export const categories = {
   delete: (id) => api.delete(`/api/data/categories?id=${id}`),
 };
 
+//  Orders 
 export const orders = {
   list: (params = {}) => api.get(`/api/data/orders?${new URLSearchParams(params)}`),
   get: (id) => api.get(`/api/data/orders?id=${id}`),
@@ -64,6 +83,7 @@ export const guestOrders = {
   list: (params = {}) => api.get(`/api/data/guest-orders?${new URLSearchParams(params)}`),
 };
 
+//  Dashboard 
 export const addresses = {
   list: () => api.get('/api/dashboard/addresses'),
   create: (body) => api.post('/api/dashboard/addresses', body),
@@ -85,6 +105,7 @@ export const cart = {
   clear: () => api.delete('/api/dashboard/cart?clear=true'),
 };
 
+//  Admin 
 export const adminOrders = {
   list: (params = {}) => api.get(`/api/admin/orders?${new URLSearchParams(params)}`),
   get: (id) => api.get(`/api/admin/orders?id=${id}`),
@@ -146,4 +167,11 @@ export const bannerAds = {
 export const suppliers = {
   list: () => api.get('/api/admin/suppliers'),
   create: (body) => api.post('/api/admin/suppliers', body),
+};
+
+export const productReviews = {
+  list: (productId, params = {}) =>
+    api.get(`/api/data/product-reviews?product_id=${productId}&${new URLSearchParams(params)}`),
+  create: (body) => api.post('/api/data/product-reviews', body),
+  delete: (id) => api.delete(`/api/data/product-reviews?id=${id}`),
 };

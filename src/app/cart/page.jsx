@@ -95,10 +95,7 @@ function SkeletonCard() {
       style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
     >
       <div className='flex gap-4'>
-        <div
-          className='w-20 h-20 '
-          style={{ backgroundColor: C.border }}
-        />
+        <div className='w-20 h-20 ' style={{ backgroundColor: C.border }} />
         <div className='flex-1 space-y-2 pt-1'>
           <div
             className='h-4 w-2/3 rounded'
@@ -269,7 +266,7 @@ export default function CartPage() {
   const guestClearCart = useGuestCartStore(s => s.clearCart);
   const guestSync = useGuestCartStore(s => s.syncWithServer);
   const guestIsSyncing = useGuestCartStore(s => s.isSyncing);
-  
+
   const { user, loading: authLoading, fetchUser } = useAuthStore();
   const userId = user?.id ?? (authLoading ? undefined : false);
 
@@ -954,8 +951,16 @@ export default function CartPage() {
                             )}
                           </div>
                           <div className='opacity-70 leading-snug'>
-                            {addr.street}, {addr.village}, {addr.district},{" "}
-                            {addr.city}, {addr.province} {addr.postal_code}
+                            {[
+                              addr.address?.street,
+                              addr.address?.village,
+                              addr.address?.district,
+                              addr.address?.city,
+                              addr.address?.province,
+                              addr.address?.postal_code
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
                           </div>
                           {addr.phone && (
                             <div className='opacity-60 mt-0.5'>

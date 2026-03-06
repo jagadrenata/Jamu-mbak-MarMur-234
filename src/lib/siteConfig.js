@@ -45,3 +45,21 @@ export const siteConfig = {
       }.`
     ),
 };
+
+export const heroSlides = [
+    {
+      image: 'https://come2indonesia.com/wp-content/uploads/2021/02/jamu-3.jpg',
+      title: '🌿 Jamu Mbak MarMur',
+      description: 'Jamu tradisional pilihan, dibuat dengan cinta dari bahan-bahan alami terbaik.',
+    },
+    {
+      image: 'https://www.foodandwine.com/thmb/KnwEFDzXWXC97r2fsHyvr83J_E4=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Jamu-The-drink-that-Indonesians-swear-by-FT-BOG0125-01B-c60d5317b31f447ab62513a5b54be331.jpg',
+      title: 'Nikmati Kesehatan Alami',
+      description: 'Rasakan manfaat jamu asli Indonesia untuk tubuh dan pikiran sehat setiap hari.',
+    },
+    {
+      image: 'https://cdn.shopify.com/s/files/1/0012/1657/7656/files/jamu_11563cfd-1d26-469c-a1a8-8ec2a5c6f90f.jpg?v=1739511288',
+      title: 'Rasa Tradisi, Manfaat Nyata',
+      description: 'Dibuat dari resep turun-temurun dengan bahan organik pilihan.',
+    },
+  ];

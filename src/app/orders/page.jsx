@@ -271,7 +271,13 @@ function GuestOrderList({ orders, onReset }) {
 }
 
 //  Order Card
-function OrderCard({ order, expandedId, setExpandedId, isLoggedInUser = false, onOrderCompleted }) {
+function OrderCard({
+  order,
+  expandedId,
+  setExpandedId,
+  isLoggedInUser = false,
+  onOrderCompleted
+}) {
   const isExpanded = expandedId === order.id;
   const sc = STATUS_COLOR[order.status] || { bg: C.border, text: C.text };
   const [completing, setCompleting] = useState(false);
@@ -462,7 +468,6 @@ function OrderCard({ order, expandedId, setExpandedId, isLoggedInUser = false, o
 
               {/* ── Action Buttons ── */}
               <div className='space-y-2 pt-1'>
-
                 {/* 1. Bayar Sekarang — hanya saat pending */}
                 {order.midtrans_url && order.status === "pending" && (
                   <a
@@ -522,7 +527,6 @@ function OrderCard({ order, expandedId, setExpandedId, isLoggedInUser = false, o
                 )}
               </div>
               {/* ── End Action Buttons ── */}
-
             </div>
           </motion.div>
         )}
@@ -576,7 +580,15 @@ function AddressSelector({ value, onChange }) {
       setAddresses(prev => [json.data, ...prev]);
       handleSelect(json.data);
       setShowForm(false);
-      setForm({ street: "", village: "", district: "", city: "", province: "", postal_code: "", notes: "" });
+      setForm({
+        street: "",
+        village: "",
+        district: "",
+        city: "",
+        province: "",
+        postal_code: "",
+        notes: ""
+      });
     }
   }
 
@@ -606,7 +618,14 @@ function AddressSelector({ value, onChange }) {
                   style={{ color: C.accent }}
                 />
                 <span>
-                  {[addr.street, addr.village, addr.district, addr.city, addr.province, addr.postal_code]
+                  {[
+                    addr.street,
+                    addr.village,
+                    addr.district,
+                    addr.city,
+                    addr.province,
+                    addr.postal_code
+                  ]
                     .filter(Boolean)
                     .join(", ")}
                 </span>
@@ -632,7 +651,11 @@ function AddressSelector({ value, onChange }) {
             { key: "city", placeholder: "Kota / Kabupaten" },
             { key: "province", placeholder: "Provinsi" },
             { key: "postal_code", placeholder: "Kode Pos" },
-            { key: "notes", placeholder: "Catatan Pengiriman (opsional)", required: false }
+            {
+              key: "notes",
+              placeholder: "Catatan Pengiriman (opsional)",
+              required: false
+            }
           ].map(({ key, placeholder, required = true }) => (
             <input
               key={key}

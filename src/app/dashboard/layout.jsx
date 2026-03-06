@@ -48,12 +48,12 @@ export default function Page({ children }) {
   ];
 
   return (
-    <div className='flex bg-beige-50'>
+    <div className='flex bg-beige-50 text-black'>
       <Sidebar navMenus={mainMenus} />
 
       <div className='flex-1'>
         <Navbar />
-        <div className='p-4 mt-4'>{children}</div>
+        <div className='p-4 mt-20'>{children}</div>
       </div>
     </div>
   );

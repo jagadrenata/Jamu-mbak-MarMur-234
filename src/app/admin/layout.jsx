@@ -89,12 +89,12 @@ export default function Page({ children }) {
 
   if (loading) return <p>Loading...</p>;
   return (
-    <div className="flex bg-beige-50">
+    <div className="flex bg-cream-50 text-black">
       <Sidebar navMenus={adminMenus} admin={true} />
 
       <div className="flex-1">
         <Navbar />
-        <div className="p-4 mt-4">
+        <div className="p-4 mt-20">
           {children}
         </div>
       </div>

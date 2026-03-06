@@ -3,47 +3,32 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { C } from '@/components/Navbar'; // sesuaikan path jika perlu
+import { C } from '@/components/Navbar'; 
+import { heroSlides } from '@/lib/siteConfig'; 
 
 function HeroSlider() {
   const [current, setCurrent] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  const slides = [
-    {
-      image: 'https://come2indonesia.com/wp-content/uploads/2021/02/jamu-3.jpg',
-      title: '🌿 Jamu Mbak MarMur',
-      description: 'Jamu tradisional pilihan, dibuat dengan cinta dari bahan-bahan alami terbaik.',
-    },
-    {
-      image: 'https://www.foodandwine.com/thmb/KnwEFDzXWXC97r2fsHyvr83J_E4=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Jamu-The-drink-that-Indonesians-swear-by-FT-BOG0125-01B-c60d5317b31f447ab62513a5b54be331.jpg',
-      title: 'Nikmati Kesehatan Alami',
-      description: 'Rasakan manfaat jamu asli Indonesia untuk tubuh dan pikiran sehat setiap hari.',
-    },
-    {
-      image: 'https://cdn.shopify.com/s/files/1/0012/1657/7656/files/jamu_11563cfd-1d26-469c-a1a8-8ec2a5c6f90f.jpg?v=1739511288',
-      title: 'Rasa Tradisi, Manfaat Nyata',
-      description: 'Dibuat dari resep turun-temurun dengan bahan organik pilihan.',
-    },
-  ];
+  
 
   // Auto slide logic
   useEffect(() => {
     if (isHovered) return;
 
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
+      setCurrent((prev) => (prev + 1) % heroSlides.length);
     }, 10000);
 
     return () => clearInterval(timer);
-  }, [slides.length, isHovered]);
+  }, [heroSlides.length, isHovered]);
 
   const goToPrev = () => {
-    setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
+    setCurrent((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
   };
 
   const goToNext = () => {
-    setCurrent((prev) => (prev + 1) % slides.length);
+    setCurrent((prev) => (prev + 1) % heroSlides.length);
   };
 
   const goToSlide = (index) => {
@@ -63,7 +48,7 @@ function HeroSlider() {
           key={current}
           className="absolute inset-0 bg-cover bg-center flex items-center justify-center"
           style={{
-            backgroundImage: `url(${slides[current].image})`,
+            backgroundImage: `url(${heroSlides[current].image})`,
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -76,13 +61,13 @@ function HeroSlider() {
               className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 md:mb-6 leading-tight drop-shadow-lg"
               style={{ fontFamily: "'Georgia', serif", color: C.textLight || '#fff' }}
             >
-              {slides[current].title}
+              {heroSlides[current].title}
             </h1>
             <p
               className="text-lg sm:text-xl md:text-2xl opacity-90 max-w-3xl mx-auto leading-relaxed drop-shadow-md"
               style={{ color: C.textLight || '#fff' }}
             >
-              {slides[current].description}
+              {heroSlides[current].description}
             </p>
           </div>
         </motion.div>
@@ -107,7 +92,7 @@ function HeroSlider() {
 
       {/* Dots Indicator */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 sm:gap-4">
-        {slides.map((_, index) => (
+        {heroSlides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}

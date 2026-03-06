@@ -102,7 +102,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className='font-sans min-h-screen' style={{ backgroundColor: C.bg }}>
+    <div className='light font-sans min-h-screen' style={{ backgroundColor: C.bg }}>
       <Navbar />
       <HeroSlider />
 
