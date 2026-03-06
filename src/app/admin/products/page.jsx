@@ -52,30 +52,39 @@ export default function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [reload, setReload] = useState(0);
   const limit = 15;
-
   useEffect(() => {
     let active = true;
-    const params = { limit, offset };
-    if (search) params.search = search;
-    if (status) params.status = status;
 
-    setLoading(true); 
-    Promise.all([products.list(params), categories.list()])
-      .then(([res, catsRes]) => {
+    async function fetchData() {
+      setLoading(true);
+
+      const params = { limit, offset };
+      if (search) params.search = search;
+      if (status) params.status = status;
+
+      try {
+        const [res, catsRes] = await Promise.all([
+          products.list(params),
+          categories.list()
+        ]);
+
         if (!active) return;
+
         setData(res.data || []);
         setTotal(res.total || 0);
         setCats(catsRes.data || []);
-      })
-      .catch(() => {})
-      .finally(() => {
+      } catch (e) {
+      } finally {
         if (active) setLoading(false);
-      });
+      }
+    }
+
+    fetchData();
 
     return () => {
       active = false;
     };
-  }, [search, status, offset, reload]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search, status, offset, reload]);
 
   function refresh() {
     setReload(n => n + 1);
