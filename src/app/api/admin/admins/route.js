@@ -7,7 +7,8 @@ export async function GET(request) {
   const { supabase, admin, response } = await requireAdmin();
   if (response) return response;
 
-  if (!["superadmin", "admin"].includes(admin.role)) return err("Forbidden", 403);
+  if (!["superadmin", "admin"].includes(admin.role))
+    return err("Forbidden", 403);
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -17,7 +18,9 @@ export async function GET(request) {
   if (id) {
     const { data, error } = await supabase
       .from("admins")
-      .select("id, name, email, role, avatar_url, last_login, created_at, updated_at")
+      .select(
+        "id, name, email, role, avatar_url, last_login, created_at, updated_at"
+      )
       .eq("id", id)
       .single();
 
@@ -27,7 +30,10 @@ export async function GET(request) {
 
   let query = supabase
     .from("admins")
-    .select("id, name, email, role, avatar_url, last_login, created_at, updated_at", { count: "exact" })
+    .select(
+      "id, name, email, role, avatar_url, last_login, created_at, updated_at",
+      { count: "exact" }
+    )
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -37,24 +43,27 @@ export async function GET(request) {
   if (error) return err(error.message, 500);
   return ok({ data, total: count, limit, offset });
 }
-
 export async function POST(request) {
   const { supabase, admin, response } = await requireAdmin();
   if (response) return response;
 
-  if (!["superadmin", "admin"].includes(admin.role)) return err("Forbidden", 403);
+  if (!["superadmin", "admin"].includes(admin.role))
+    return err("Forbidden", 403);
 
   const body = await request.json();
-  const { name, email, password, role } = body;
+  const { id, name, email, password, role } = body;
 
-  if (!name || !email || !password) return err("name, email, and password are required");
-  if (role && !VALID_ROLES.includes(role)) return err(`role must be one of: ${VALID_ROLES.join(", ")}`);
+  if (!id) return err("id is required (must match the corresponding user id)");
+  if (!name || !email || !password)
+    return err("name, email, and password are required");
+  if (role && !VALID_ROLES.includes(role))
+    return err(`role must be one of: ${VALID_ROLES.join(", ")}`);
 
   const password_hash = await bcrypt.hash(password, 12);
 
   const { data, error } = await supabase
     .from("admins")
-    .insert({ name, email, password_hash, role: role ?? "staff" })
+    .insert({ id, name, email, password_hash, role: role ?? "staff" })
     .select("id, name, email, role, created_at")
     .single();
 
@@ -66,7 +75,8 @@ export async function PATCH(request) {
   const { supabase, admin, response } = await requireAdmin();
   if (response) return response;
 
-  if (!["superadmin", "admin"].includes(admin.role)) return err("Forbidden", 403);
+  if (!["superadmin", "admin"].includes(admin.role))
+    return err("Forbidden", 403);
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -78,8 +88,10 @@ export async function PATCH(request) {
   if (body.name) updates.name = body.name;
   if (body.avatar_url) updates.avatar_url = body.avatar_url;
   if (body.role) {
-    if (!VALID_ROLES.includes(body.role)) return err(`role must be one of: ${VALID_ROLES.join(", ")}`);
-    if (admin.role !== "superadmin") return err("Only superadmin can change roles", 403);
+    if (!VALID_ROLES.includes(body.role))
+      return err(`role must be one of: ${VALID_ROLES.join(", ")}`);
+    if (admin.role !== "superadmin")
+      return err("Only superadmin can change roles", 403);
     updates.role = body.role;
   }
   if (body.password) {

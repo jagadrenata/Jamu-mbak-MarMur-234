@@ -55,10 +55,11 @@ export default function ProductsPage() {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     const params = { limit, offset };
     if (search) params.search = search;
     if (status) params.status = status;
+
+    setLoading(true); 
     Promise.all([products.list(params), categories.list()])
       .then(([res, catsRes]) => {
         if (!active) return;
@@ -70,10 +71,11 @@ export default function ProductsPage() {
       .finally(() => {
         if (active) setLoading(false);
       });
+
     return () => {
       active = false;
     };
-  }, [search, status, offset, reload]);
+  }, [search, status, offset, reload]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function refresh() {
     setReload(n => n + 1);
@@ -105,7 +107,6 @@ export default function ProductsPage() {
       if (editItem) await products.update(editItem.id, form);
       else {
         const res = await products.create(form);
-        // After create --> go straight to detail page
         setModal(false);
         router.push(`/admin/products/${res.data.id}`);
         return;
@@ -296,7 +297,6 @@ export default function ProductsPage() {
         )}
       </Card>
 
-      {/* Quick edit / create modal */}
       <Modal
         open={modal}
         onClose={() => setModal(false)}
