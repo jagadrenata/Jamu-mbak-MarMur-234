@@ -38,7 +38,6 @@ function formatDate(str) {
   });
 }
 
-//  Constants
 const STATUS_COLOR = {
   pending: { bg: "#FFF3CD", text: "#856404" },
   processing: { bg: "#D1ECF1", text: "#0C5460" },
@@ -61,7 +60,6 @@ const statusOptions = [
   { value: "cancelled", label: "Dibatalkan" }
 ];
 
-//  Status Filter (masuk ke sidebarExtra)
 function StatusFilter({ filterStatus, setFilterStatus }) {
   return (
     <>
@@ -115,41 +113,59 @@ function StatusFilter({ filterStatus, setFilterStatus }) {
   );
 }
 
-//  Guest Lookup Form
 function GuestLookupForm({ onFound }) {
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [orderId, setOrderId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [results, setResults] = useState(null);
 
+  const hasEmail = email.trim() !== "";
+  const hasPhone = phone.trim() !== "";
+  const hasId = orderId.trim() !== "";
+  const filledCount = [hasEmail, hasPhone, hasId].filter(Boolean).length;
+  const isValid = filledCount >= 2;
+
+  function getModeHint() {
+    if (!isValid) return null;
+    if (hasEmail && hasPhone && !hasId)
+      return "Menampilkan semua pesanan milik email atau nomor HP ini.";
+    if (hasEmail && !hasPhone && hasId)
+      return "Mencari pesanan ID ini, diverifikasi dengan email.";
+    if (!hasEmail && hasPhone && hasId)
+      return "Mencari pesanan ID ini, diverifikasi dengan nomor HP.";
+    if (hasEmail && hasPhone && hasId)
+      return "Mencari pesanan ID ini, diverifikasi dengan email atau nomor HP.";
+    return null;
+  }
+
   async function handleSearch(e) {
     e.preventDefault();
-    const trimmed = identifier.trim();
-    if (!trimmed) return;
+    if (!isValid) return;
 
     setLoading(true);
     setError("");
     setResults(null);
 
     try {
-      const isEmail = trimmed.includes("@");
-      const contactParam = isEmail
-        ? `email=${encodeURIComponent(trimmed)}`
-        : `phone=${encodeURIComponent(trimmed)}`;
+      const params = new URLSearchParams();
+      if (hasEmail) params.set("email", email.trim());
+      if (hasPhone) params.set("phone", phone.trim());
+      if (hasId) params.set("id", orderId.trim());
 
-      let url = `/api/data/guest-orders?${contactParam}`;
-      if (orderId.trim()) url += `&id=${encodeURIComponent(orderId.trim())}`;
-
-      const res = await fetch(url);
+      const res = await fetch(`/api/data/guest-orders?${params.toString()}`);
       const json = await res.json();
 
       if (!res.ok) {
-        setError("Pesanan tidak ditemukan. Pastikan email/nomor HP benar.");
+        setError(
+          json?.message ??
+            "Pesanan tidak ditemukan. Pastikan data yang dimasukkan benar."
+        );
         return;
       }
 
-      if (orderId.trim()) {
+      if (hasId) {
         if (!json.data) {
           setError("Pesanan tidak ditemukan.");
         } else {
@@ -186,8 +202,8 @@ function GuestLookupForm({ onFound }) {
         Lacak Pesananmu
       </h2>
       <p className='text-sm mb-6 opacity-70' style={{ color: C.text }}>
-        Masukkan email atau nomor HP untuk melihat semua pesananmu. Tambahkan ID
-        pesanan jika ingin mencari pesanan tertentu. Atau{" "}
+        Isi minimal <strong>dua dari tiga</strong> kolom di bawah untuk melacak
+        pesananmu. Atau{" "}
         <Link
           href='/login'
           className='underline font-medium'
@@ -203,10 +219,22 @@ function GuestLookupForm({ onFound }) {
         className='space-y-3 max-w-md mx-auto text-left'
       >
         <input
-          value={identifier}
-          onChange={e => setIdentifier(e.target.value)}
-          placeholder='Email atau Nomor HP *'
-          required
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder='Email'
+          type='email'
+          className='w-full px-4 py-2.5 text-sm outline-none'
+          style={{
+            border: `1px solid ${!isValid && hasEmail === false && filledCount === 1 ? "#856404" : C.border}`,
+            backgroundColor: C.bgCard,
+            color: C.text
+          }}
+        />
+        <input
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+          placeholder='Nomor HP'
+          type='tel'
           className='w-full px-4 py-2.5 text-sm outline-none'
           style={{
             border: `1px solid ${C.border}`,
@@ -217,7 +245,7 @@ function GuestLookupForm({ onFound }) {
         <input
           value={orderId}
           onChange={e => setOrderId(e.target.value)}
-          placeholder='ID Pesanan (opsional)'
+          placeholder='ID Pesanan'
           className='w-full px-4 py-2.5 text-sm outline-none'
           style={{
             border: `1px solid ${C.border}`,
@@ -225,9 +253,23 @@ function GuestLookupForm({ onFound }) {
             color: C.text
           }}
         />
+
+        {/* Hint: progress isi form */}
+        <p
+          className='text-xs px-1'
+          style={{
+            color: isValid ? C.mid : "#856404",
+            opacity: isValid ? 0.7 : 1
+          }}
+        >
+          {isValid
+            ? getModeHint()
+            : `Isi ${2 - filledCount} kolom lagi untuk melanjutkan.`}
+        </p>
+
         <button
           type='submit'
-          disabled={loading}
+          disabled={loading || !isValid}
           className='w-full px-4 py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-opacity disabled:opacity-60'
           style={{ backgroundColor: C.accent, color: C.textLight }}
         >

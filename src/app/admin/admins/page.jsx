@@ -78,7 +78,7 @@ export default function AdminsPage() {
     setModal(true);
   }
 
-  // Search user 
+  // Search user
   function handleUserSearch(val) {
     setUserSearch(val);
     setSelectedUser(null);
