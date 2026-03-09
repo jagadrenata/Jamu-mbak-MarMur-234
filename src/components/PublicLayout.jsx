@@ -3,66 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { 
-  ShoppingBag, 
-  ShoppingCart, 
-  ClipboardList, 
-  ChevronDown, 
-  ChevronRight, 
-  Package, 
-  Tags, 
-  Heart, 
-  Info, 
-  Menu,
-  Percent, 
-  BookOpen 
-} from "lucide-react";
-import Navbar, { C } from "@/components/Navbar";
-
-const defaultNavItems = [
-  {
-    label: "Products",
-    href: "/",
-    icon: <ShoppingBag className='w-4 h-4' />
-  },
-  { label: "Cart", href: "/cart", icon: <ShoppingCart className='w-4 h-4' /> },
-  {
-    label: "My Orders",
-    href: "/orders",
-    icon: <ClipboardList className='w-4 h-4' />
-  },
-  {
-    label: "Lainnya",
-    icon: <Menu className='w-4 h-4' />,
-    children: [
-      {
-        label: "All Products",
-        href: "/products",
-        icon: <Tags className='w-3.5 h-3.5' />
-      },
-      {
-        label: "Wishlist",
-        href: "/wishlist",
-        icon: <Heart className='w-3.5 h-3.5' />
-      },
-      {
-        label: "About us",
-        href: "/about",
-        icon: <Info className='w-3.5 h-3.5' />
-      }, // ganti Tags → Info lebih masuk akal
-      {
-        label: "Outlet",
-        href: "/outlet",
-        icon: <Percent className='w-3.5 h-3.5' />
-      }, // Star → Percent lebih cocok untuk diskon
-      {
-        label: "E-catalog",
-        href: "/e-catalog",
-        icon: <BookOpen className='w-3.5 h-3.5' />
-      } // Star → BookOpen atau FileText
-    ]
-  },
-];
+import { ChevronDown, ChevronRight } from "lucide-react";
+import Navbar, { C, defaultNavItems } from "@/components/Navbar";
 
 export function Sidebar({
   pathname,
@@ -230,7 +172,7 @@ export default function PublicLayout({
 
   return (
     <div className='font-sans min-h-screen' style={{ backgroundColor: C.bg }}>
-      {showNavbar && <Navbar />}
+      {showNavbar && <Navbar navItems={navItems} />}
 
       {showHero && (
         <Hero

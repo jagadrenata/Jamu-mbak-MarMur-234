@@ -158,7 +158,7 @@ export default function ProductsPage() {
           <div className='relative flex-1 max-w-sm'>
             <Search className='w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
             <input
-              className='w-full pl-9 pr-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-cream-400'
+              className='w-full pl-9 pr-3 py-2 border border-gray-20 text-sm focus:outline-none focus:ring-2 focus:ring-cream-400'
               placeholder='Cari produk...'
               value={search}
               onChange={e => {

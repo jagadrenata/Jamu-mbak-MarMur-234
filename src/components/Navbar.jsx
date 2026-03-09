@@ -7,11 +7,16 @@ import {
   ShoppingBag,
   ShoppingCart,
   ClipboardList,
+  ChevronDown,
   Menu,
   X,
-  Loader2
+  Loader2,
+  Heart,
+  Info,
+  Percent,
+  BookOpen
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -27,13 +32,52 @@ export const C = {
   textLight: "#F5F0E8"
 };
 
-const navItems = [
-  { label: "Products", href: "/", icon: <ShoppingBag className="w-5 h-5" /> },
-  { label: "Cart", href: "/cart", icon: <ShoppingCart className="w-5 h-5" /> },
+export const defaultNavItems = [
   {
-    label: "My Orders",
+    label: "Produk",
+    href: "/",
+    icon: <ShoppingBag className='w-4 h-4' />
+  },
+  {
+    label: "Keranjang",
+    href: "/cart",
+    icon: <ShoppingCart className='w-4 h-4' />
+  },
+  {
+    label: "Pesanan",
     href: "/orders",
-    icon: <ClipboardList className="w-5 h-5" />
+    icon: <ClipboardList className='w-4 h-4' />
+  },
+  {
+    label: "Lainnya",
+    icon: <Menu className='w-4 h-4' />,
+    children: [
+      {
+        label: "Kontak",
+        href: "/more/contact",
+        icon: <Heart className='w-3.5 h-3.5' />
+      },
+      {
+        label: "Tentang kami",
+        href: "/more/about",
+        icon: <Info className='w-3.5 h-3.5' />
+      },
+      {
+        label: "Outlet",
+        href: "/outlet",
+        icon: <Percent className='w-3.5 h-3.5' />
+      },
+      {
+        label: "Wishlist",
+        href: "/more/wishlist",
+        icon: <Heart className='w-3.5 h-3.5' />
+      },
+      {
+        label: "E-katalog",
+        href: "/more/e-catalog",
+        icon: <BookOpen className='w-3.5 h-3.5' />
+      }
+    ]
   }
 ];
 
@@ -44,9 +88,9 @@ function AuthButtons({ user, loading, mobile = false, onClose }) {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2" style={{ color: C.mid }}>
-        <Loader2 className="w-4 h-4 animate-spin" />
-        {mobile && <span className="text-sm">Memuat...</span>}
+      <div className='flex items-center gap-2' style={{ color: C.mid }}>
+        <Loader2 className='w-4 h-4 animate-spin' />
+        {mobile && <span className='text-sm'>Memuat...</span>}
       </div>
     );
   }
@@ -54,7 +98,7 @@ function AuthButtons({ user, loading, mobile = false, onClose }) {
   if (user) {
     return (
       <Link
-        href="/dashboard"
+        href='/dashboard'
         className={`${baseClass} flex items-center justify-center gap-2`}
         style={{ backgroundColor: C.accent, color: C.textLight }}
         onClick={onClose}
@@ -67,7 +111,7 @@ function AuthButtons({ user, loading, mobile = false, onClose }) {
   return (
     <>
       <Link
-        href="/login"
+        href='/login'
         className={baseClass}
         style={
           mobile
@@ -79,7 +123,7 @@ function AuthButtons({ user, loading, mobile = false, onClose }) {
         Login
       </Link>
       <Link
-        href="/signup"
+        href='/signup'
         className={baseClass}
         style={{ backgroundColor: C.accent, color: C.textLight }}
         onClick={onClose}
@@ -90,18 +134,91 @@ function AuthButtons({ user, loading, mobile = false, onClose }) {
   );
 }
 
-export default function Navbar() {
+function DropdownMenu({ item, pathname }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const isChildActive = item.children?.some(c => pathname === c.href);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className='relative'>
+      <button
+        onClick={() => setOpen(prev => !prev)}
+        className='flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors rounded'
+        style={{ color: isChildActive ? C.accent : C.mid }}
+      >
+        <span>{item.icon}</span>
+        {item.label}
+        <ChevronDown
+          className='w-3.5 h-3.5 transition-transform'
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15 }}
+            className='absolute right-0 top-full mt-1 w-44 rounded shadow-lg z-50'
+            style={{
+              backgroundColor: C.bg,
+              border: `1px solid ${C.border}`
+            }}
+          >
+            {item.children.map(sub => {
+              const active = pathname === sub.href;
+              return (
+                <Link
+                  key={sub.label}
+                  href={sub.href}
+                  onClick={() => setOpen(false)}
+                  className='flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors'
+                  style={{
+                    color: active ? C.accent : C.mid,
+                    backgroundColor: active ? `${C.accent}15` : "transparent"
+                  }}
+                >
+                  <span style={{ color: active ? C.accent : C.mid }}>
+                    {sub.icon}
+                  </span>
+                  {sub.label}
+                </Link>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export default function Navbar({ navItems = defaultNavItems }) {
+  const [open, setOpen] = useState(false);
+  const [openMobileMenus, setOpenMobileMenus] = useState({});
   const pathname = usePathname();
 
   const { user, loading, fetchUser } = useAuthStore();
 
-  // Fetch sekali saat Navbar pertama mount.
-  // Karena state ada di Zustand (module scope), kalau user navigasi
-  // ke page lain dan Navbar re-mount, hasFetched = true → tidak fetch ulang.
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  const toggleMobileMenu = label => {
+    setOpenMobileMenus(prev => ({ ...prev, [label]: !prev[label] }));
+  };
 
   const sidebarVariants = {
     hidden: { x: "100%" },
@@ -119,14 +236,13 @@ export default function Navbar() {
           backgroundColor: C.bg,
           borderBottom: `1px solid ${C.border}`
         }}
-        className="relative w-full px-5 sm:px-8"
+        className='relative w-full px-5 sm:px-8'
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.webp" alt="logo" width={48} height={48} />
+        <div className='max-w-7xl mx-auto flex items-center justify-between h-16'>
+          <Link href='/' className='flex items-center gap-2'>
+            <Image src='/logo.webp' alt='logo' width={48} height={48} />
             <span
-              className="text-lg font-bold"
+              className='text-lg font-bold'
               style={{
                 fontFamily: "'Georgia', serif",
                 letterSpacing: "-0.5px",
@@ -137,61 +253,59 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop auth buttons */}
-          <div className="hidden md:flex items-center gap-3">
-            <AuthButtons user={user} loading={loading} />
+          <div className='hidden md:flex items-center gap-1'>
+            <div className='ml-2 flex items-center gap-2'>
+              <AuthButtons user={user} loading={loading} />
+            </div>
           </div>
 
-          {/* Mobile: cart + hamburger */}
-          <div className="md:hidden flex items-center gap-1">
-            <Link href="/cart" className="p-2" style={{ color: C.accent }}>
-              <ShoppingCart className="w-6 h-6" />
+          <div className='md:hidden flex items-center gap-1'>
+            <Link href='/cart' className='p-2' style={{ color: C.accent }}>
+              <ShoppingCart className='w-6 h-6' />
             </Link>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="p-2"
+              className='p-2'
               style={{ color: C.accent }}
               onClick={() => setOpen(true)}
             >
-              <Menu className="w-6 h-6" />
+              <Menu className='w-6 h-6' />
             </motion.button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Sidebar */}
       <AnimatePresence>
         {open && (
           <>
             <motion.div
-              className="fixed inset-0 bg-black z-40 md:hidden"
+              className='fixed inset-0 bg-black z-40 md:hidden'
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.4 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
             />
             <motion.div
-              className="fixed inset-y-0 right-0 z-50 w-72 md:hidden flex flex-col"
+              className='fixed inset-y-0 right-0 z-50 w-72 md:hidden flex flex-col'
               style={{
                 backgroundColor: C.bg,
                 boxShadow: `-4px 0 24px rgba(44,24,16,0.2)`
               }}
               variants={sidebarVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              initial='hidden'
+              animate='visible'
+              exit='exit'
             >
-              {/* Sidebar Header */}
               <div
-                className="p-6 flex justify-between items-center"
+                className='p-6 flex justify-between items-center'
                 style={{ borderBottom: `1px solid ${C.border}` }}
               >
                 <span
-                  className="font-bold flex items-center gap-2"
+                  className='font-bold flex items-center gap-2'
                   style={{ fontFamily: "'Georgia', serif", color: C.text }}
                 >
-                  <Image src="/logo.webp" alt="logo" width={32} height={32} />
+                  <Image src='/logo.webp' alt='logo' width={32} height={32} />
                   jamu mbak <span style={{ color: C.accent }}>MarMur</span>
                 </span>
                 <motion.button
@@ -200,19 +314,85 @@ export default function Navbar() {
                   onClick={() => setOpen(false)}
                   style={{ color: C.accent }}
                 >
-                  <X className="w-6 h-6" />
+                  <X className='w-6 h-6' />
                 </motion.button>
               </div>
 
-              {/* Nav Items */}
-              <nav className="flex-1 px-6 py-8 space-y-2">
-                {navItems.map(({ label, href, icon }) => {
-                  const isActive = pathname === href;
+              <nav className='flex-1 px-6 py-8 space-y-1 overflow-y-auto'>
+                {navItems.map(item => {
+                  if (item.children && item.children.length > 0) {
+                    const isOpen = openMobileMenus[item.label] ?? false;
+                    return (
+                      <div key={item.label}>
+                        <button
+                          onClick={() => toggleMobileMenu(item.label)}
+                          className='w-full flex items-center justify-between gap-3 px-4 py-3 text-base font-medium transition-colors'
+                          style={{ color: C.accent }}
+                        >
+                          <div className='flex items-center gap-3'>
+                            <span style={{ color: C.mid }}>{item.icon}</span>
+                            {item.label}
+                          </div>
+                          <ChevronDown
+                            className='w-4 h-4 transition-transform'
+                            style={{
+                              color: C.mid,
+                              transform: isOpen
+                                ? "rotate(180deg)"
+                                : "rotate(0deg)"
+                            }}
+                          />
+                        </button>
+                        <AnimatePresence>
+                          {isOpen && (
+                            <motion.ul
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className='overflow-hidden ml-7 border-l border-dashed pl-3'
+                              style={{ borderColor: `${C.border}` }}
+                            >
+                              {item.children.map(sub => {
+                                const subActive = pathname === sub.href;
+                                return (
+                                  <li key={sub.label}>
+                                    <Link
+                                      href={sub.href}
+                                      onClick={() => setOpen(false)}
+                                      className='flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors'
+                                      style={{
+                                        color: subActive ? C.accent : C.mid,
+                                        backgroundColor: subActive
+                                          ? `${C.accent}15`
+                                          : "transparent"
+                                      }}
+                                    >
+                                      <span
+                                        style={{
+                                          color: subActive ? C.accent : C.mid
+                                        }}
+                                      >
+                                        {sub.icon}
+                                      </span>
+                                      {sub.label}
+                                    </Link>
+                                  </li>
+                                );
+                              })}
+                            </motion.ul>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  }
+
+                  const isActive = pathname === item.href;
                   return (
                     <Link
-                      key={label}
-                      href={href}
-                      className="flex items-center gap-3 px-4 py-3 text-base font-medium transition-colors"
+                      key={item.label}
+                      href={item.href}
+                      className='flex items-center gap-3 px-4 py-3 text-base font-medium transition-colors'
                       style={
                         isActive
                           ? { backgroundColor: C.accent, color: C.textLight }
@@ -221,17 +401,16 @@ export default function Navbar() {
                       onClick={() => setOpen(false)}
                     >
                       <span style={{ color: isActive ? C.textLight : C.mid }}>
-                        {icon}
+                        {item.icon}
                       </span>
-                      {label}
+                      {item.label}
                     </Link>
                   );
                 })}
               </nav>
 
-              {/* Mobile Auth Buttons */}
               <div
-                className="px-6 py-6 flex flex-col gap-3"
+                className='px-6 py-6 flex flex-col gap-3'
                 style={{ borderTop: `1px solid ${C.border}` }}
               >
                 <AuthButtons

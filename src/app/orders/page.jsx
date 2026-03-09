@@ -820,7 +820,6 @@ export default function OrdersPage() {
             >
               ← Cari pesanan lain
             </button>
-            {/* Guest tidak bisa selesaikan pesanan, isLoggedInUser=false */}
             <OrderCard
               order={guestOrder}
               expandedId={expandedId}

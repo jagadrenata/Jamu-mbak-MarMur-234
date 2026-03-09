@@ -41,7 +41,8 @@ const navItems = [
 ];
 
 function formatRupiah(n) {
-  return "Rp " + n.toLocaleString("id-ID");
+  if (n == null || isNaN(n)) return "Rp -";
+  return "Rp " + Number(n).toLocaleString("id-ID");
 }
 
 export default function HomePage() {
@@ -65,6 +66,7 @@ export default function HomePage() {
   async function fetchCategories() {
     try {
       const res = await fetch("/api/data/categories?parent_id=");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setCategories(json.data || []);
     } catch (err) {
@@ -79,17 +81,20 @@ export default function HomePage() {
       if (search) url += `&search=${encodeURIComponent(search)}`;
       if (selectedCategory) url += `&category_id=${selectedCategory}`;
       const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       let data = json.data || [];
 
-      if (sortBy === "price_asc")
-        data.sort((a, b) => a.min_price - b.min_price);
-      else if (sortBy === "price_desc")
-        data.sort((a, b) => b.min_price - a.min_price);
+      if (sortBy === "price_asc") {
+        data.sort((a, b) => (a.min_price ?? 0) - (b.min_price ?? 0));
+      } else if (sortBy === "price_desc") {
+        data.sort((a, b) => (b.min_price ?? 0) - (a.min_price ?? 0));
+      }
 
       setProducts(data);
     } catch (err) {
       console.error("Failed to fetch products", err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -102,12 +107,14 @@ export default function HomePage() {
   ];
 
   return (
-    <div className='light font-sans min-h-screen' style={{ backgroundColor: C.bg }}>
+    <div
+      className='light font-sans min-h-screen'
+      style={{ backgroundColor: C.bg }}
+    >
       <Navbar />
       <HeroSlider />
 
       <div className='px-5 sm:px-8 py-10 md:py-12 max-w-7xl mx-auto'>
-        {/* Toolbar */}
         <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8'>
           <h2
             className='text-2xl md:text-3xl font-bold'
@@ -161,10 +168,9 @@ export default function HomePage() {
         </div>
 
         <div className='flex flex-col md:flex-row gap-8'>
-          {/* Sidebar */}
           <Sidebar
-            sidebarExtra={(
-                          <div>
+            sidebarExtra={
+              <div>
                 <p
                   className='text-xs font-semibold uppercase tracking-widest mb-2 px-1'
                   style={{ color: C.mid }}
@@ -202,17 +208,16 @@ export default function HomePage() {
                   ))}
                 </ul>
               </div>
-            )}
+            }
             pathname='/'
           />
 
-          {/* Mobile category select */}
           <div className='md:hidden mb-6'>
             <select
-              value={selectedCategory || ""}
+              value={selectedCategory ?? ""}
               onChange={e =>
                 setSelectedCategory(
-                  e.target.value ? parseInt(e.target.value) : null
+                  e.target.value ? parseInt(e.target.value, 10) : null
                 )
               }
               className='w-full px-4 py-2.5 text-sm'
@@ -230,7 +235,7 @@ export default function HomePage() {
               ))}
             </select>
           </div>
-          {/* Product grid */}
+
           <div className='flex-1'>
             {loading ? (
               <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'>
@@ -285,27 +290,31 @@ export default function HomePage() {
                     whileHover='hover'
                     viewport={{ once: true, margin: "-40px" }}
                     custom={i}
-                    onClick={() => router.push(`/products/${product.slug}`)}
+                    onClick={() =>
+                      product.slug && router.push(`/products/${product.slug}`)
+                    }
                   >
                     <div
                       className='h-48 flex items-center justify-center overflow-hidden'
                       style={{ backgroundColor: C.border }}
                     >
-                      <img
-                        src={product.primary_image}
-                        alt={product.name}
-                        className='w-full h-full object-cover'
-                        onError={e => {
-                          e.target.style.display = "none";
-                        }}
-                      />
+                      {product.primary_image && (
+                        <img
+                          src={product.primary_image}
+                          alt={product.name || "Produk"}
+                          className='w-full h-full object-cover'
+                          onError={e => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      )}
                     </div>
                     <div className='p-5'>
                       <span
                         className='text-xs font-medium mb-1 block'
                         style={{ color: C.mid }}
                       >
-                        {product.category_name}
+                        {product.category_name || ""}
                       </span>
                       <h3
                         className='font-bold text-base mb-1 line-clamp-2'
@@ -314,22 +323,29 @@ export default function HomePage() {
                           color: C.text
                         }}
                       >
-                        {product.name}
+                        {product.name || ""}
                       </h3>
                       <p
                         className='text-xs mb-3 line-clamp-2 opacity-70'
                         style={{ color: C.text }}
                       >
-                        {product.description}
+                        {product.description || ""}
                       </p>
                       <div className='flex items-center justify-between'>
                         <span
                           className='text-sm font-bold'
                           style={{ color: C.accent }}
                         >
-                          {product.min_price === product.max_price
+                          {product.min_price != null &&
+                          product.max_price != null &&
+                          product.min_price === product.max_price
                             ? formatRupiah(product.min_price)
-                            : `${formatRupiah(product.min_price)} – ${formatRupiah(product.max_price)}`}
+                            : product.min_price != null &&
+                                product.max_price != null
+                              ? `${formatRupiah(product.min_price)} – ${formatRupiah(product.max_price)}`
+                              : formatRupiah(
+                                  product.min_price ?? product.max_price
+                                )}
                         </span>
                       </div>
                     </div>

@@ -224,7 +224,7 @@ export default function AdminsPage() {
         <div className='space-y-4'>
           {/* Toggle mode hanya saat create */}
           {!editItem && (
-            <div className='flex gap-2 p-1 bg-gray-100 rounded-lg'>
+            <div className='flex gap-2 p-1 bg-gray-100'>
               <button
                 onClick={() => {
                   setMode("new");
@@ -233,7 +233,7 @@ export default function AdminsPage() {
                   setUserSearch("");
                   setUserResults([]);
                 }}
-                className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${mode === "new" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 py-1.5 px-3  text-sm font-medium transition-colors ${mode === "new" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
               >
                 <Plus className='w-3.5 h-3.5 inline mr-1' />
                 Buat Baru
@@ -243,7 +243,7 @@ export default function AdminsPage() {
                   setMode("existing");
                   setForm(emptyForm);
                 }}
-                className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${mode === "existing" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+                className={`flex-1 py-1.5 px-3  text-sm font-medium transition-colors ${mode === "existing" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
               >
                 <UserCheck className='w-3.5 h-3.5 inline mr-1' />
                 Dari User
@@ -264,7 +264,7 @@ export default function AdminsPage() {
                   value={userSearch}
                   onChange={e => handleUserSearch(e.target.value)}
                   placeholder='Cari nama, email, atau nomor HP...'
-                  className='w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cream-500'
+                  className='w-full pl-9 pr-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-cream-500'
                 />
                 {userLoading && (
                   <div className='absolute right-3 top-1/2 -translate-y-1/2'>
@@ -275,7 +275,7 @@ export default function AdminsPage() {
 
               {/* Dropdown hasil pencarian */}
               {userResults.length > 0 && (
-                <div className='absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-52 overflow-y-auto'>
+                <div className='absolute z-10 mt-1 w-full bg-white border border-gray-200 shadow-lg max-h-52 overflow-y-auto'>
                   {userResults.map(user => (
                     <button
                       key={user.id}
@@ -309,7 +309,7 @@ export default function AdminsPage() {
 
               {/* User terpilih */}
               {selectedUser && (
-                <div className='mt-2 flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg'>
+                <div className='mt-2 flex items-center gap-2 p-2 bg-green-50 border border-green-200'>
                   <UserCheck className='w-4 h-4 text-green-600 shrink-0' />
                   <span className='text-sm text-green-700 font-medium truncate'>
                     {selectedUser.name} — {selectedUser.email}

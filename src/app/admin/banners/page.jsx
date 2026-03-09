@@ -82,7 +82,7 @@ export default function BannersPage() {
               <Tr key={banner.id}>
                 <Td>
                   {banner.image_url && (
-                    <img src={banner.image_url} alt={banner.title} className="w-20 h-12 object-cover rounded" />
+                    <img src={banner.image_url} alt={banner.title} className="w-20 h-12 object-cover " />
                   )}
                 </Td>
                 <Td>
@@ -134,7 +134,7 @@ export default function BannersPage() {
             <Input label="Tanggal Selesai" type="date" value={form.end_date} onChange={e => setField('end_date', e.target.value)} />
           </div>
           <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-            <input type="checkbox" checked={form.is_active} onChange={e => setField('is_active', e.target.checked)} className="rounded" />
+            <input type="checkbox" checked={form.is_active} onChange={e => setField('is_active', e.target.checked)} className="" />
             Aktifkan banner
           </label>
         </div>
