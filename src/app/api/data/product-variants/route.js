@@ -143,7 +143,6 @@ export async function PATCH(request) {
   if (error) return err(error.message, 500);
   return ok({ data, message: "Variant updated" });
 }
-
 export async function DELETE(request) {
   const { supabase, response } = await requireAdmin();
   if (response) return response;
@@ -154,8 +153,9 @@ export async function DELETE(request) {
 
   const { error } = await supabase
     .from("product_variants")
-    .delete()
+    .update({ is_active: false, updated_at: new Date().toISOString() })
     .eq("id", id);
+
   if (error) return err(error.message, 500);
-  return ok({ message: "Variant deleted" });
+  return ok({ message: "Variant deactivated" });
 }

@@ -50,7 +50,9 @@ export const products = {
   getBySlug: slug => api.get(`/api/data/products/${slug}`),
   create: body => api.post("/api/data/products", body),
   update: (id, body) => api.patch(`/api/data/products?id=${id}`, body),
-  delete: id => api.delete(`/api/data/products?id=${id}`)
+  delete: id => api.delete(`/api/data/products?id=${id}`),
+  restore: id => api.patch(`/api/data/products?id=${id}&action=restore`, {}),
+  hardDelete: id => api.delete(`/api/data/products?id=${id}&permanent=true`)
 };
 
 export const variants = {

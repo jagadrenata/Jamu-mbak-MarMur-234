@@ -7,6 +7,7 @@ export async function GET(request) {
   const id = searchParams.get("id");
   const category_id = searchParams.get("category_id");
   const status = searchParams.get("status");
+  const exclude_status = searchParams.get("exclude_status");
   const search = searchParams.get("search");
   const detail = searchParams.get("detail");
   const { limit, offset } = paginate(searchParams);
@@ -28,7 +29,6 @@ export async function GET(request) {
 
     if (error) return err(error.message, 500);
 
-    // Sort images by position
     const productImages = (raw.product_images || []).sort(
       (a, b) => a.position - b.position
     );
@@ -61,13 +61,15 @@ export async function GET(request) {
        product_variants ( price, is_active )`,
       { count: "exact" }
     )
-    .order("id");
+    .order("updated_at", { ascending: false });
 
   if (id) query = query.eq("id", id);
   if (category_id) query = query.eq("category_id", category_id);
   if (status) query = query.eq("status", status);
+  if (exclude_status) query = query.neq("status", exclude_status);
   if (search)
     query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+
   query = query.range(offset, offset + limit - 1);
 
   const { data: raw, count, error } = await query;
@@ -109,15 +111,15 @@ export async function POST(request) {
   const body = await request.json();
   const { name, slug, sku, description, status, category_id } = body;
 
-  if (!name) return err("name is required");
+  if (!name?.trim()) return err("name is required");
 
   const { data, error } = await supabase
     .from("products")
     .insert({
-      name,
-      slug: slug || null,
-      sku: sku || null,
-      description: description || null,
+      name: name.trim(),
+      slug: slug?.trim() || null,
+      sku: sku?.trim() || null,
+      description: description?.trim() || null,
       status: status ?? "active",
       category_id: category_id ? parseInt(category_id) : null
     })
@@ -134,7 +136,23 @@ export async function PATCH(request) {
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
+  const action = searchParams.get("action");
+
   if (!id) return err("id is required");
+
+  if (action === "restore") {
+    const { data, error } = await supabase
+      .from("products")
+      .update({ status: "draft", updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("status", "archived")
+      .select()
+      .single();
+
+    if (error) return err(error.message, 500);
+    if (!data) return err("Product not found or not archived", 404);
+    return ok({ data, message: "Product restored" });
+  }
 
   const body = await request.json();
   const allowed = [
@@ -148,6 +166,14 @@ export async function PATCH(request) {
   const updates = Object.fromEntries(
     Object.entries(body).filter(([k]) => allowed.includes(k))
   );
+
+  if (updates.status === "archived") {
+    return err("Use DELETE to archive a product", 400);
+  }
+
+  if (Object.keys(updates).length === 0)
+    return err("No valid fields to update");
+
   updates.updated_at = new Date().toISOString();
 
   const { data, error } = await supabase
@@ -167,9 +193,33 @@ export async function DELETE(request) {
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
+  const permanent = searchParams.get("permanent") === "true";
+
   if (!id) return err("id is required");
 
-  const { error } = await supabase.from("products").delete().eq("id", id);
+  if (permanent) {
+    const { data: existing, error: fetchError } = await supabase
+      .from("products")
+      .select("id, status")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !existing) return err("Product not found", 404);
+
+    if (existing.status !== "archived") {
+      return err("Product must be archived before permanent deletion", 400);
+    }
+
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) return err(error.message, 500);
+    return ok({ message: "Product permanently deleted" });
+  }
+
+  const { error } = await supabase
+    .from("products")
+    .update({ status: "archived", updated_at: new Date().toISOString() })
+    .eq("id", id);
+
   if (error) return err(error.message, 500);
-  return ok({ message: "Product deleted" });
+  return ok({ message: "Product archived" });
 }
