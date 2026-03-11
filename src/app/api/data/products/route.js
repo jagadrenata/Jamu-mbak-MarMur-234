@@ -167,6 +167,11 @@ export async function PATCH(request) {
     Object.entries(body).filter(([k]) => allowed.includes(k))
   );
 
+  if ("category_id" in updates) {
+    updates.category_id = updates.category_id
+      ? parseInt(updates.category_id)
+      : null;
+  }
   if (updates.status === "archived") {
     return err("Use DELETE to archive a product", 400);
   }
