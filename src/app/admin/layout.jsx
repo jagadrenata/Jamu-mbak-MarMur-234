@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAdminStore } from "@/store/useAdminStore";
 import Sidebar from "@/components/dashboard/Sidebar";
