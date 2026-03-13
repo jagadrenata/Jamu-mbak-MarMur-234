@@ -1,9 +1,11 @@
-"use client"
+"use client";
 
-import React, {useState} from 'react'
+import React, { useState } from "react";
 import { useAdmin } from "@/hooks/useAdmin";
-import Sidebar from '@/components/dashboard/Sidebar'
-import Navbar from '@/components/dashboard/Navbar'
+import { useAdminStore } from "@/store/useAdminStore";
+import Sidebar from "@/components/dashboard/Sidebar";
+import Navbar from "@/components/dashboard/Navbar";
+import LoadingProgress from "@/components/dashboard/LoadingProgress";
 import {
   UserCog,
   Users,
@@ -82,22 +84,42 @@ const adminMenus = [
   }
 ];
 
-
 export default function Page({ children }) {
-  const { admin, loading } = useAdmin({ redirectTo: "/login" });
+  const router = useRouter();
+  
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [fetchDone, setFetchDone] = useState(false);
 
-  if (loading) return <p>Loading...</p>;
+  const { admin, loading, fetchAdmin } = useAdminStore();
+
+  useEffect(() => {
+    fetchAdmin({ roles: ["admin", "superadmin"] }).finally(() =>
+      setFetchDone(true)
+    ); // trigger saat fetch selesai
+  }, [fetchAdmin]);
+
+  useEffect(() => {
+    if (!loading && !admin) {
+      router.replace("/login?from=admin");
+    }
+  }, [loading, admin, router]);
+
+  if (loading || !admin) {
+    return <LoadingProgress onComplete={fetchDone ? true : null} />;
+  }
+
+  if (!admin) {
+    return null;
+  }
+
   return (
-    <div className="flex bg-cream-50 text-black">
+    <div className='flex bg-cream-50 text-black'>
       <Sidebar navMenus={adminMenus} admin={true} />
 
-      <div className="flex-1">
+      <div className='flex-1'>
         <Navbar />
-        <div className="p-4 mt-20">
-          {children}
-        </div>
+        <div className='p-4 mt-20'>{children}</div>
       </div>
     </div>
-  )
+  );
 }
