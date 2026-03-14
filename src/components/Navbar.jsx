@@ -53,24 +53,19 @@ export const defaultNavItems = [
     icon: <Menu className='w-4 h-4' />,
     children: [
       {
-        label: "Kontak",
-        href: "/more/contact",
-        icon: <Heart className='w-3.5 h-3.5' />
-      },
-      {
         label: "Tentang kami",
         href: "/more/about",
         icon: <Info className='w-3.5 h-3.5' />
       },
       {
+        label: "Kontak",
+        href: "/more/contact",
+        icon: <Heart className='w-3.5 h-3.5' />
+      },
+      {
         label: "Outlet",
         href: "/outlet",
         icon: <Percent className='w-3.5 h-3.5' />
-      },
-      {
-        label: "Wishlist",
-        href: "/more/wishlist",
-        icon: <Heart className='w-3.5 h-3.5' />
       },
       {
         label: "E-katalog",

@@ -10,7 +10,8 @@ import {
   ShoppingCart,
   ClipboardList
 } from "lucide-react";
-import Link from "next/link";
+import Link from "next/link";6
+import {siteConfig} from "@/lib/siteConfig"
 import { usePathname } from "next/navigation";
 import Navbar, { C } from "@/components/Navbar";
 import HeroSlider from "@/components/HeroSlider";
@@ -351,6 +352,67 @@ export default function HomePage() {
                     </div>
                   </motion.div>
                 ))}
+
+                <motion.div
+                  className='overflow-hidden shadow-sm cursor-pointer'
+                  style={{
+                    border: `1px solid ${C.border}`,
+                    backgroundColor: C.bgCard
+                  }}
+                  variants={cardVariants}
+                  initial='hidden'
+                  whileInView='visible'
+                  whileHover='hover'
+                  viewport={{ once: true, margin: "-40px" }}
+                  custom={products.length + 1}
+                  onClick={() =>
+                    window.location.href= 
+                      siteConfig.url.whatsapp(
+                        "Hallo min. saya mau custom jamu berikut: "
+                      
+                    )
+                  }
+                >
+                  <div
+                    className='h-48 flex items-center justify-center overflow-hidden'
+                    style={{ backgroundColor: C.border }}
+                  >
+                    <img
+                      src='/images/product-custom.jpg'
+                      alt='custom product'
+                      className='w-full h-full object-cover'
+                      onError={e => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  </div>
+                  <div className='p-5'>
+                    <h3
+                      className='font-bold text-base mb-1 line-clamp-2'
+                      style={{
+                        fontFamily: "'Georgia', serif",
+                        color: C.text
+                      }}
+                    >
+                      Custom sendiri jamu mu
+                    </h3>
+                    <p
+                      className='text-xs mb-3 line-clamp-2 opacity-70'
+                      style={{ color: C.text }}
+                    >
+                      Tidak dapat menemukan produk yang sesuai atau ingin
+                      mencoba rasa jamu baru? coba tanyakann kepada admin.
+                    </p>
+                    <div className='flex items-center justify-between'>
+                      <span
+                        className='text-sm font-bold'
+                        style={{ color: C.accent }}
+                      >
+                        Mulai dari {formatRupiah(6000)}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
             )}
           </div>

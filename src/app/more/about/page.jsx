@@ -148,7 +148,7 @@ export default function AboutPage() {
             pengiriman dan pemesanan dalam jumlah besar.
           </p>
           <Link
-            href="/contact"
+            href="/more/contact"
             className="inline-flex items-center gap-2 border border-[var(--color-accent)] text-[var(--color-accent)] px-[22px] py-2.5 text-[13px] font-semibold no-underline font-sans tracking-[0.03em] self-start"
           >
             <MapPin className="w-4 h-4" />

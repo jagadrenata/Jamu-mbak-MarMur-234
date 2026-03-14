@@ -12,7 +12,13 @@ import {
   User,
   MapPin,
   CheckCircle2,
-  Tag
+  Tag,
+  Truck,
+  Info,
+  MessageCircle,
+  Ticket,
+  X,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -24,10 +30,34 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 const Map = dynamic(() => import("@/components/Map"), { ssr: false });
 
-//  Helpers
+// Helpers
 
 function formatRupiah(n) {
   return "Rp " + Number(n).toLocaleString("id-ID");
+}
+
+/** Minimal order quantity based on distance (km). Returns null if > 5km. */
+function getMinQtyByDistance(km) {
+  if (km === null || km === undefined) return null;
+  if (km < 1) return 1;
+  if (km < 2.5) return 5;
+  if (km < 5) return 10;
+  return null; // >5km chat admin
+}
+
+/** Distance hint message for display */
+function getDistanceHint(km) {
+  if (km === null || km === undefined) return null;
+  if (km > 5)
+    return {
+      type: "admin",
+      msg: `Jarak pengiriman ${km.toFixed(1)} km — lebih dari 5 km, silakan chat admin untuk melakukan pemesanan.`
+    };
+  const min = getMinQtyByDistance(km);
+  return {
+    type: "info",
+    msg: `Jarak pengiriman ±${km.toFixed(1)} km — minimal pembelian ${min} item.`
+  };
 }
 
 const EMPTY_GUEST_FORM = {
@@ -44,7 +74,7 @@ const EMPTY_GUEST_FORM = {
   payment_method: "bank_transfer"
 };
 
-//  Sub-components
+// Sub-components
 
 function Field({ label, error, children }) {
   return (
@@ -76,12 +106,11 @@ function Field({ label, error, children }) {
 function InputBase({ error, ...props }) {
   return (
     <input
-      className='w-full px-3 py-2.5 text-sm outline-none bg-transparent transition-colors focus:ring-1 '
+      className='w-full px-3 py-2.5 text-sm outline-none bg-transparent transition-colors focus:ring-1'
       style={{
         border: `1px solid ${error ? "#e53e3e" : C.border}`,
         color: C.text,
-        "--tw-ring-color": C.accent,
-        focusBorderColor: C.accent
+        "--tw-ring-color": C.accent
       }}
       {...props}
     />
@@ -91,11 +120,11 @@ function InputBase({ error, ...props }) {
 function SkeletonCard() {
   return (
     <div
-      className='p-5 animate-pulse '
+      className='p-5 animate-pulse'
       style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
     >
       <div className='flex gap-4'>
-        <div className='w-20 h-20 ' style={{ backgroundColor: C.border }} />
+        <div className='w-20 h-20' style={{ backgroundColor: C.border }} />
         <div className='flex-1 space-y-2 pt-1'>
           <div
             className='h-4 w-2/3 rounded'
@@ -126,13 +155,13 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: isRemoving ? 0.4 : 1, y: 0 }}
       exit={{ opacity: 0, x: -30, transition: { duration: 0.22 } }}
-      className=' overflow-hidden'
+      className='overflow-hidden'
       style={{ border: `1px solid ${C.border}`, backgroundColor: C.bgCard }}
     >
       <div className='flex gap-4 p-4'>
         {/* Image */}
         <div
-          className='w-20 h-20 flex-shrink-0  overflow-hidden'
+          className='w-20 h-20 flex-shrink-0 overflow-hidden'
           style={{ backgroundColor: C.border }}
         >
           {item.product_image && (
@@ -178,7 +207,7 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
             whileTap={{ scale: 0.85 }}
             onClick={() => onRemove(item)}
             disabled={isRemoving}
-            className='p-1.5  transition-colors hover:bg-red-50'
+            className='p-1.5 transition-colors hover:bg-red-50'
             title='Hapus item'
             style={{ color: "#e53e3e", opacity: isRemoving ? 0.4 : 0.6 }}
           >
@@ -187,7 +216,7 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
 
           {/* Qty stepper */}
           <div
-            className='flex items-center  overflow-hidden'
+            className='flex items-center overflow-hidden'
             style={{ border: `1px solid ${C.border}` }}
           >
             <motion.button
@@ -237,7 +266,225 @@ function CartItemCard({ item, updating, removing, onUpdateQty, onRemove }) {
   );
 }
 
-//  Main Page
+// Distance Hint Banner
+
+function DistanceHintBanner({ distanceKm }) {
+  const hint = getDistanceHint(distanceKm);
+  if (!hint) return null;
+
+  const isAdmin = hint.type === "admin";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className='flex items-start gap-2.5 p-3.5 text-xs rounded'
+      style={{
+        backgroundColor: isAdmin ? "#fff3cd" : C.accent + "12",
+        border: `1px solid ${isAdmin ? "#ffc107" : C.accent + "40"}`,
+        color: isAdmin ? "#856404" : C.accent
+      }}
+    >
+      {isAdmin ? (
+        <MessageCircle className='w-3.5 h-3.5 mt-0.5 flex-shrink-0' />
+      ) : (
+        <Info className='w-3.5 h-3.5 mt-0.5 flex-shrink-0' />
+      )}
+      <span>{hint.msg}</span>
+      {isAdmin && (
+        <a
+          href='https://wa.me/6281234567890'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='ml-auto font-semibold underline whitespace-nowrap'
+          style={{ color: "#856404" }}
+        >
+          Chat Admin →
+        </a>
+      )}
+    </motion.div>
+  );
+}
+
+// COD Notice
+
+function CodNotice() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className='flex items-start gap-2.5 p-3.5 text-xs rounded'
+      style={{
+        backgroundColor: "#fff3cd",
+        border: "1px solid #ffc107",
+        color: "#856404"
+      }}
+    >
+      <MessageCircle className='w-3.5 h-3.5 mt-0.5 flex-shrink-0' />
+      <span>
+        Pembelian dengan metode <strong>Bayar di Tempat (COD)</strong> harus
+        dilakukan melalui admin.{" "}
+        <a
+          href='https://wa.me/6281234567890'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='font-semibold underline'
+        >
+          Chat Admin →
+        </a>
+      </span>
+    </motion.div>
+  );
+}
+
+// Shipping Method Selector
+
+function ShippingMethodSelector({ methods, selectedId, onSelect }) {
+  if (!methods || methods.length === 0) return null;
+
+  return (
+    <div className='space-y-2'>
+      {methods.map(m => (
+        <label
+          key={m.id}
+          className='flex items-center gap-3 p-3 cursor-pointer transition-all'
+          style={{
+            border: `1px solid ${selectedId === m.id ? C.accent : C.border}`,
+            backgroundColor:
+              selectedId === m.id ? C.accent + "0a" : "transparent"
+          }}
+        >
+          <input
+            type='radio'
+            name='shipping_method'
+            checked={selectedId === m.id}
+            onChange={() => onSelect(m)}
+            style={{ accentColor: C.accent }}
+          />
+          <div className='flex-1 min-w-0'>
+            <div className='flex items-center justify-between gap-2'>
+              <span className='text-xs font-semibold' style={{ color: C.text }}>
+                {m.name}
+              </span>
+              <span
+                className='text-xs font-bold flex-shrink-0'
+                style={{ color: C.accent }}
+              >
+                {m.price === 0 ? "Gratis" : formatRupiah(m.price)}
+              </span>
+            </div>
+            {m.estimated_time && (
+              <span className='text-xs opacity-60' style={{ color: C.text }}>
+                Estimasi: {m.estimated_time}
+              </span>
+            )}
+          </div>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+// Promo Code Input
+
+function PromoCodeInput({ onApply, appliedPromo, onRemove }) {
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleApply() {
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed) return;
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `/api/admin/promo-codes?code=${encodeURIComponent(trimmed)}`
+      );
+      const json = await res.json();
+      if (!res.ok || !json.data) {
+        toast.error("Kode promo tidak ditemukan atau tidak aktif.");
+        return;
+      }
+      const promo = json.data;
+      if (!promo.is_active) {
+        toast.error("Kode promo sudah tidak aktif.");
+        return;
+      }
+      if (promo.expires_at && new Date(promo.expires_at) < new Date()) {
+        toast.error("Kode promo sudah kadaluarsa.");
+        return;
+      }
+      if (promo.usage_limit !== null && promo.used_count >= promo.usage_limit) {
+        toast.error("Kode promo sudah mencapai batas penggunaan.");
+        return;
+      }
+      onApply(promo);
+      toast.success(`Promo "${promo.code}" berhasil digunakan!`);
+    } catch {
+      toast.error("Gagal memeriksa kode promo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (appliedPromo) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        className='flex items-center gap-2 px-3 py-2 rounded'
+        style={{
+          backgroundColor: C.accent + "12",
+          border: `1px solid ${C.accent + "40"}`
+        }}
+      >
+        <Ticket
+          className='w-3.5 h-3.5 flex-shrink-0'
+          style={{ color: C.accent }}
+        />
+        <span
+          className='flex-1 text-xs font-semibold'
+          style={{ color: C.accent }}
+        >
+          {appliedPromo.code}
+          {appliedPromo.type === "percent"
+            ? ` — Diskon ${appliedPromo.value}%`
+            : ` — Diskon ${formatRupiah(appliedPromo.value)}`}
+        </span>
+        <button
+          onClick={onRemove}
+          className='p-0.5 opacity-60 hover:opacity-100 transition-opacity'
+          style={{ color: C.accent }}
+        >
+          <X className='w-3.5 h-3.5' />
+        </button>
+      </motion.div>
+    );
+  }
+
+  return (
+    <div className='flex gap-2'>
+      <input
+        type='text'
+        value={code}
+        onChange={e => setCode(e.target.value.toUpperCase())}
+        onKeyDown={e => e.key === "Enter" && handleApply()}
+        placeholder='Kode promo'
+        className='flex-1 px-3 py-2 text-xs outline-none bg-transparent'
+        style={{ border: `1px solid ${C.border}`, color: C.text }}
+      />
+      <button
+        onClick={handleApply}
+        disabled={loading || !code.trim()}
+        className='px-4 py-2 text-xs font-semibold flex items-center gap-1.5 transition-opacity disabled:opacity-50'
+        style={{ backgroundColor: C.accent, color: C.textLight }}
+      >
+        {loading ? <Loader2 className='w-3 h-3 animate-spin' /> : "Pakai"}
+      </button>
+    </div>
+  );
+}
+
+// Main Page
 
 export default function CartPage() {
   const router = useRouter();
@@ -259,6 +506,17 @@ export default function CartPage() {
   const [coordinate, setCoordinate] = useState(null);
   const [showMap, setShowMap] = useState(false);
 
+  // Shipping methods
+  const [shippingMethods, setShippingMethods] = useState([]);
+  const [selectedShipping, setSelectedShipping] = useState(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+
+  // Promo
+  const [appliedPromo, setAppliedPromo] = useState(null);
+
+  // Distance (km) — computed from coordinate vs toko
+  const [distanceKm, setDistanceKm] = useState(null);
+
   const initialSyncDone = useRef(false);
 
   const guestUpdateQuantity = useGuestCartStore(s => s.updateQuantity);
@@ -274,14 +532,14 @@ export default function CartPage() {
     fetchUser();
   }, [fetchUser]);
 
-  //  Load cart
+  // Load cart
   useEffect(() => {
     if (authLoading) return;
     if (userId) fetchUserCart();
     else loadGuestCart();
   }, [userId, authLoading]);
 
-  //  Load addresses (logged-in)
+  // Load addresses (logged-in)
   useEffect(() => {
     if (!userId || authLoading) return;
     async function fetchAddresses() {
@@ -305,7 +563,47 @@ export default function CartPage() {
     fetchAddresses();
   }, [userId, authLoading]);
 
-  //  Cart fetchers
+  // Load shipping methods
+  useEffect(() => {
+    async function fetchShipping() {
+      setShippingLoading(true);
+      try {
+        const res = await fetch(
+          "/api/shipping/shipping-methods?is_active=true"
+        );
+        const json = await res.json();
+        if (res.ok && json.data?.length > 0) {
+          setShippingMethods(json.data);
+          setSelectedShipping(json.data[0]);
+        }
+      } catch {
+        // silently fail — fallback to flat cost
+      } finally {
+        setShippingLoading(false);
+      }
+    }
+    fetchShipping();
+  }, []);
+
+  // Compute distance when coordinate changes
+  useEffect(() => {
+    if (!coordinate) {
+      setDistanceKm(null);
+      return;
+    }
+    // Koordinat toko — ganti sesuai lokasi asli
+    const STORE_LAT = -7.7956;
+    const STORE_LNG = 110.3695;
+    const km = haversineKm(
+      coordinate.lat,
+      coordinate.lng,
+      STORE_LAT,
+      STORE_LNG
+    );
+    setDistanceKm(km);
+  }, [coordinate]);
+
+  // Cart fetchers
   async function fetchUserCart() {
     setLoading(true);
     try {
@@ -352,7 +650,7 @@ export default function CartPage() {
     }
   }
 
-  //  Quantity update
+  // Quantity update
   function updateGuestQty(variant_id, quantity) {
     setUpdating(variant_id);
     const updatedItems = items.map(i =>
@@ -387,7 +685,7 @@ export default function CartPage() {
     }
   }
 
-  //  Remove item
+  // Remove item
   function removeGuestItemFn(variant_id) {
     setRemoving(variant_id);
     const itemName =
@@ -423,8 +721,36 @@ export default function CartPage() {
     setTotalItems(list.reduce((s, i) => s + i.quantity, 0));
   }
 
-  //  Checkout
+  // Derived values
+  const isGuest = !authLoading && !userId;
+  const shippingCost = selectedShipping?.price ?? 0;
+
+  // Discount calculation
+  const discountAmount = (() => {
+    if (!appliedPromo) return 0;
+    const base = subtotal + shippingCost;
+    if (appliedPromo.min_purchase && base < appliedPromo.min_purchase) return 0;
+    if (appliedPromo.type === "percent") {
+      const disc = Math.floor((base * appliedPromo.value) / 100);
+      return appliedPromo.max_discount
+        ? Math.min(disc, appliedPromo.max_discount)
+        : disc;
+    }
+    return Math.min(appliedPromo.value, base);
+  })();
+
+  const grandTotal = subtotal + shippingCost - discountAmount;
+
   async function handleCheckout() {
+    // Block COD via normal checkout
+    if (
+      guestForm.payment_method === "cod" ||
+      (!userId && guestForm.payment_method === "cod")
+    ) {
+      toast.info("Pembelian COD dilakukan melalui admin. Silakan chat admin.");
+      return;
+    }
+
     if (!userId) {
       const errors = validateForm();
       if (Object.keys(errors).length > 0) {
@@ -442,6 +768,23 @@ export default function CartPage() {
       return;
     }
 
+    // Min qty check for guest with distance
+    if (!userId && distanceKm !== null) {
+      if (distanceKm > 5) {
+        toast.error(
+          "Jarak lebih dari 5 km. Silakan chat admin untuk pemesanan."
+        );
+        return;
+      }
+      const minQty = getMinQtyByDistance(distanceKm);
+      if (totalItems < minQty) {
+        toast.error(
+          `Minimal pembelian ${minQty} item untuk jarak ±${distanceKm.toFixed(1)} km.`
+        );
+        return;
+      }
+    }
+
     const toastId = toast.loading("Memproses pesanan...");
     setCheckoutLoading(true);
 
@@ -453,7 +796,12 @@ export default function CartPage() {
       }));
 
       const body = userId
-        ? { items: orderItems, address_id: selectedAddressId }
+        ? {
+            items: orderItems,
+            address_id: selectedAddressId,
+            shipping_method_id: selectedShipping?.id ?? null,
+            promo_code_id: appliedPromo?.id ?? null
+          }
         : {
             items: orderItems,
             customer_name: guestForm.customer_name,
@@ -469,7 +817,9 @@ export default function CartPage() {
               delivery_notes: guestForm.delivery_notes
             },
             coordinate: coordinate ?? null,
-            payment_method: guestForm.payment_method
+            payment_method: guestForm.payment_method,
+            shipping_method_id: selectedShipping?.id ?? null,
+            promo_code_id: appliedPromo?.id ?? null
           };
 
       const endpoint = userId ? "/api/data/orders" : "/api/data/guest-orders";
@@ -530,11 +880,6 @@ export default function CartPage() {
     toast.success("Lokasi berhasil dipilih dari peta.");
   }
 
-  //  Derived values
-  const isGuest = !authLoading && !userId;
-  const shippingCost = 10000;
-  const grandTotal = subtotal + shippingCost;
-
   function handleUpdateQty(item, quantity) {
     if (quantity < 1) return;
     if (quantity > item.stock) {
@@ -549,8 +894,6 @@ export default function CartPage() {
     if (userId) removeUserItemFn(item);
     else removeGuestItemFn(item.variant_id);
   }
-
-  //  Render
 
   return (
     <PublicLayout
@@ -609,7 +952,6 @@ export default function CartPage() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        /* Empty state */
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -634,7 +976,7 @@ export default function CartPage() {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => router.push("/")}
-            className='inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold '
+            className='inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold'
             style={{ backgroundColor: C.accent, color: C.textLight }}
           >
             Lihat Produk
@@ -642,7 +984,6 @@ export default function CartPage() {
           </motion.button>
         </motion.div>
       ) : (
-        /* Cart content */
         <div className='flex flex-col lg:flex-row gap-8'>
           {/* Left column: items + guest form */}
           <div className='flex-1 space-y-4'>
@@ -665,7 +1006,7 @@ export default function CartPage() {
                 id='guest-form'
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                className='mt-6 p-6 space-y-5 '
+                className='mt-6 p-6 space-y-5'
                 style={{
                   border: `1px solid ${C.border}`,
                   backgroundColor: C.bgCard
@@ -770,6 +1111,20 @@ export default function CartPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+
+                  {/* Distance hint banner (langsung tampil setelah koordinat dipilih) */}
+                  <AnimatePresence>
+                    {distanceKm !== null && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        className='mt-2'
+                      >
+                        <DistanceHintBanner distanceKm={distanceKm} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <Field label='Alamat Jalan'>
@@ -843,7 +1198,7 @@ export default function CartPage() {
                     name='payment_method'
                     value={guestForm.payment_method}
                     onChange={handleFormChange}
-                    className='w-full px-3 py-2.5 text-sm outline-none appearance-none  transition-colors'
+                    className='w-full px-3 py-2.5 text-sm outline-none appearance-none transition-colors'
                     style={{
                       border: `1px solid ${C.border}`,
                       backgroundColor: C.bgCard,
@@ -855,16 +1210,29 @@ export default function CartPage() {
                     <option value='e_wallet'>E-Wallet</option>
                   </select>
                 </Field>
+
+                {/* COD notice */}
+                <AnimatePresence>
+                  {guestForm.payment_method === "cod" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                    >
+                      <CodNotice />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
           </div>
 
-          {/* Right column: address + order summary */}
+          {/* Right column: address + shipping + promo + order summary */}
           <div className='lg:w-72 flex-shrink-0 space-y-4'>
             {/* Address picker (logged-in only) */}
             {!isGuest && !loading && items.length > 0 && (
               <div
-                className='p-5  space-y-4'
+                className='p-5 space-y-4'
                 style={{
                   border: `1px solid ${C.border}`,
                   backgroundColor: C.bgCard
@@ -891,7 +1259,7 @@ export default function CartPage() {
                     {[1, 2].map(i => (
                       <div
                         key={i}
-                        className='h-16 animate-pulse '
+                        className='h-16 animate-pulse'
                         style={{ backgroundColor: C.border }}
                       />
                     ))}
@@ -915,7 +1283,7 @@ export default function CartPage() {
                     {addresses.map(addr => (
                       <label
                         key={addr.id}
-                        className='flex items-start gap-3 p-3  cursor-pointer transition-all'
+                        className='flex items-start gap-3 p-3 cursor-pointer transition-all'
                         style={{
                           border: `1px solid ${selectedAddressId === addr.id ? C.accent : C.border}`,
                           backgroundColor:
@@ -929,7 +1297,7 @@ export default function CartPage() {
                           name='address'
                           checked={selectedAddressId === addr.id}
                           onChange={() => setSelectedAddressId(addr.id)}
-                          className='mt-0.5 accent-current'
+                          className='mt-0.5'
                           style={{ accentColor: C.accent }}
                         />
                         <div
@@ -980,9 +1348,51 @@ export default function CartPage() {
               </div>
             )}
 
+            {/* Shipping method selector */}
+            {!loading && items.length > 0 && (
+              <div
+                className='p-5 space-y-3'
+                style={{
+                  border: `1px solid ${C.border}`,
+                  backgroundColor: C.bgCard
+                }}
+              >
+                <div className='flex items-center gap-2'>
+                  <Truck className='w-4 h-4' style={{ color: C.accent }} />
+                  <h3
+                    className='text-sm font-bold'
+                    style={{ fontFamily: "'Georgia', serif", color: C.text }}
+                  >
+                    Metode Pengiriman
+                  </h3>
+                </div>
+                {shippingLoading ? (
+                  <div className='space-y-2'>
+                    {[1, 2].map(i => (
+                      <div
+                        key={i}
+                        className='h-12 animate-pulse'
+                        style={{ backgroundColor: C.border }}
+                      />
+                    ))}
+                  </div>
+                ) : shippingMethods.length === 0 ? (
+                  <p className='text-xs opacity-60' style={{ color: C.text }}>
+                    Tidak ada metode pengiriman tersedia.
+                  </p>
+                ) : (
+                  <ShippingMethodSelector
+                    methods={shippingMethods}
+                    selectedId={selectedShipping?.id}
+                    onSelect={setSelectedShipping}
+                  />
+                )}
+              </div>
+            )}
+
             {/* Order summary */}
             <div
-              className='p-6  sticky top-24'
+              className='p-6 sticky top-24'
               style={{
                 border: `1px solid ${C.border}`,
                 backgroundColor: C.bgCard
@@ -995,6 +1405,30 @@ export default function CartPage() {
                 Ringkasan Pesanan
               </h3>
 
+              {/* Promo code input */}
+              <div className='mb-4 space-y-2'>
+                <label
+                  className='text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5'
+                  style={{ color: C.mid }}
+                >
+                  <Ticket className='w-3.5 h-3.5' />
+                  Kode Promo
+                </label>
+                <PromoCodeInput
+                  appliedPromo={appliedPromo}
+                  onApply={setAppliedPromo}
+                  onRemove={() => setAppliedPromo(null)}
+                />
+                {appliedPromo &&
+                  appliedPromo.min_purchase > 0 &&
+                  subtotal + shippingCost < appliedPromo.min_purchase && (
+                    <p className='text-xs' style={{ color: "#e53e3e" }}>
+                      Minimal belanja {formatRupiah(appliedPromo.min_purchase)}{" "}
+                      untuk menggunakan promo ini.
+                    </p>
+                  )}
+              </div>
+
               <div className='space-y-3 mb-5 text-sm' style={{ color: C.text }}>
                 <div className='flex justify-between'>
                   <span className='opacity-70'>
@@ -1003,9 +1437,25 @@ export default function CartPage() {
                   <span>{formatRupiah(subtotal)}</span>
                 </div>
                 <div className='flex justify-between'>
-                  <span className='opacity-70'>Ongkos Kirim</span>
+                  <span className='opacity-70'>
+                    Ongkos Kirim
+                    {selectedShipping && (
+                      <span className='opacity-60 ml-1 text-xs'>
+                        ({selectedShipping.name})
+                      </span>
+                    )}
+                  </span>
                   <span>{formatRupiah(shippingCost)}</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div
+                    className='flex justify-between'
+                    style={{ color: "#16a34a" }}
+                  >
+                    <span className='opacity-80'>Diskon Promo</span>
+                    <span>−{formatRupiah(discountAmount)}</span>
+                  </div>
+                )}
                 <div
                   className='pt-3 flex justify-between font-bold text-base'
                   style={{ borderTop: `1px solid ${C.border}` }}
@@ -1021,13 +1471,12 @@ export default function CartPage() {
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleCheckout}
-                disabled={checkoutLoading}
-                className='w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold  transition-opacity'
-                style={{
-                  backgroundColor: C.accent,
-                  color: C.textLight,
-                  opacity: checkoutLoading ? 0.7 : 1
-                }}
+                disabled={
+                  checkoutLoading ||
+                  (isGuest && distanceKm !== null && distanceKm > 5)
+                }
+                className='w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed'
+                style={{ backgroundColor: C.accent, color: C.textLight }}
               >
                 {checkoutLoading ? (
                   <>
@@ -1041,6 +1490,25 @@ export default function CartPage() {
                   </>
                 )}
               </motion.button>
+
+              {/* COD shortcut hint for user accounts */}
+              {!isGuest && (
+                <p
+                  className='mt-2 text-xs text-center opacity-50'
+                  style={{ color: C.text }}
+                >
+                  Ingin COD?{" "}
+                  <a
+                    href='https://wa.me/6281234567890'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='underline font-medium opacity-100'
+                    style={{ color: C.accent }}
+                  >
+                    Chat admin
+                  </a>
+                </p>
+              )}
 
               {isGuest && (
                 <p
@@ -1060,7 +1528,7 @@ export default function CartPage() {
 
               <button
                 onClick={() => router.push("/")}
-                className='w-full mt-3 py-2.5 text-xs font-medium text-center  transition-colors hover:opacity-80'
+                className='w-full mt-3 py-2.5 text-xs font-medium text-center transition-colors hover:opacity-80'
                 style={{ border: `1px solid ${C.border}`, color: C.accent }}
               >
                 Lanjut Belanja
@@ -1071,4 +1539,18 @@ export default function CartPage() {
       )}
     </PublicLayout>
   );
+}
+
+// Haversine distance helper
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }

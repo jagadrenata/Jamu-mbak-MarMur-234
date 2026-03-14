@@ -1,6 +1,7 @@
 import { ok, err, paginate } from "@/lib/helpers";
 import { createAdminClient } from "@/lib/supabase/server";
 import crypto from "crypto";
+import { siteConfig } from '@/lib/siteConfig'
 
 const STATUS_LABEL = {
   pending: "Menunggu Pembayaran",
@@ -13,6 +14,28 @@ const STATUS_LABEL = {
   refunded: "Dikembalikan",
   expired: "Kedaluwarsa"
 };
+
+const STORE_LAT = siteConfig.maps.lat;
+const STORE_LNG = siteConfig.maps.lng;
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function getMinQty(km) {
+  if (km < 1) return 1;
+  if (km < 2.5) return 5;
+  if (km < 5) return 10;
+  return null; // >5km block
+}
 
 function idgenerator() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -192,8 +215,7 @@ export async function POST(request) {
     customer_email,
     customer_phone,
     promo_code_id,
-    tax_id,
-    shipping_price
+    coordinate
   } = body;
 
   if (!items?.length) return err("items are required");
@@ -202,8 +224,34 @@ export async function POST(request) {
   if (!customer_phone) return err("customer_phone is required");
   if (!shipping_address) return err("shipping_address is required");
 
-  const variantIds = items.map(i => i.variant_id);
+  if (!coordinate?.lat || !coordinate?.lng) {
+    return err("Lokasi pengiriman (koordinat) wajib diisi. Pilih lokasi dari peta.", 422);
+  }
 
+  const km = haversineKm(coordinate.lat, coordinate.lng, STORE_LAT, STORE_LNG);
+
+  if (km > 5) {
+    return err(
+      `Jarak pengiriman ${km.toFixed(1)} km melebihi batas 5 km. Silakan hubungi admin.`,
+      422
+    );
+  }
+
+  const minQty = getMinQty(km);
+  const totalQty = items.reduce((s, i) => s + i.quantity, 0);
+  if (totalQty < minQty) {
+    return err(
+      `Minimal pembelian ${minQty} item untuk jarak ±${km.toFixed(1)} km.`,
+      422
+    );
+  }
+
+  // COD tidak diproses via endpoint ini
+  if (payment_method === "cod") {
+    return err("Pembelian COD dilakukan melalui admin. Silakan hubungi admin.", 422);
+  }
+
+  const variantIds = items.map(i => i.variant_id);
   const { data: variants, error: variantError } = await supabase
     .from("product_variants")
     .select("id, price, quantity, name")
@@ -212,8 +260,7 @@ export async function POST(request) {
   if (variantError) return err(variantError.message, 500);
 
   const variantMap = Object.fromEntries(variants.map(v => [v.id, v]));
-
-  let total_price = 0;
+  let subtotal = 0;
   const validatedItems = [];
 
   for (const item of items) {
@@ -222,7 +269,7 @@ export async function POST(request) {
     if (variant.quantity < item.quantity)
       return err(`Stock not enough for variant ${item.variant_id}`);
 
-    total_price += variant.price * item.quantity;
+    subtotal += variant.price * item.quantity;
     validatedItems.push({
       variant_id: item.variant_id,
       quantity: item.quantity,
@@ -231,25 +278,76 @@ export async function POST(request) {
     });
   }
 
+  let shippingPrice = 0;
+  let resolvedShippingMethodId = shipping_method_id ?? null;
+
+  if (shipping_method_id) {
+    const { data: shippingMethod, error: shippingError } = await supabase
+      .from("shipping_methods")
+      .select("id, price, is_active")
+      .eq("id", shipping_method_id)
+      .single();
+
+    if (shippingError || !shippingMethod) return err("Shipping method not found", 404);
+    if (!shippingMethod.is_active) return err("Shipping method is not active", 422);
+
+    shippingPrice = shippingMethod.price ?? 0;
+  }
+
+  let discountAmount = 0;
+  let resolvedPromoId = null;
+
+  if (promo_code_id) {
+    const { data: promo, error: promoError } = await supabase
+      .from("promo_codes")
+      .select("*")
+      .eq("id", promo_code_id)
+      .single();
+
+    if (promoError || !promo) return err("Promo code not found", 404);
+    if (!promo.is_active) return err("Promo code is not active", 422);
+    if (promo.expires_at && new Date(promo.expires_at) < new Date())
+      return err("Promo code has expired", 422);
+    if (promo.usage_limit !== null && promo.used_count >= promo.usage_limit)
+      return err("Promo code usage limit reached", 422);
+
+    const base = subtotal + shippingPrice;
+    if (promo.min_purchase && base < promo.min_purchase)
+      return err(
+        `Minimum purchase of ${promo.min_purchase} required for this promo`,
+        422
+      );
+
+    if (promo.type === "percent") {
+      discountAmount = Math.floor((base * promo.value) / 100);
+      if (promo.max_discount) discountAmount = Math.min(discountAmount, promo.max_discount);
+    } else {
+      discountAmount = Math.min(promo.value, base);
+    }
+
+    resolvedPromoId = promo.id;
+  }
+
+  const totalPrice = subtotal + shippingPrice - discountAmount;
+
   const orderId = idgenerator();
-  const resolvedShippingPrice = shipping_price ?? 0;
 
   const { data: newOrder, error: orderError } = await supabase
     .from("guest_orders")
     .insert({
       id: orderId,
-      total_price,
-      shipping_price: resolvedShippingPrice,
+      total_price: totalPrice,
+      shipping_price: shippingPrice,
+      discount_amount: discountAmount,
       tax_amount: 0,
-      discount_amount: 0,
       status: "pending",
       customer_name,
       customer_email,
       customer_phone,
       shipping_address,
-      shipping_method_id: shipping_method_id ?? null,
-      tax_id: tax_id ?? null,
-      promo_code_id: promo_code_id ?? null,
+      coordinate, // simpan koordinat untuk referensi
+      shipping_method_id: resolvedShippingMethodId,
+      promo_code_id: resolvedPromoId,
       payment_method: payment_method ?? null
     })
     .select()
@@ -280,15 +378,12 @@ export async function POST(request) {
   try {
     const midtrans = await createMidtransTransaction({
       orderId,
-      totalPrice: total_price,
-      customer: {
-        name: customer_name,
-        email: customer_email,
-        phone: customer_phone
-      },
+      totalPrice,
+      customer: { name: customer_name, email: customer_email, phone: customer_phone },
       items: validatedItems,
       shippingAddress: shipping_address,
-      shippingPrice: resolvedShippingPrice
+      shippingPrice,
+      discountAmount
     });
 
     midtransToken = midtrans.token;
@@ -306,6 +401,15 @@ export async function POST(request) {
     await supabase.from("guest_order_items").delete().eq("order_id", orderId);
     await supabase.from("guest_orders").delete().eq("id", orderId);
     return err("Payment gateway error: " + midtransError.message, 502);
+  }
+
+  if (resolvedPromoId) {
+    await supabase.rpc("increment_promo_used_count", { promo_id: resolvedPromoId });
+    // Atau manual jika tidak pakai RPC:
+    // await supabase
+    //   .from("promo_codes")
+    //   .update({ used_count: supabase.raw("used_count + 1") })
+    //   .eq("id", resolvedPromoId);
   }
 
   return ok(
