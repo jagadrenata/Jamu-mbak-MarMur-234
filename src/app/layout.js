@@ -32,7 +32,7 @@ export const metadata = {
     template: "%s | Jamu Mbak MarMur 234"
   },
   description:
-    "Jamu Mbak MarMur 234 – jamu tradisional asli dibuat dari empon-empon alami segar, bukan bubuk instan. Menggunakan gula asli tanpa pemanis buatan. Sehat, alami, dan terpercaya. Cari: jamu mbak mur, jamu mbak mar, jamu 234.",
+    "Jamu Mbak MarMur 234 Sleman Yogyakarta – jamu tradisional asli  yang dibuat dari empon-empon alami segar, bukan bubuk instan. Menggunakan gula asli tanpa pemanis buatan. Sehat, alami, dan terpercaya.",
 
   keywords: [
     "Jamu Mbak MarMur",
@@ -49,6 +49,13 @@ export const metadata = {
     "jamu bukan bubuk instan",
     "minuman herbal alami",
     "jamu rempah asli"
+    
+    "Jamu Cibukan"
+    "Jamu Sumberadi"
+    "Jamu Mlati"
+    "Jamu Sleman",
+    "Jamu Yogyakarta",
+    "Jamu tradisional Sleman",
   ],
 
   metadataBase: new URL("https://jamu234.biz.id"),
@@ -114,35 +121,84 @@ export const jsonLd = {
     {
       "@type": ["LocalBusiness", "FoodEstablishment"],
       "@id": "https://jamu234.biz.id/#business",
+
       name: "Jamu Mbak MarMur 234",
+
       alternateName: [
         "Jamu Mbak Mur",
         "Jamu Mbak Mar",
         "Jamu 234",
         "Jamu MarMur"
       ],
+
       description:
-        "Jamu tradisional di sleman yang terbuat dari empon-empon asli (bukan bubuk instan), menggunakan gula asli tanpa pemanis buatan.",
+        "Jamu tradisional di Sleman Yogyakarta yang dibuat dari empon-empon seperti kunyit, jahe, temulawak, dan kencur. Menggunakan gula asli tanpa pemanis buatan.",
+
       url: "https://jamu234.biz.id",
+
       logo: {
         "@type": "ImageObject",
         url: "https://jamu234.biz.id/logo.webp"
       },
+
       image: "https://jamu234.biz.id/og-image.webp",
+
       servesCuisine: "Indonesian Herbal Drinks",
+
       priceRange: "Rp",
+
       address: {
         "@type": "PostalAddress",
-        addressLocality: "Sleman",
-        addressRegion: "Yogyakarta",
+        streetAddress: "Warak Lor, Sumberadi",
+        addressLocality: "Mlati",
+        addressRegion: "Sleman",
+        postalCode: "55288",
         addressCountry: "ID"
-      }
+      },
+
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: -7.7158,
+        longitude: 110.337958
+      },
+
+      hasMap: "https://www.google.com/maps?q=-7.7158,110.337958",
+
+      areaServed: [
+        "Sumberadi",
+        "Mlati",
+        "Sleman",
+        "Yogyakarta",
+        "DIY"
+      ],
+
+      openingHoursSpecification: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ],
+        opens: "07:00",
+        closes: "17:00"
+      },
+
+      sameAs: [
+        "https://maps.google.com/?q=-7.7158,110.337958"
+      ]
     },
+
     {
       "@type": "WebSite",
       "@id": "https://jamu234.biz.id/#website",
+
       url: "https://jamu234.biz.id",
+
       name: "Jamu Mbak MarMur 234",
+
       potentialAction: {
         "@type": "SearchAction",
         target: {
@@ -154,6 +210,7 @@ export const jsonLd = {
     }
   ]
 };
+
 
 export default function RootLayout({ children }) {
   return (
