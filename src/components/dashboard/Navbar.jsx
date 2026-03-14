@@ -1,107 +1,176 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { ChevronDown, LogOut, Settings, User } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { ChevronDown, LogOut, Settings, User, Bell } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+
+function UserAvatar({ name, avatarUrl, size = 36 }) {
+  const initials = name
+    ? name
+        .split(" ")
+        .map(w => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "?";
+
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        width={size}
+        height={size}
+        className='w-full h-full object-cover'
+      />
+    );
+  }
+
+  return (
+    <span className='text-white text-xs font-bold select-none'>{initials}</span>
+  );
+}
+
+const ROLE_LABEL = {
+  customer: "Customer",
+  admin: "Admin",
+  superadmin: "Super Admin"
+};
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const { user, loading, fetchUser, clearUser } = useAuthStore();
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    const handler = e => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleLogout = async () => {
+    setIsDropdownOpen(false);
+    await fetch("/api/auth/logout", { method: "POST" });
+    clearUser();
+    window.location.href = "/login";
   };
 
+  const displayName = user?.name || "Pengguna";
+  const roleLabel = ROLE_LABEL[user?.role] || user?.role || "";
+
   return (
-    <nav className="fixed top-0 left-0 right-0 md:relative h-16 bg-cream-100 border-b border-gray-200 shadow-sm z-30">
-      <div className="flex items-center justify-between h-full px-4 md:px-8">
-        {/* Left Side - Search/Title */}
-        <div className="flex-1 flex items-center gap-4">
-          <div className="hidden md:flex items-center bg-gray-100 rounded-lg px-4 py-2 w-64">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <nav className='fixed top-0 left-0 right-0 md:relative h-16 bg-white border-b border-gray-200 z-30'>
+      <div className='flex items-center justify-between h-full px-4 md:px-6'>
+        <div className='flex-1 flex items-center gap-3'>
+          <div className='hidden md:flex items-center bg-gray-50 border border-gray-200 rounded px-3 py-2 w-60 gap-2 focus-within:border-gray-400 transition-colors'>
+            <svg
+              className='w-4 h-4 text-gray-400 flex-shrink-0'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+              />
             </svg>
             <input
-              type="text"
-              placeholder="Search..."
-              className="bg-transparent ml-2 outline-none w-full text-sm text-gray-700"
+              type='text'
+              placeholder='Cari...'
+              className='bg-transparent outline-none w-full text-sm text-gray-700 placeholder-gray-400'
             />
           </div>
         </div>
 
-        {/* Right Side - Avatar & Dropdown */}
-        <div className="flex items-center gap-6">
-          {/* Notification Icon */}
-          <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        <div className='flex items-center gap-2'>
+          <button className='relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors'>
+            <Bell className='w-5 h-5' />
+            <span className='absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full' />
           </button>
 
-          {/* Divider */}
-          <div className="w-px h-6 bg-gray-200"></div>
+          <div className='w-px h-5 bg-gray-200 mx-1' />
 
-          {/* Avatar Dropdown */}
-          <div className="relative">
+          <div className='relative' ref={dropdownRef}>
             <button
-              onClick={toggleDropdown}
-              className="flex items-center gap-3 p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+              onClick={() => setIsDropdownOpen(v => !v)}
+              className='flex items-center gap-2.5 px-2 py-1.5 hover:bg-gray-100 rounded transition-colors'
             >
-              {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
-                <Image
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&q=80"
-                  alt="User Avatar"
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-cover"
+              <div className='w-8 h-8 rounded-full bg-gradient-to-br from-beige-500 to-cream-600 flex items-center justify-center overflow-hidden flex-shrink-0'>
+                <UserAvatar
+                  name={user?.name}
+                  avatarUrl={user?.avatar_url}
+                  size={32}
                 />
               </div>
 
-              {/* User Info & Chevron */}
-              <div className="hidden sm:flex flex-col items-start">
-                <span className="text-sm font-semibold text-gray-900">John Doe</span>
-                <span className="text-xs text-gray-500">Admin</span>
+              <div className='hidden sm:flex flex-col items-start leading-tight'>
+                {loading ? (
+                  <>
+                    <span className='w-20 h-3 bg-gray-200 rounded animate-pulse' />
+                    <span className='w-12 h-2.5 bg-gray-100 rounded animate-pulse mt-1' />
+                  </>
+                ) : (
+                  <>
+                    <span className='text-sm font-semibold text-gray-900 max-w-[120px] truncate'>
+                      {displayName}
+                    </span>
+                    <span className='text-xs text-gray-500'>{roleLabel}</span>
+                  </>
+                )}
               </div>
 
-              <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-150 ${isDropdownOpen ? "rotate-180" : ""}`}
+              />
             </button>
 
-            {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                <div className="px-4 py-2 border-b border-gray-200">
-                  <p className="text-sm font-semibold text-gray-900">John Doe</p>
-                  <p className="text-xs text-gray-500">john@example.com</p>
+              <div className='absolute right-0 mt-1.5 w-52 bg-white rounded border border-gray-200 shadow-md py-1 z-50'>
+                <div className='px-4 py-2.5 border-b border-gray-100'>
+                  <p className='text-sm font-semibold text-gray-900 truncate'>
+                    {displayName}
+                  </p>
+                  <p className='text-xs text-gray-500 truncate mt-0.5'>
+                    {user?.email || ""}
+                  </p>
                 </div>
 
                 <a
-                  href="#"
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  href='/dashboard/profile'
+                  className='flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors'
+                  onClick={() => setIsDropdownOpen(false)}
                 >
-                  <User className="w-4 h-4" />
-                  <span>Profile</span>
+                  <User className='w-4 h-4 text-gray-400' />
+                  <span>Profil Saya</span>
                 </a>
 
                 <a
-                  href="#"
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  href='/dashboard/settings'
+                  className='flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors'
+                  onClick={() => setIsDropdownOpen(false)}
                 >
-                  <Settings className="w-4 h-4" />
-                  <span>Settings</span>
+                  <Settings className='w-4 h-4 text-gray-400' />
+                  <span>Pengaturan</span>
                 </a>
 
-                <div className="border-t border-gray-200 my-1"></div>
+                <div className='border-t border-gray-100 my-1' />
 
                 <button
-                  onClick={() => {
-                    // Handle logout
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  onClick={handleLogout}
+                  className='w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors'
                 >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
+                  <LogOut className='w-4 h-4' />
+                  <span>Keluar</span>
                 </button>
               </div>
             )}

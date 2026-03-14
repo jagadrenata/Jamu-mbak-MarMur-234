@@ -87,9 +87,10 @@ const adminMenus = [
 
 export default function Page({ children }) {
   const router = useRouter();
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [fetchDone, setFetchDone] = useState(false);
+  const [showLoading, setShowLoading] = useState(true);
 
   const { admin, loading, fetchAdmin } = useAdminStore();
 
@@ -100,12 +101,22 @@ export default function Page({ children }) {
   }, [fetchAdmin]);
 
   useEffect(() => {
+    if (fetchDone && !loading) {
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, 1500); // delay 1 detik
+
+      return () => clearTimeout(timer);
+    }
+  }, [fetchDone, loading]);
+
+  useEffect(() => {
     if (!loading && !admin) {
       router.replace("/login?from=admin");
     }
   }, [loading, admin, router]);
 
-  if (loading || !admin) {
+  if (showLoading) {
     return <LoadingProgress onComplete={fetchDone ? true : null} />;
   }
 

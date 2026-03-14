@@ -21,14 +21,14 @@ export default function Sidebar({ navMenus = [], admin = false }) {
         onClick={() => setIsOpen(!isOpen)}
         className={`md:hidden fixed top-4 z-50 w-8 h-8 flex items-center justify-center text-xl rotate-90 
         ${isOpen ? "left-44" : "left-4"} 
-        text-cream-900 bg-cream-200 shadow`}
+        text-cream-900  shadow`}
       >
         |||
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative z-40 top-0 h-screen w-60 p-5 transition-all duration-300
+        className={`fixed md:relative z-40 top-0 md:h-screen h-full w-60 p-5 transition-all duration-300
         ${isOpen ? "left-0" : "-left-full md:left-0"}
         bg-cream-100 shadow-lg`}
       >

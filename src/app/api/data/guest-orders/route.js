@@ -158,7 +158,7 @@ export async function GET(request) {
   // hasEmail && hasPhone (tanpa idd3
   let query = supabase
     .from("guest_orders")
-    .select("*, guest_order_items(*)", { count: "exact" })
+    .select("*, guest_order_items(*, product_variants(name, products(name, slug)))", { count: "exact" })
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 

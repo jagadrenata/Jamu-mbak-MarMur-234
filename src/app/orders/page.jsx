@@ -508,7 +508,7 @@ function OrderCard({
                 </div>
               )}
 
-              {/* ── Action Buttons ── */}
+              {/* Action Buttons */}
               <div className='space-y-2 pt-1'>
                 {/* 1. Bayar Sekarang — hanya saat pending */}
                 {order.midtrans_url && order.status === "pending" && (
@@ -568,7 +568,7 @@ function OrderCard({
                   </Link>
                 )}
               </div>
-              {/* ── End Action Buttons ── */}
+              {/* End Action Buttons */}
             </div>
           </motion.div>
         )}
