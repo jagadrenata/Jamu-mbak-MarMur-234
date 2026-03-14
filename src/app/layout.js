@@ -48,11 +48,11 @@ export const metadata = {
     "jamu sehat",
     "jamu bukan bubuk instan",
     "minuman herbal alami",
-    "jamu rempah asli"
+    "jamu rempah asli",
     
-    "Jamu Cibukan"
-    "Jamu Sumberadi"
-    "Jamu Mlati"
+    "Jamu Cibukan",
+    "Jamu Sumberadi",
+    "Jamu Mlati",
     "Jamu Sleman",
     "Jamu Yogyakarta",
     "Jamu tradisional Sleman",
