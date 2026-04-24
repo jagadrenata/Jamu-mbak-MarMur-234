@@ -4,8 +4,10 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { Download, FileText, ArrowRight } from "lucide-react";
 import PublicLayout from "@/components/PublicLayout";
+import { useRef } from "react";
 
 export default function ECatalogPage() {
+  const containerRef = useRef(null);
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
@@ -15,7 +17,10 @@ export default function ECatalogPage() {
       },
       { threshold: 0.12 }
     );
-    document.querySelectorAll(".fade-up").forEach(el => observer.observe(el));
+
+    const elements = containerRef.current?.querySelectorAll(".fade-up") || [];
+    elements.forEach(el => observer.observe(el));
+
     return () => observer.disconnect();
   }, []);
 
@@ -55,7 +60,7 @@ export default function ECatalogPage() {
         }
       `}</style>
 
-      <div className="space-y-10">
+      <div ref={containerRef} className="space-y-10">
         {/* Header dengan Download Button */}
         <div className="fade-up flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center p-6 border border-[var(--color-border)] bg-[var(--color-bg-card)]">
           <div className="flex-1">
@@ -69,7 +74,8 @@ export default function ECatalogPage() {
               Katalog Lengkap Produk Jamu Mbak MarMur
             </p>
             <p className="text-[13px] leading-[1.75] text-[var(--color-mid)] max-w-[500px] font-sans">
-              Lihat semua produk jamu pilihan kami dengan detail lengkap, harga, dan manfaat kesehatan. Unduh katalog untuk disimpan dan dibagikan.
+              Lihat semua produk jamu pilihan kami dengan detail lengkap, harga,
+              dan manfaat kesehatan. Unduh katalog untuk disimpan dan dibagikan.
             </p>
           </div>
           <button
@@ -86,7 +92,7 @@ export default function ECatalogPage() {
           <p className="text-[11px] tracking-[0.18em] uppercase text-[var(--color-mid)] font-sans mb-3">
             Pratinjau Katalog
           </p>
-          <div className="bg-white border border-[var(--color-border)]">
+          <div  className="bg-white border border-[var(--color-border)]">
             <embed
               src="/catalog.pdf#toolbar=1&navpanes=0&scrollbar=1"
               type="application/pdf"
@@ -95,7 +101,9 @@ export default function ECatalogPage() {
             {/* Fallback untuk browser yang tidak support PDF embed */}
             <div className="pdf-viewer hidden [@supports(not(selector(::-webkit-scrollbar)))]:flex flex-col items-center justify-center text-gray-500">
               <FileText className="w-12 h-12 mb-3 text-gray-300" />
-              <p className="text-sm font-sans mb-3">Browser Anda tidak mendukung pratinjau PDF</p>
+              <p className="text-sm font-sans mb-3">
+                Browser Anda tidak mendukung pratinjau PDF
+              </p>
               <button
                 onClick={handleDownload}
                 className="inline-flex items-center gap-2 border border-[var(--color-accent)] text-[var(--color-accent)] px-4 py-2 text-[12px] font-semibold no-underline font-sans"
@@ -116,19 +124,31 @@ export default function ECatalogPage() {
             </p>
             <div className="space-y-2 text-[13px] text-[var(--color-text)] font-sans">
               <div>
-                <p className="font-semibold text-[var(--color-text)] mb-0.5">Format:</p>
-                <p className="text-[var(--color-mid)]">PDF (Portabel Document Format)</p>
+                <p className="font-semibold text-[var(--color-text)] mb-0.5">
+                  Format:
+                </p>
+                <p className="text-[var(--color-mid)]">
+                  PDF (Portabel Document Format)
+                </p>
               </div>
               <div>
-                <p className="font-semibold text-[var(--color-text)] mb-0.5">Ukuran File:</p>
+                <p className="font-semibold text-[var(--color-text)] mb-0.5">
+                  Ukuran File:
+                </p>
                 <p className="text-[var(--color-mid)]">~ 2-3 MB</p>
               </div>
               <div>
-                <p className="font-semibold text-[var(--color-text)] mb-0.5">Isi Katalog:</p>
-                <p className="text-[var(--color-mid)]">Daftar produk, spesifikasi, harga, dan manfaat</p>
+                <p className="font-semibold text-[var(--color-text)] mb-0.5">
+                  Isi Katalog:
+                </p>
+                <p className="text-[var(--color-mid)]">
+                  Daftar produk, spesifikasi, harga, dan manfaat
+                </p>
               </div>
               <div>
-                <p className="font-semibold text-[var(--color-text)] mb-0.5">Update Terakhir:</p>
+                <p className="font-semibold text-[var(--color-text)] mb-0.5">
+                  Update Terakhir:
+                </p>
                 <p className="text-[var(--color-mid)]">April 2026</p>
               </div>
             </div>
@@ -141,16 +161,20 @@ export default function ECatalogPage() {
             </p>
             <div className="space-y-2 text-[13px] text-[var(--color-mid)] font-sans leading-[1.75]">
               <p>
-                ✓ Unduh katalog untuk referensi offline dan bagikan dengan teman dan keluarga
+                ✓ Unduh katalog untuk referensi offline dan bagikan dengan teman
+                dan keluarga
               </p>
               <p>
-                ✓ Gunakan fitur pencarian (Ctrl+F) untuk menemukan produk spesifik dengan cepat
+                ✓ Gunakan fitur pencarian (Ctrl+F) untuk menemukan produk
+                spesifik dengan cepat
               </p>
               <p>
-                ✓ Print halaman favorit untuk melihat detail produk dengan lebih jelas
+                ✓ Print halaman favorit untuk melihat detail produk dengan lebih
+                jelas
               </p>
               <p>
-                ✓ Hubungi kami untuk pemesanan dalam jumlah besar dengan harga khusus
+                ✓ Hubungi kami untuk pemesanan dalam jumlah besar dengan harga
+                khusus
               </p>
             </div>
           </div>
@@ -165,7 +189,8 @@ export default function ECatalogPage() {
             Tertarik dengan produk kami?
           </p>
           <p className="text-[13px] leading-[1.75] text-[var(--color-mid)] max-w-[600px] font-sans mb-5">
-            Pesan produk favorit Anda sekarang melalui toko online kami, atau hubungi outlet terdekat untuk konsultasi langsung dengan ahli kami.
+            Pesan produk favorit Anda sekarang melalui toko online kami, atau
+            hubungi outlet terdekat untuk konsultasi langsung dengan ahli kami.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link

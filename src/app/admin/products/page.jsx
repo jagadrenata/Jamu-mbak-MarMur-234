@@ -220,12 +220,12 @@ export default function ProductsPage() {
   return (
     <div>
       <PageHeader
-        title='Produk'
-        subtitle='Kelola semua produk toko'
+        title="Produk"
+        subtitle="Kelola semua produk toko"
         action={
           activeTab === "active" && (
             <Button onClick={openCreate}>
-              <Plus className='w-4 h-4 inline mr-1' />
+              <Plus className="w-4 h-4 inline mr-1" />
               Tambah Produk
             </Button>
           )
@@ -234,7 +234,7 @@ export default function ProductsPage() {
 
       <Card>
         {/* Tabs */}
-        <div className='flex border-b border-gray-200 mb-6 -mt-2'>
+        <div className="flex border-b border-gray-200 mb-6 -mt-2">
           {TABS.map(tab => (
             <button
               key={tab.key}
@@ -242,6 +242,7 @@ export default function ProductsPage() {
                 setActiveTab(tab.key);
                 setSearch("");
                 setStatus("");
+                setOffset(0);
               }}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 activeTab === tab.key
@@ -253,7 +254,7 @@ export default function ProductsPage() {
               {tab.key === "archived" &&
                 total > 0 &&
                 activeTab === "archived" && (
-                  <span className='ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-xs'>
+                  <span className="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-xs">
                     {total}
                   </span>
                 )}
@@ -262,11 +263,11 @@ export default function ProductsPage() {
         </div>
 
         {/* Filters */}
-        <div className='flex gap-4 mb-6'>
-          <div className='relative flex-1 max-w-sm'>
-            <Search className='w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
+        <div className="flex gap-4 mb-6">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              className='w-full pl-9 pr-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500'
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder={
                 activeTab === "archived"
                   ? "Cari produk diarsipkan..."
@@ -289,17 +290,17 @@ export default function ProductsPage() {
                 setOffset(0);
               }}
             >
-              <option value=''>Semua Status</option>
-              <option value='active'>Aktif</option>
-              <option value='draft'>Draft</option>
+              <option value="">Semua Status</option>
+              <option value="active">Aktif</option>
+              <option value="draft">Draft</option>
             </Select>
           )}
         </div>
 
         {/* Archived banner */}
         {activeTab === "archived" && (
-          <div className='flex items-center gap-2 mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800'>
-            <Archive className='w-4 h-4 shrink-0' />
+          <div className="flex items-center gap-2 mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800">
+            <Archive className="w-4 h-4 shrink-0" />
             <span>
               Produk di arsip tidak tampil di toko. Kamu bisa memulihkan atau
               menghapus permanen.
@@ -347,7 +348,7 @@ export default function ProductsPage() {
         title={editItem ? "Edit Produk" : "Tambah Produk"}
         footer={
           <>
-            <Button variant='secondary' onClick={() => setModal(false)}>
+            <Button variant="secondary" onClick={() => setModal(false)}>
               Batal
             </Button>
             <Button onClick={save} disabled={saving}>
@@ -360,30 +361,42 @@ export default function ProductsPage() {
           </>
         }
       >
-        <div className='space-y-4'>
+        <div className="space-y-4">
           <Input
-            label='Nama Produk *'
+            label="Nama Produk *"
             value={form.name}
-            onChange={e => setField("name", e.target.value)}
+            onChange={e => {
+              setField("name", e.target.value);
+              setOffset(0);
+            }}
           />
-          <div className='grid grid-cols-2 gap-4'>
+          <div className="grid grid-cols-2 gap-4">
             <Input
-              label='Slug'
+              label="Slug"
               value={form.slug}
-              onChange={e => setField("slug", e.target.value)}
+              onChange={e => {
+                setField("slug", e.target.value);
+                setOffset(0);
+              }}
             />
             <Input
-              label='SKU'
+              label="SKU"
               value={form.sku}
-              onChange={e => setField("sku", e.target.value)}
+              onChange={e => {
+                setField("sku", e.target.value);
+                setOffset(0);
+              }}
             />
           </div>
           <Select
-            label='Kategori'
+            label="Kategori"
             value={form.category_id}
-            onChange={e => setField("category_id", e.target.value)}
+            onChange={e => {
+              setField("category_id", e.target.value);
+              setOffset(0);
+            }}
           >
-            <option value=''>Pilih Kategori</option>
+            <option value="">Pilih Kategori</option>
             {cats.map(c => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -391,20 +404,26 @@ export default function ProductsPage() {
             ))}
           </Select>
           <Textarea
-            label='Deskripsi'
+            label="Deskripsi"
             value={form.description}
-            onChange={e => setField("description", e.target.value)}
+            onChange={e => {
+              setField("description", e.target.value);
+              setOffset(0);
+            }}
           />
           <Select
-            label='Status'
+            label="Status"
             value={form.status}
-            onChange={e => setField("status", e.target.value)}
+            onChange={e => {
+              setField("status", e.target.value);
+              setOffset(0);
+            }}
           >
-            <option value='active'>Aktif</option>
-            <option value='draft'>Draft</option>
+            <option value="active">Aktif</option>
+            <option value="draft">Draft</option>
           </Select>
           {!editItem && (
-            <p className='text-xs text-cream-700 bg-cream-50 rounded p-2 border border-cream-100'>
+            <p className="text-xs text-cream-700 bg-cream-50 rounded p-2 border border-cream-100">
               Setelah membuat produk, kamu akan diarahkan ke halaman detail
               untuk menambahkan gambar dan variant.
             </p>
@@ -421,11 +440,11 @@ export default function ProductsPage() {
             setConfirmTarget(null);
           }
         }}
-        title='Hapus Permanen'
+        title="Hapus Permanen"
         footer={
           <>
             <Button
-              variant='secondary'
+              variant="secondary"
               onClick={() => {
                 setConfirmModal(false);
                 setConfirmTarget(null);
@@ -434,17 +453,17 @@ export default function ProductsPage() {
             >
               Batal
             </Button>
-            <Button variant='danger' onClick={hardDelete} disabled={confirming}>
+            <Button variant="danger" onClick={hardDelete} disabled={confirming}>
               {confirming ? "Menghapus..." : "Ya, Hapus Permanen"}
             </Button>
           </>
         }
       >
-        <div className='space-y-3'>
-          <div className='flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded'>
-            <AlertTriangle className='w-5 h-5 text-red-500 shrink-0 mt-0.5' />
-            <div className='text-sm text-red-800'>
-              <p className='font-medium mb-1'>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded">
+            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div className="text-sm text-red-800">
+              <p className="font-medium mb-1">
                 Tindakan ini tidak bisa dibatalkan.
               </p>
               <p>
@@ -454,7 +473,7 @@ export default function ProductsPage() {
               </p>
             </div>
           </div>
-          <p className='text-sm text-gray-600'>
+          <p className="text-sm text-gray-600">
             Ketik nama produk untuk konfirmasi jika diperlukan, atau langsung
             klik hapus permanen.
           </p>
@@ -468,21 +487,21 @@ export default function ProductsPage() {
 
 function ProductThumbnail({ p }) {
   return (
-    <div className='flex items-center gap-3'>
+    <div className="flex items-center gap-3">
       {p.primary_image ? (
         <img
           src={p.primary_image}
           alt={p.name}
-          className='w-10 h-10 object-cover rounded border border-gray-100'
+          className="w-10 h-10 object-cover rounded border border-gray-100"
         />
       ) : (
-        <div className='w-10 h-10 bg-gray-100 rounded border border-gray-100 flex items-center justify-center'>
-          <ImageIcon className='w-4 h-4 text-gray-300' />
+        <div className="w-10 h-10 bg-gray-100 rounded border border-gray-100 flex items-center justify-center">
+          <ImageIcon className="w-4 h-4 text-gray-300" />
         </div>
       )}
       <div>
-        <div className='font-medium text-gray-900'>{p.name}</div>
-        <div className='text-xs text-gray-400'>{p.slug || "—"}</div>
+        <div className="font-medium text-gray-900">{p.name}</div>
+        <div className="text-xs text-gray-400">{p.slug || "—"}</div>
       </div>
     </div>
   );
@@ -505,24 +524,24 @@ function ActiveTable({ data, router, openEdit, archive }) {
       {data.map(p => (
         <Tr
           key={p.id}
-          className='cursor-pointer hover:bg-cream-50 transition-colors'
+          className="cursor-pointer hover:bg-cream-50 transition-colors"
           onClick={() => router.push(`/admin/products/${p.id}`)}
         >
           <Td>
             <ProductThumbnail p={p} />
           </Td>
           <Td>
-            <span className='font-mono text-xs text-gray-500'>
+            <span className="font-mono text-xs text-gray-500">
               {p.sku || "—"}
             </span>
           </Td>
           <Td>
-            <span className='text-sm text-gray-600'>
+            <span className="text-sm text-gray-600">
               {p.category_name || "—"}
             </span>
           </Td>
           <Td>
-            <span className='text-sm'>
+            <span className="text-sm">
               {p.min_price != null
                 ? `Rp ${p.min_price.toLocaleString("id-ID")}`
                 : "—"}
@@ -532,36 +551,36 @@ function ActiveTable({ data, router, openEdit, archive }) {
             </span>
           </Td>
           <Td>
-            <span className='text-sm text-gray-500'>
+            <span className="text-sm text-gray-500">
               {p.variant_count || 0} variant
             </span>
           </Td>
           <Td>{statusBadge(p.status)}</Td>
           <Td>
-            <span className='text-sm text-gray-500'>{p.views_count || 0}</span>
+            <span className="text-sm text-gray-500">{p.views_count || 0}</span>
           </Td>
           <Td>
-            <div className='flex gap-1'>
+            <div className="flex gap-1">
               <button
                 onClick={() => router.push(`/admin/products/${p.id}`)}
-                className='p-1.5 text-gray-400 hover:text-cream-600 hover:bg-cream-50 rounded transition-colors'
-                title='Lihat detail'
+                className="p-1.5 text-gray-400 hover:text-cream-600 hover:bg-cream-50 rounded transition-colors"
+                title="Lihat detail"
               >
-                <Eye className='w-4 h-4' />
+                <Eye className="w-4 h-4" />
               </button>
               <button
                 onClick={e => openEdit(e, p)}
-                className='p-1.5 text-gray-400 hover:text-cream-700 hover:bg-cream-50 rounded transition-colors'
-                title='Edit cepat'
+                className="p-1.5 text-gray-400 hover:text-cream-700 hover:bg-cream-50 rounded transition-colors"
+                title="Edit cepat"
               >
-                <Pencil className='w-4 h-4' />
+                <Pencil className="w-4 h-4" />
               </button>
               <button
                 onClick={e => archive(e, p.id)}
-                className='p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors'
-                title='Arsipkan produk'
+                className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                title="Arsipkan produk"
               >
-                <Archive className='w-4 h-4' />
+                <Archive className="w-4 h-4" />
               </button>
             </div>
           </Td>
@@ -570,8 +589,8 @@ function ActiveTable({ data, router, openEdit, archive }) {
       {data.length === 0 && (
         <Tr>
           <Td colSpan={8}>
-            <div className='text-center py-10 text-gray-400'>
-              <PackageX className='w-8 h-8 mx-auto mb-2 opacity-40' />
+            <div className="text-center py-10 text-gray-400">
+              <PackageX className="w-8 h-8 mx-auto mb-2 opacity-40" />
               Tidak ada produk ditemukan
             </div>
           </Td>
@@ -597,40 +616,40 @@ function ArchivedTable({ data, router, restore, openHardDelete }) {
       {data.map(p => (
         <Tr
           key={p.id}
-          className='opacity-75 hover:opacity-100 transition-opacity cursor-default'
+          className="opacity-75 hover:opacity-100 transition-opacity cursor-default"
         >
           <Td>
-            <div className='flex items-center gap-3'>
+            <div className="flex items-center gap-3">
               {/* Greyed thumbnail */}
               {p.primary_image ? (
                 <img
                   src={p.primary_image}
                   alt={p.name}
-                  className='w-10 h-10 object-cover rounded border border-gray-100 grayscale'
+                  className="w-10 h-10 object-cover rounded border border-gray-100 grayscale"
                 />
               ) : (
-                <div className='w-10 h-10 bg-gray-100 rounded border border-gray-100 flex items-center justify-center'>
-                  <ImageIcon className='w-4 h-4 text-gray-300' />
+                <div className="w-10 h-10 bg-gray-100 rounded border border-gray-100 flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4 text-gray-300" />
                 </div>
               )}
               <div>
-                <div className='font-medium text-gray-500'>{p.name}</div>
-                <div className='text-xs text-gray-400'>{p.slug || "—"}</div>
+                <div className="font-medium text-gray-500">{p.name}</div>
+                <div className="text-xs text-gray-400">{p.slug || "—"}</div>
               </div>
             </div>
           </Td>
           <Td>
-            <span className='font-mono text-xs text-gray-400'>
+            <span className="font-mono text-xs text-gray-400">
               {p.sku || "—"}
             </span>
           </Td>
           <Td>
-            <span className='text-sm text-gray-400'>
+            <span className="text-sm text-gray-400">
               {p.category_name || "—"}
             </span>
           </Td>
           <Td>
-            <span className='text-sm text-gray-400'>
+            <span className="text-sm text-gray-400">
               {p.min_price != null
                 ? `Rp ${p.min_price.toLocaleString("id-ID")}`
                 : "—"}
@@ -640,12 +659,12 @@ function ArchivedTable({ data, router, restore, openHardDelete }) {
             </span>
           </Td>
           <Td>
-            <span className='text-sm text-gray-400'>
+            <span className="text-sm text-gray-400">
               {p.variant_count || 0} variant
             </span>
           </Td>
           <Td>
-            <span className='text-xs text-gray-400'>
+            <span className="text-xs text-gray-400">
               {p.updated_at
                 ? new Date(p.updated_at).toLocaleDateString("id-ID", {
                     day: "numeric",
@@ -656,20 +675,20 @@ function ArchivedTable({ data, router, restore, openHardDelete }) {
             </span>
           </Td>
           <Td>
-            <div className='flex gap-1'>
+            <div className="flex gap-1">
               <button
                 onClick={e => restore(e, p.id)}
-                className='p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors'
-                title='Pulihkan produk'
+                className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                title="Pulihkan produk"
               >
-                <ArchiveRestore className='w-4 h-4' />
+                <ArchiveRestore className="w-4 h-4" />
               </button>
               <button
                 onClick={e => openHardDelete(e, p)}
-                className='p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors'
-                title='Hapus permanen'
+                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                title="Hapus permanen"
               >
-                <Trash2 className='w-4 h-4' />
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </Td>
@@ -678,8 +697,8 @@ function ArchivedTable({ data, router, restore, openHardDelete }) {
       {data.length === 0 && (
         <Tr>
           <Td colSpan={7}>
-            <div className='text-center py-10 text-gray-400'>
-              <Archive className='w-8 h-8 mx-auto mb-2 opacity-40' />
+            <div className="text-center py-10 text-gray-400">
+              <Archive className="w-8 h-8 mx-auto mb-2 opacity-40" />
               Tidak ada produk di arsip
             </div>
           </Td>
