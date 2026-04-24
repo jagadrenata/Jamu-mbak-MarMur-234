@@ -245,7 +245,7 @@ export default function ProductsPage() {
               }}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 activeTab === tab.key
-                  ? "border-cream-600 text-cream-700"
+                  ? "border-gray-900 text-gray-900"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -253,7 +253,7 @@ export default function ProductsPage() {
               {tab.key === "archived" &&
                 total > 0 &&
                 activeTab === "archived" && (
-                  <span className='ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full'>
+                  <span className='ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-xs'>
                     {total}
                   </span>
                 )}
@@ -266,7 +266,7 @@ export default function ProductsPage() {
           <div className='relative flex-1 max-w-sm'>
             <Search className='w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
             <input
-              className='w-full pl-9 pr-3 py-2 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-cream-400'
+              className='w-full pl-9 pr-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500'
               placeholder={
                 activeTab === "archived"
                   ? "Cari produk diarsipkan..."

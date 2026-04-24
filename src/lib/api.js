@@ -89,7 +89,9 @@ export const categories = {
     api.get(`/api/data/categories?parent_id=${parentId}`),
   create: body => api.post("/api/data/categories", body),
   update: (id, body) => api.patch(`/api/data/categories?id=${id}`, body),
-  delete: id => api.delete(`/api/data/categories?id=${id}`)
+  delete: id => api.delete(`/api/data/categories?id=${id}`),
+  restore: id => api.patch(`/api/data/categories?id=${id}&action=restore`, {}),
+  hardDelete: id => api.delete(`/api/data/categories?id=${id}&permanent=true`)
 };
 
 export const orders = {

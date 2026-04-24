@@ -14,13 +14,13 @@ export function PageHeader({ title, subtitle, action }) {
 
 export function Card({ children, className = "" }) {
   return (
-    <div className={`bg-cream-100  shadow-sm p-6 ${className}`}>{children}</div>
+    <div className={`bg-white border border-gray-200 shadow-sm p-6 ${className}`}>{children}</div>
   );
 }
 
 export function Badge({ children, variant = "default" }) {
   const variants = {
-    default: "bg-cream-200 text-gray-700",
+    default: "bg-gray-100 text-gray-700",
     success: "bg-green-100 text-green-700",
     warning: "bg-yellow-100 text-yellow-700",
     danger: "bg-red-100 text-red-700",
@@ -28,7 +28,7 @@ export function Badge({ children, variant = "default" }) {
   };
   return (
     <span
-      className={`inline-block px-2 py-1 text-xs font-medium  ${variants[variant]}`}
+      className={`inline-block px-2 py-1 text-xs font-medium ${variants[variant]}`}
     >
       {children}
     </span>
@@ -44,10 +44,10 @@ export function Button({
   className = ""
 }) {
   const variants = {
-    primary: "bg-cream-700 text-white hover:bg-cream-800",
-    secondary: "bg-cream-200 text-gray-800 hover:bg-cream-300",
+    primary: "bg-gray-900 text-white hover:bg-gray-800",
+    secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200",
     danger: "bg-red-600 text-white hover:bg-red-700",
-    ghost: "bg-transparent text-gray-700 hover:bg-cream-100"
+    ghost: "bg-transparent text-gray-700 hover:bg-gray-100"
   };
   const sizes = {
     sm: "px-3 py-1.5 text-sm",
@@ -58,7 +58,7 @@ export function Button({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`font-medium  transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
     >
       {children}
     </button>
@@ -74,7 +74,7 @@ export function Input({ label, ...props }) {
         </label>
       )}
       <input
-        className='w-full px-3 py-2 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-cream-500 bg-white'
+        className='w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white'
         {...props}
       />
     </div>
@@ -90,7 +90,7 @@ export function Select({ label, children, ...props }) {
         </label>
       )}
       <select
-        className='w-full px-3 py-2 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-cream-500 bg-white'
+        className='w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white'
         {...props}
       >
         {children}
@@ -108,7 +108,7 @@ export function Textarea({ label, ...props }) {
         </label>
       )}
       <textarea
-        className='w-full px-3 py-2 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-cream-500 bg-white'
+        className='w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white'
         rows={3}
         {...props}
       />
@@ -156,9 +156,9 @@ export function Td({ children, className = "" }) {
 export function Modal({ open, onClose, title, children, footer }) {
   if (!open) return null;
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
-      <div className='bg-white  shadow-xl w-full max-w-lg mx-4'>
-        <div className='flex items-center justify-between p-5 border-b border-gray-100'>
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
+      <div className='bg-white shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto'>
+        <div className='flex items-center justify-between p-5 border-b border-gray-200'>
           <h3 className='text-lg font-bold text-gray-900'>{title}</h3>
           <button
             onClick={onClose}
@@ -169,7 +169,7 @@ export function Modal({ open, onClose, title, children, footer }) {
         </div>
         <div className='p-5'>{children}</div>
         {footer && (
-          <div className='flex justify-end gap-3 px-5 pb-5'>{footer}</div>
+          <div className='flex justify-end gap-3 px-5 pb-5 border-t border-gray-200'>{footer}</div>
         )}
       </div>
     </div>
@@ -179,7 +179,7 @@ export function Modal({ open, onClose, title, children, footer }) {
 export function LoadingSpinner() {
   return (
     <div className='flex items-center justify-center py-16'>
-      <div className='w-8 h-8 border-4 border-cream-200 border-t-cream-700 rounded-full animate-spin' />
+      <div className='w-8 h-8 border-4 border-gray-200 border-t-gray-900 animate-spin' />
     </div>
   );
 }

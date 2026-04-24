@@ -9,6 +9,8 @@ import { heroSlides } from '@/lib/siteConfig';
 function HeroSlider() {
   const [current, setCurrent] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   
 
@@ -22,6 +24,27 @@ function HeroSlider() {
 
     return () => clearInterval(timer);
   }, [heroSlides.length, isHovered]);
+
+  // Touch handlers for swipe
+  const handleTouchStart = (e) => {
+    setTouchEnd(0); // otherwise the swipe is fired even with usual touch events
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    if (isLeftSwipe) {
+      goToNext();
+    }
+    if (isRightSwipe) {
+      goToPrev();
+    }
+  };
 
   const goToPrev = () => {
     setCurrent((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
@@ -41,6 +64,9 @@ function HeroSlider() {
       style={{ minHeight: '400px' }} // sedikit lebih tinggi biar nyaman
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Slides */}
       <AnimatePresence mode="wait">

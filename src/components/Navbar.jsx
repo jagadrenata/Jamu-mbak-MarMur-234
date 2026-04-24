@@ -58,14 +58,14 @@ export const defaultNavItems = [
         icon: <Info className='w-3.5 h-3.5' />
       },
       {
+        label: "Outlet & Cabang",
+        href: "/more/outlets",
+        icon: <Percent className='w-3.5 h-3.5' />
+      },
+      {
         label: "Kontak",
         href: "/more/contact",
         icon: <Heart className='w-3.5 h-3.5' />
-      },
-      {
-        label: "Outlet",
-        href: "/outlet",
-        icon: <Percent className='w-3.5 h-3.5' />
       },
       {
         label: "E-katalog",
