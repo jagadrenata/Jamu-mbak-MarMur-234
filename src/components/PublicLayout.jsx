@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Navbar, { C, defaultNavItems } from "@/components/Navbar";
+import Footer from "@/components/Footer"; // ← import Footer
 
 export function Sidebar({
   pathname,
@@ -162,6 +163,7 @@ export default function PublicLayout({
   showHero = true,
   showNavbar = true,
   showSidebar = true,
+  showFooter = true, // ← prop baru
   navItems = defaultNavItems,
   sidebarExtra,
   sectionTitle,
@@ -171,7 +173,7 @@ export default function PublicLayout({
   const pathname = usePathname();
 
   return (
-    <div className='font-sans min-h-screen' style={{ backgroundColor: C.bg }}>
+    <div className='font-sans min-h-screen flex flex-col' style={{ backgroundColor: C.bg }}>
       {showNavbar && <Navbar navItems={navItems} />}
 
       {showHero && (
@@ -183,7 +185,8 @@ export default function PublicLayout({
         />
       )}
 
-      <div className='px-5 sm:px-8 py-10 md:py-12 max-w-7xl mx-auto'>
+      {/* flex-1 agar footer selalu di bawah */}
+      <div className='flex-1 px-5 sm:px-8 py-10 md:py-12 max-w-7xl mx-auto w-full'>
         {(sectionTitle || sectionAction) && (
           <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8'>
             {sectionTitle && (
@@ -209,6 +212,9 @@ export default function PublicLayout({
           <div className='flex-1'>{children}</div>
         </div>
       </div>
+
+      {/* Footer */}
+      {showFooter && <Footer />}
     </div>
   );
 }
