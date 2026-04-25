@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown,
@@ -734,18 +734,10 @@ export default function OrdersPage() {
   const [filterStatus, setFilterStatus] = useState("");
   const [guestOrder, setGuestOrder] = useState(null);
 
-  const { user, loading: authLoading, fetchUser } = useAuthStore();
+  const { user, loading: authLoading, fetchUser, setUser } = useAuthStore();
   const userId = user?.id ?? (authLoading ? undefined : false);
 
-  useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
-
-  useEffect(() => {
-    if (user) fetchOrders();
-  }, [user, filterStatus]);
-
-  async function fetchOrders() {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
       let url = `/api/data/orders`;
@@ -762,7 +754,15 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [filterStatus, setUser]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    if (user) fetchOrders();
+  }, [user, fetchOrders]);
 
   // Callback ketika pesanan berhasil diselesaikan — update status lokal
   function handleOrderCompleted(orderId) {

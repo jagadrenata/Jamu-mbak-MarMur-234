@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -51,20 +51,7 @@ export default function ProductDetailPage() {
 
   const guestAddItem = useGuestCartStore((s) => s.addItem);
 
-  useEffect(() => {
-    fetch("/api/user/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => setUserId(json?.user?.id ?? false))
-      .catch(() => setUserId(false));
-  }, []);
-
-  useEffect(() => {
-    if (!slug) return;
-    fetchProduct();
-  }, [slug]);
-
-
-  async function fetchProduct() {
+  const fetchProduct = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/data/products/${slug}`);
@@ -94,7 +81,19 @@ export default function ProductDetailPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug, router]);
+
+  useEffect(() => {
+    fetch("/api/user/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => setUserId(json?.user?.id ?? false))
+      .catch(() => setUserId(false));
+  }, []);
+
+  useEffect(() => {
+    if (!slug) return;
+    fetchProduct();
+  }, [slug, fetchProduct]);
 
   // When variant changes, update image if variant has its own image
   useEffect(() => {
@@ -105,7 +104,7 @@ export default function ProductDetailPage() {
       setActiveImage(product.primary_image);
     }
     setQuantity(1);
-  }, [selectedVariant]);
+  }, [selectedVariant, product]);
 
   const allImages = () => {
     const imgs = [...(product?.images || [])];

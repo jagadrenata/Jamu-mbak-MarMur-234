@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Upload,
   Link2,
@@ -342,18 +342,6 @@ function ImageCard({
   onMove,
   onSaved
 }) {
-  const [form, setForm] = useState(toForm(img));
-  const [saving, setSaving] = useState(false);
-  const [saveErr, setSaveErr] = useState("");
-  const [imgErr, setImgErr] = useState(false);
-  const prevImg = useRef(img);
-
-  // Sync when parent reloads
-  if (prevImg.current !== img) {
-    prevImg.current = img;
-    setForm(toForm(img));
-  }
-
   function toForm(i) {
     return {
       alt_text: i.alt_text || "",
@@ -362,6 +350,20 @@ function ImageCard({
       position: String(i.position ?? 1)
     };
   }
+
+  const [form, setForm] = useState(toForm(img));
+  const [saving, setSaving] = useState(false);
+  const [saveErr, setSaveErr] = useState("");
+  const [imgErr, setImgErr] = useState(false);
+  const prevImg = useRef(img);
+
+  // Sync when parent reloads - moved to useEffect to avoid accessing refs during render
+  useEffect(() => {
+    if (prevImg.current !== img) {
+      prevImg.current = img;
+      setForm(toForm(img));
+    }
+  }, [img]);
 
   function setF(k, v) {
     setForm(p => ({ ...p, [k]: v }));

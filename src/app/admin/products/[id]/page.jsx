@@ -105,6 +105,7 @@ export default function ProductDetailPage() {
   }, [id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     loadProduct();
   }, [loadProduct]);
 

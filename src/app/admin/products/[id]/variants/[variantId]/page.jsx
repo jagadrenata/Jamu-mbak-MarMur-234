@@ -54,6 +54,7 @@ export default function VariantDetailPage() {
     }
   }, [variantId]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadVariant(); }, [loadVariant]);
 
   async function save() {

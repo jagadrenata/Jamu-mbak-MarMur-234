@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -517,6 +517,9 @@ export default function CartPage() {
   // Distance (km) — computed from coordinate vs toko
   const [distanceKm, setDistanceKm] = useState(null);
 
+  // Redirect URL for external payment
+  const [redirectUrl, setRedirectUrl] = useState(null);
+
   const initialSyncDone = useRef(false);
 
   const guestUpdateQuantity = useGuestCartStore(s => s.updateQuantity);
@@ -528,6 +531,57 @@ export default function CartPage() {
   const { user, loading: authLoading, fetchUser } = useAuthStore();
   const userId = user?.id ?? (authLoading ? undefined : false);
 
+  // Cart fetchers - wrapped in useCallback to avoid re-renders
+  const fetchUserCartFn = useCallback(() => {
+    setLoading(true);
+    fetch("/api/dashboard/cart")
+      .then(res => res.json())
+      .then(json => {
+        const normalized = (json.data || []).map(item => ({
+          id: item.id,
+          variant_id: item.variant_id,
+          quantity: item.quantity,
+          product_name: item.variant?.product?.name ?? "-",
+          variant_name: item.variant?.name ?? "-",
+          variant_sku: item.variant?.sku ?? "-",
+          variant_price: item.variant?.price ?? 0,
+          stock: item.variant?.stock ?? 0,
+          product_image: item.variant?.product?.primary_image ?? null
+        }));
+        setItems(normalized);
+        setSubtotal(json.subtotal || 0);
+        setTotalItems(json.total || 0);
+      })
+      .catch(() => toast.error("Gagal memuat keranjang."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const loadGuestCartFn = useCallback(() => {
+    setLoading(true);
+    Promise.resolve()
+      .then(async () => {
+        if (!initialSyncDone.current) {
+          await guestSync();
+          initialSyncDone.current = true;
+        }
+        const latestItems = useGuestCartStore.getState().items;
+        setItems(latestItems);
+        setSubtotal(
+          latestItems.reduce((s, i) => s + i.variant_price * i.quantity, 0)
+        );
+        setTotalItems(latestItems.reduce((s, i) => s + i.quantity, 0));
+      })
+      .catch(() => toast.error("Gagal memuat keranjang."))
+      .finally(() => setLoading(false));
+  }, [guestSync]);
+
+  // Handle external redirect for payment
+  useEffect(() => {
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    }
+  }, [redirectUrl]);
+
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
@@ -535,9 +589,9 @@ export default function CartPage() {
   // Load cart
   useEffect(() => {
     if (authLoading) return;
-    if (userId) fetchUserCart();
-    else loadGuestCart();
-  }, [userId, authLoading]);
+    if (userId) fetchUserCartFn();
+    else loadGuestCartFn();
+  }, [userId, authLoading, fetchUserCartFn, loadGuestCartFn]);
 
   // Load addresses (logged-in)
   useEffect(() => {
@@ -602,53 +656,6 @@ export default function CartPage() {
     );
     setDistanceKm(km);
   }, [coordinate]);
-
-  // Cart fetchers
-  async function fetchUserCart() {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/dashboard/cart");
-      const json = await res.json();
-      const normalized = (json.data || []).map(item => ({
-        id: item.id,
-        variant_id: item.variant_id,
-        quantity: item.quantity,
-        product_name: item.variant?.product?.name ?? "-",
-        variant_name: item.variant?.name ?? "-",
-        variant_sku: item.variant?.sku ?? "-",
-        variant_price: item.variant?.price ?? 0,
-        stock: item.variant?.stock ?? 0,
-        product_image: item.variant?.product?.primary_image ?? null
-      }));
-      setItems(normalized);
-      setSubtotal(json.subtotal || 0);
-      setTotalItems(json.total || 0);
-    } catch {
-      toast.error("Gagal memuat keranjang.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadGuestCart() {
-    setLoading(true);
-    try {
-      if (!initialSyncDone.current) {
-        await guestSync();
-        initialSyncDone.current = true;
-      }
-      const latestItems = useGuestCartStore.getState().items;
-      setItems(latestItems);
-      setSubtotal(
-        latestItems.reduce((s, i) => s + i.variant_price * i.quantity, 0)
-      );
-      setTotalItems(latestItems.reduce((s, i) => s + i.quantity, 0));
-    } catch {
-      toast.error("Gagal memuat keranjang.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   // Quantity update
   function updateGuestQty(variant_id, quantity) {
@@ -836,7 +843,7 @@ export default function CartPage() {
 
       if (json.data?.midtrans_payment_url) {
         if (!userId) guestClearCart();
-        window.location.href = json.data.midtrans_payment_url;
+        setRedirectUrl(json.data.midtrans_payment_url);
         return;
       }
 

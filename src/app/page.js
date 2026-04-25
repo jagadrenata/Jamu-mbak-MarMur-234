@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -56,15 +56,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [sortBy, setSortBy] = useState("newest");
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [search, selectedCategory, sortBy]);
-
-  async function fetchCategories() {
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await fetch("/api/data/categories?parent_id=");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -73,9 +65,9 @@ export default function HomePage() {
     } catch (err) {
       console.error("Failed to fetch categories", err);
     }
-  }
+  }, []);
 
-  async function fetchProducts() {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
       let url = "/api/data/products?status=active";
@@ -99,7 +91,15 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [search, selectedCategory, sortBy]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const sortOptions = [
     { value: "newest", label: "Terbaru" },

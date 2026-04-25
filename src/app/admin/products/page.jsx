@@ -76,18 +76,16 @@ export default function ProductsPage() {
 
   const refresh = useCallback(() => setReload(n => n + 1), []);
 
-  // Reset offset when tab/search/status changes
-  useEffect(() => {
-    setOffset(0);
-  }, [activeTab, search, status]);
-
   useEffect(() => {
     let active = true;
 
     async function fetchData() {
       setLoading(true);
 
-      const params = { limit, offset };
+      // Reset offset when tab/search/status changes
+      setOffset(0);
+
+      const params = { limit, offset: 0 };
       if (search) params.search = search;
 
       // When on archived tab, always filter by archived
@@ -122,7 +120,7 @@ export default function ProductsPage() {
     return () => {
       active = false;
     };
-  }, [search, status, offset, reload, activeTab]);
+  }, [search, status, reload, activeTab, cats]);
 
   // --- Handlers ---
 
