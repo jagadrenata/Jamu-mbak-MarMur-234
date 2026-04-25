@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { MapPin, Phone, Mail, Clock, Instagram, MessageCircle, ArrowUpRight } from "lucide-react";
 import { C } from "@/components/Navbar";
-import { siteConfig } from "@/lib/config"; // sesuaikan path jika berbeda
+import { siteConfig } from "@/lib/siteConfig";
 
 export default function Footer() {
   const { contact, url } = siteConfig;
