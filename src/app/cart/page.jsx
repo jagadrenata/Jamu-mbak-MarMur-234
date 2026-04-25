@@ -21,14 +21,16 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import { toast } from "sonner";
 import { C } from "@/components/Navbar";
 import PublicLayout from "@/components/PublicLayout";
 import { useGuestCartStore } from "@/store/useGuestCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
 
-const Map = dynamic(() => import("@/components/Map"), { ssr: false });
+export const dynamic = "force-dynamic";
+
+const Map = nextDynamic(() => import("@/components/Map"), { ssr: false });
 
 // Helpers
 
@@ -517,9 +519,6 @@ export default function CartPage() {
   // Distance (km) — computed from coordinate vs toko
   const [distanceKm, setDistanceKm] = useState(null);
 
-  // Redirect URL for external payment
-  const [redirectUrl, setRedirectUrl] = useState(null);
-
   const initialSyncDone = useRef(false);
 
   const guestUpdateQuantity = useGuestCartStore(s => s.updateQuantity);
@@ -531,56 +530,52 @@ export default function CartPage() {
   const { user, loading: authLoading, fetchUser } = useAuthStore();
   const userId = user?.id ?? (authLoading ? undefined : false);
 
-  // Cart fetchers - wrapped in useCallback to avoid re-renders
-  const fetchUserCartFn = useCallback(() => {
+  // Cart fetchers
+  const fetchUserCart = useCallback(async () => {
     setLoading(true);
-    fetch("/api/dashboard/cart")
-      .then(res => res.json())
-      .then(json => {
-        const normalized = (json.data || []).map(item => ({
-          id: item.id,
-          variant_id: item.variant_id,
-          quantity: item.quantity,
-          product_name: item.variant?.product?.name ?? "-",
-          variant_name: item.variant?.name ?? "-",
-          variant_sku: item.variant?.sku ?? "-",
-          variant_price: item.variant?.price ?? 0,
-          stock: item.variant?.stock ?? 0,
-          product_image: item.variant?.product?.primary_image ?? null
-        }));
-        setItems(normalized);
-        setSubtotal(json.subtotal || 0);
-        setTotalItems(json.total || 0);
-      })
-      .catch(() => toast.error("Gagal memuat keranjang."))
-      .finally(() => setLoading(false));
+    try {
+      const res = await fetch("/api/dashboard/cart");
+      const json = await res.json();
+      const normalized = (json.data || []).map(item => ({
+        id: item.id,
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+        product_name: item.variant?.product?.name ?? "-",
+        variant_name: item.variant?.name ?? "-",
+        variant_sku: item.variant?.sku ?? "-",
+        variant_price: item.variant?.price ?? 0,
+        stock: item.variant?.stock ?? 0,
+        product_image: item.variant?.product?.primary_image ?? null
+      }));
+      setItems(normalized);
+      setSubtotal(json.subtotal || 0);
+      setTotalItems(json.total || 0);
+    } catch {
+      toast.error("Gagal memuat keranjang.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const loadGuestCartFn = useCallback(() => {
+  const loadGuestCart = useCallback(async () => {
     setLoading(true);
-    Promise.resolve()
-      .then(async () => {
-        if (!initialSyncDone.current) {
-          await guestSync();
-          initialSyncDone.current = true;
-        }
-        const latestItems = useGuestCartStore.getState().items;
-        setItems(latestItems);
-        setSubtotal(
-          latestItems.reduce((s, i) => s + i.variant_price * i.quantity, 0)
-        );
-        setTotalItems(latestItems.reduce((s, i) => s + i.quantity, 0));
-      })
-      .catch(() => toast.error("Gagal memuat keranjang."))
-      .finally(() => setLoading(false));
-  }, [guestSync]);
-
-  // Handle external redirect for payment
-  useEffect(() => {
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
+    try {
+      if (!initialSyncDone.current) {
+        await guestSync();
+        initialSyncDone.current = true;
+      }
+      const latestItems = useGuestCartStore.getState().items;
+      setItems(latestItems);
+      setSubtotal(
+        latestItems.reduce((s, i) => s + i.variant_price * i.quantity, 0)
+      );
+      setTotalItems(latestItems.reduce((s, i) => s + i.quantity, 0));
+    } catch {
+      toast.error("Gagal memuat keranjang.");
+    } finally {
+      setLoading(false);
     }
-  }, [redirectUrl]);
+  }, [guestSync]);
 
   useEffect(() => {
     fetchUser();
@@ -589,9 +584,9 @@ export default function CartPage() {
   // Load cart
   useEffect(() => {
     if (authLoading) return;
-    if (userId) fetchUserCartFn();
-    else loadGuestCartFn();
-  }, [userId, authLoading, fetchUserCartFn, loadGuestCartFn]);
+    if (userId) fetchUserCart();
+    else loadGuestCart();
+  }, [userId, authLoading, fetchUserCart, loadGuestCart]);
 
   // Load addresses (logged-in)
   useEffect(() => {
@@ -656,6 +651,7 @@ export default function CartPage() {
     );
     setDistanceKm(km);
   }, [coordinate]);
+
 
   // Quantity update
   function updateGuestQty(variant_id, quantity) {
@@ -843,7 +839,7 @@ export default function CartPage() {
 
       if (json.data?.midtrans_payment_url) {
         if (!userId) guestClearCart();
-        setRedirectUrl(json.data.midtrans_payment_url);
+        window.location.href = json.data.midtrans_payment_url;
         return;
       }
 
