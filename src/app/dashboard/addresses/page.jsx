@@ -13,6 +13,7 @@ import {
   Input,
   LoadingSpinner
 } from "@/components/ui";
+import { C } from "@/components/Navbar";
 
 import { Plus, Trash2, Star } from "lucide-react";
 
@@ -170,7 +171,7 @@ export default function AddressesPage() {
         subtitle='Kelola alamat pengiriman Anda'
         action={
           <Button onClick={() => setModal(true)}>
-            <Plus className='w-4 h-4 inline mr-1' />
+            <Plus style={{ backgroundColor: C.bgDark }} className='w-4 h-4 inline mr-1 text-white' />
             Tambah Alamat
           </Button>
         }
@@ -193,7 +194,7 @@ export default function AddressesPage() {
                 <div className='flex items-center gap-2'>
                   <h3 className='font-semibold text-gray-900'>{item.name}</h3>
                   {item.is_default && (
-                    <span className='text-xs bg-black text-white px-2 py-0.5'>
+                    <span style={{ backgroundColor: C.bgDark }} className='text-xs text-white px-2 py-0.5'>
                       Utama
                     </span>
                   )}

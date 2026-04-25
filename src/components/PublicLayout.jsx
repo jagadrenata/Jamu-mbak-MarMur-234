@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Navbar, { C, defaultNavItems } from "@/components/Navbar";
-import Footer from "@/components/Footer"; // ← import Footer
+import Footer from "@/components/Footer";
 
 export function Sidebar({
   pathname,
@@ -21,16 +21,16 @@ export function Sidebar({
   const isActive = href => (href ? pathname === href : false);
 
   return (
-    <aside className='md:w-44 lg:w-48 flex-shrink-0'>
-      <div className='hidden md:block sticky top-24 space-y-6'>
+    <aside className="md:w-44 lg:w-48 flex-shrink-0">
+      <div className="hidden md:block sticky top-24 space-y-6">
         <div>
           <p
-            className='text-xs font-semibold uppercase tracking-widest mb-2 px-1'
+            className="text-xs font-semibold uppercase tracking-widest mb-2 px-1"
             style={{ color: C.mid }}
           >
             Menu
           </p>
-          <ul className='space-y-1'>
+          <ul className="space-y-1">
             {navItems.map(item => {
               const hasChildren = item.children && item.children.length > 0;
               const isOpen = openMenus[item.label] ?? false;
@@ -42,31 +42,31 @@ export function Sidebar({
                     <div>
                       <button
                         onClick={() => toggleMenu(item.label)}
-                        className='w-full flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium transition-all hover:bg-gray-100/40'
+                        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium transition-all hover:bg-gray-100/40"
                         style={{ color: active ? C.accent : C.mid }}
                       >
-                        <div className='flex items-center gap-3'>
+                        <div className="flex items-center gap-3">
                           <span style={{ color: active ? C.accent : C.mid }}>
                             {item.icon}
                           </span>
                           {item.label}
                         </div>
                         {isOpen ? (
-                          <ChevronDown className='w-4 h-4' />
+                          <ChevronDown className="w-4 h-4" />
                         ) : (
-                          <ChevronRight className='w-4 h-4' />
+                          <ChevronRight className="w-4 h-4" />
                         )}
                       </button>
 
                       {isOpen && (
-                        <ul className='ml-7 mt-1 space-y-1 border-l border-dashed border-gray-300/50 pl-3'>
+                        <ul className="ml-7 mt-1 space-y-1 border-l border-dashed border-gray-300/50 pl-3">
                           {item.children.map(sub => {
                             const subActive = isActive(sub.href);
                             return (
                               <li key={sub.label}>
                                 <Link
                                   href={sub.href}
-                                  className='flex items-center gap-2 py-2.5 px-3 text-sm transition-all'
+                                  className="flex items-center gap-2 py-2.5 px-3 text-sm transition-all"
                                   style={{
                                     color: subActive ? C.accent : C.mid,
                                     backgroundColor: subActive
@@ -86,7 +86,7 @@ export function Sidebar({
                   ) : (
                     <Link
                       href={item.href}
-                      className='w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all'
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
                       style={
                         active
                           ? { backgroundColor: C.accent, color: C.textLight }
@@ -120,7 +120,7 @@ function Hero({ title, subtitle, heroHeight = "320px", heroContent }) {
   if (heroContent) {
     return (
       <div
-        className='relative w-full overflow-hidden flex items-center justify-center'
+        className="relative w-full overflow-hidden flex items-center justify-center"
         style={{ minHeight: heroHeight, backgroundColor: C.accent }}
       >
         {heroContent}
@@ -130,13 +130,13 @@ function Hero({ title, subtitle, heroHeight = "320px", heroContent }) {
 
   return (
     <div
-      className='relative w-full overflow-hidden flex items-center justify-center'
+      className="relative w-full overflow-hidden flex items-center justify-center"
       style={{ minHeight: heroHeight, backgroundColor: C.accent }}
     >
-      <div className='text-center px-4'>
+      <div className="text-center px-4">
         {title && (
           <h1
-            className='text-4xl md:text-5xl font-bold mb-3'
+            className="text-4xl md:text-5xl font-bold mb-3"
             style={{ fontFamily: "'Georgia', serif", color: C.textLight }}
           >
             {title}
@@ -144,7 +144,7 @@ function Hero({ title, subtitle, heroHeight = "320px", heroContent }) {
         )}
         {subtitle && (
           <p
-            className='text-base md:text-lg opacity-80 max-w-xl mx-auto'
+            className="text-base md:text-lg opacity-80 max-w-xl mx-auto"
             style={{ color: C.textLight }}
           >
             {subtitle}
@@ -163,7 +163,7 @@ export default function PublicLayout({
   showHero = true,
   showNavbar = true,
   showSidebar = true,
-  showFooter = true, // ← prop baru
+  showFooter = true,
   navItems = defaultNavItems,
   sidebarExtra,
   sectionTitle,
@@ -173,7 +173,10 @@ export default function PublicLayout({
   const pathname = usePathname();
 
   return (
-    <div className='font-sans min-h-screen flex flex-col' style={{ backgroundColor: C.bg }}>
+    <div
+      className="font-sans min-h-screen flex flex-col"
+      style={{ backgroundColor: C.bg }}
+    >
       {showNavbar && <Navbar navItems={navItems} />}
 
       {showHero && (
@@ -185,13 +188,12 @@ export default function PublicLayout({
         />
       )}
 
-      {/* flex-1 agar footer selalu di bawah */}
-      <div className='flex-1 px-5 sm:px-8 py-10 md:py-12 max-w-7xl mx-auto w-full'>
+      <div className="flex-1 px-5 sm:px-8 py-10 md:py-12 max-w-7xl mx-auto w-full">
         {(sectionTitle || sectionAction) && (
-          <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8'>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             {sectionTitle && (
               <h2
-                className='text-2xl md:text-3xl font-bold'
+                className="text-2xl md:text-3xl font-bold"
                 style={{ fontFamily: "'Georgia', serif", color: C.text }}
               >
                 {sectionTitle}
@@ -201,7 +203,7 @@ export default function PublicLayout({
           </div>
         )}
 
-        <div className='flex flex-col md:flex-row gap-8'>
+        <div className="flex flex-col md:flex-row gap-8">
           {showSidebar && (
             <Sidebar
               pathname={pathname}
@@ -209,11 +211,10 @@ export default function PublicLayout({
               sidebarExtra={sidebarExtra}
             />
           )}
-          <div className='flex-1'>{children}</div>
+          <div className="flex-1">{children}</div>
         </div>
       </div>
 
-      {/* Footer */}
       {showFooter && <Footer />}
     </div>
   );

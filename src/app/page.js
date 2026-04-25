@@ -10,8 +10,9 @@ import {
   ShoppingCart,
   ClipboardList
 } from "lucide-react";
-import Link from "next/link";6
-import {siteConfig} from "@/lib/siteConfig"
+import Link from "next/link";
+6;
+import { siteConfig } from "@/lib/siteConfig";
 import { usePathname } from "next/navigation";
 import Navbar, { C } from "@/components/Navbar";
 import HeroSlider from "@/components/HeroSlider";
@@ -32,12 +33,12 @@ const cardVariants = {
 };
 
 const navItems = [
-  { label: "Products", href: "/", icon: <ShoppingBag className='w-4 h-4' /> },
-  { label: "Cart", href: "/cart", icon: <ShoppingCart className='w-4 h-4' /> },
+  { label: "Products", href: "/", icon: <ShoppingBag className="w-4 h-4" /> },
+  { label: "Cart", href: "/cart", icon: <ShoppingCart className="w-4 h-4" /> },
   {
     label: "My Orders",
     href: "/orders",
-    icon: <ClipboardList className='w-4 h-4' />
+    icon: <ClipboardList className="w-4 h-4" />
   }
 ];
 
@@ -109,45 +110,45 @@ export default function HomePage() {
 
   return (
     <div
-      className='light font-sans min-h-screen'
+      className="light font-sans min-h-screen"
       style={{ backgroundColor: C.bg }}
     >
       <Navbar />
       <HeroSlider />
 
-      <div className='px-5 sm:px-8 py-10 md:py-12 max-w-7xl mx-auto'>
-        <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8'>
+      <div className="px-5 sm:px-8 py-10 md:py-12 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <h2
-            className='text-2xl md:text-3xl font-bold'
+            className="text-2xl md:text-3xl font-bold"
             style={{ fontFamily: "'Georgia', serif", color: C.text }}
           >
             Produk
           </h2>
-          <div className='flex flex-wrap gap-3'>
+          <div className="flex flex-wrap gap-3">
             <div
-              className='flex-1 min-w-[220px] px-4 py-2.5 text-sm'
+              className="flex-1 min-w-[220px] px-4 py-2.5 text-sm"
               style={{
                 border: `1px solid ${C.border}`,
                 backgroundColor: C.bgCard
               }}
             >
-              <div className='flex items-center gap-2'>
-                <Search className='w-4 h-4' style={{ color: C.mid }} />
+              <div className="flex items-center gap-2">
+                <Search className="w-4 h-4" style={{ color: C.mid }} />
                 <input
-                  type='text'
-                  placeholder='Cari produk jamu...'
+                  type="text"
+                  placeholder="Cari produk jamu..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className='bg-transparent outline-none w-full text-sm'
+                  className="bg-transparent outline-none w-full text-sm"
                   style={{ color: C.text }}
                 />
               </div>
             </div>
-            <div className='relative'>
+            <div className="relative">
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
-                className='appearance-none px-4 py-2.5 pr-8 text-sm cursor-pointer'
+                className="appearance-none px-4 py-2.5 pr-8 text-sm cursor-pointer"
                 style={{
                   border: `1px solid ${C.border}`,
                   backgroundColor: C.bgCard,
@@ -161,28 +162,28 @@ export default function HomePage() {
                 ))}
               </select>
               <ChevronDown
-                className='w-4 h-4 absolute right-2 top-3 pointer-events-none'
+                className="w-4 h-4 absolute right-2 top-3 pointer-events-none"
                 style={{ color: C.mid }}
               />
             </div>
           </div>
         </div>
 
-        <div className='flex flex-col md:flex-row gap-8'>
+        <div className="flex flex-col md:flex-row gap-8">
           <Sidebar
             sidebarExtra={
               <div>
                 <p
-                  className='text-xs font-semibold uppercase tracking-widest mb-2 px-1'
+                  className="text-xs font-semibold uppercase tracking-widest mb-2 px-1"
                   style={{ color: C.mid }}
                 >
                   Kategori
                 </p>
-                <ul className='space-y-1'>
+                <ul className="space-y-1">
                   <li>
                     <button
                       onClick={() => setSelectedCategory(null)}
-                      className='w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-all'
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-all"
                       style={
                         !selectedCategory
                           ? { backgroundColor: C.accent, color: C.textLight }
@@ -196,7 +197,7 @@ export default function HomePage() {
                     <li key={cat.id}>
                       <button
                         onClick={() => setSelectedCategory(cat.id)}
-                        className='w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-all'
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left transition-all"
                         style={
                           selectedCategory === cat.id
                             ? { backgroundColor: C.accent, color: C.textLight }
@@ -210,10 +211,10 @@ export default function HomePage() {
                 </ul>
               </div>
             }
-            pathname='/'
+            pathname="/"
           />
 
-          <div className='md:hidden mb-6'>
+          <div className="md:hidden mb-6">
             <select
               value={selectedCategory ?? ""}
               onChange={e =>
@@ -221,14 +222,14 @@ export default function HomePage() {
                   e.target.value ? parseInt(e.target.value, 10) : null
                 )
               }
-              className='w-full px-4 py-2.5 text-sm'
+              className="w-full px-4 py-2.5 text-sm"
               style={{
                 border: `1px solid ${C.border}`,
                 backgroundColor: C.bgCard,
                 color: C.accent
               }}
             >
-              <option value=''>Semua Produk</option>
+              <option value="">Semua Produk</option>
               {categories.map(cat => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -237,29 +238,29 @@ export default function HomePage() {
             </select>
           </div>
 
-          <div className='flex-1'>
+          <div className="flex-1">
             {loading ? (
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {[1, 2, 3, 4, 5, 6].map(i => (
                   <div
                     key={i}
-                    className='overflow-hidden animate-pulse'
+                    className="overflow-hidden animate-pulse"
                     style={{
                       border: `1px solid ${C.border}`,
                       backgroundColor: C.bgCard
                     }}
                   >
                     <div
-                      className='h-48'
+                      className="h-48"
                       style={{ backgroundColor: C.border }}
                     />
-                    <div className='p-5 space-y-2'>
+                    <div className="p-5 space-y-2">
                       <div
-                        className='h-4'
+                        className="h-4"
                         style={{ backgroundColor: C.border }}
                       />
                       <div
-                        className='h-3 w-2/3'
+                        className="h-3 w-2/3"
                         style={{ backgroundColor: C.border }}
                       />
                     </div>
@@ -267,28 +268,28 @@ export default function HomePage() {
                 ))}
               </div>
             ) : products.length === 0 ? (
-              <div className='text-center py-20' style={{ color: C.mid }}>
+              <div className="text-center py-20" style={{ color: C.mid }}>
                 <p
-                  className='text-lg'
+                  className="text-lg"
                   style={{ fontFamily: "'Georgia', serif" }}
                 >
                   Produk tidak ditemukan.
                 </p>
               </div>
             ) : (
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6'>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
                 {products.map((product, i) => (
                   <motion.div
                     key={product.id}
-                    className='overflow-hidden shadow-sm cursor-pointer'
+                    className="overflow-hidden shadow-sm cursor-pointer"
                     style={{
                       border: `1px solid ${C.border}`,
                       backgroundColor: C.bgCard
                     }}
                     variants={cardVariants}
-                    initial='hidden'
-                    whileInView='visible'
-                    whileHover='hover'
+                    initial="hidden"
+                    whileInView="visible"
+                    whileHover="hover"
                     viewport={{ once: true, margin: "-40px" }}
                     custom={i}
                     onClick={() =>
@@ -296,29 +297,29 @@ export default function HomePage() {
                     }
                   >
                     <div
-                      className='h-48 flex items-center justify-center overflow-hidden'
+                      className="h-48 flex items-center justify-center overflow-hidden"
                       style={{ backgroundColor: C.border }}
                     >
                       {product.primary_image && (
                         <img
                           src={product.primary_image}
                           alt={product.name || "Produk"}
-                          className='w-full h-full object-cover'
+                          className="w-full h-full object-cover"
                           onError={e => {
                             e.currentTarget.style.display = "none";
                           }}
                         />
                       )}
                     </div>
-                    <div className='p-5'>
+                    <div className="p-5">
                       <span
-                        className='text-xs font-medium mb-1 block'
+                        className="text-xs font-medium mb-1 block"
                         style={{ color: C.mid }}
                       >
                         {product.category_name || ""}
                       </span>
                       <h3
-                        className='font-bold text-base mb-1 line-clamp-2'
+                        className="font-bold text-base mb-1 line-clamp-2"
                         style={{
                           fontFamily: "'Georgia', serif",
                           color: C.text
@@ -327,14 +328,14 @@ export default function HomePage() {
                         {product.name || ""}
                       </h3>
                       <p
-                        className='text-xs mb-3 line-clamp-2 opacity-70'
+                        className="text-xs mb-3 line-clamp-2 opacity-70"
                         style={{ color: C.text }}
                       >
                         {product.description || ""}
                       </p>
-                      <div className='flex items-center justify-between'>
+                      <div className="flex items-center justify-between">
                         <span
-                          className='text-sm font-bold'
+                          className="text-sm font-bold"
                           style={{ color: C.accent }}
                         >
                           {product.min_price != null &&
@@ -354,41 +355,39 @@ export default function HomePage() {
                 ))}
 
                 <motion.div
-                  className='overflow-hidden shadow-sm cursor-pointer'
+                  className="overflow-hidden shadow-sm cursor-pointer"
                   style={{
                     border: `1px solid ${C.border}`,
                     backgroundColor: C.bgCard
                   }}
                   variants={cardVariants}
-                  initial='hidden'
-                  whileInView='visible'
-                  whileHover='hover'
+                  initial="hidden"
+                  whileInView="visible"
+                  whileHover="hover"
                   viewport={{ once: true, margin: "-40px" }}
                   custom={products.length + 1}
                   onClick={() =>
-                    window.location.href= 
-                      siteConfig.url.whatsapp(
-                        "Hallo min. saya mau custom jamu berikut: "
-                      
-                    )
+                    (window.location.href = siteConfig.url.whatsapp(
+                      "Hallo min. saya mau custom jamu berikut: "
+                    ))
                   }
                 >
                   <div
-                    className='h-48 flex items-center justify-center overflow-hidden'
+                    className="h-48 flex items-center justify-center overflow-hidden"
                     style={{ backgroundColor: C.border }}
                   >
                     <img
-                      src='/images/product-custom.jpg'
-                      alt='custom product'
-                      className='w-full h-full object-cover'
+                      src="/images/product-custom.jpg"
+                      alt="custom product"
+                      className="w-full h-full object-cover"
                       onError={e => {
                         e.currentTarget.style.display = "none";
                       }}
                     />
                   </div>
-                  <div className='p-5'>
+                  <div className="p-5">
                     <h3
-                      className='font-bold text-base mb-1 line-clamp-2'
+                      className="font-bold text-base mb-1 line-clamp-2"
                       style={{
                         fontFamily: "'Georgia', serif",
                         color: C.text
@@ -397,15 +396,15 @@ export default function HomePage() {
                       Custom sendiri jamu mu
                     </h3>
                     <p
-                      className='text-xs mb-3 line-clamp-2 opacity-70'
+                      className="text-xs mb-3 line-clamp-2 opacity-70"
                       style={{ color: C.text }}
                     >
                       Tidak dapat menemukan produk yang sesuai atau ingin
                       mencoba rasa jamu baru? coba tanyakann kepada admin.
                     </p>
-                    <div className='flex items-center justify-between'>
+                    <div className="flex items-center justify-between">
                       <span
-                        className='text-sm font-bold'
+                        className="text-sm font-bold"
                         style={{ color: C.accent }}
                       >
                         Mulai dari {formatRupiah(6000)}
@@ -417,6 +416,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
+        <Footer/>
       </div>
     </div>
   );

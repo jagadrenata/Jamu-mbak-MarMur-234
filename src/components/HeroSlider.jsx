@@ -20,7 +20,7 @@ function HeroSlider() {
 
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % heroSlides.length);
-    }, 10000);
+    }, 7000);
 
     return () => clearInterval(timer);
   }, [heroSlides.length, isHovered]);
@@ -79,7 +79,7 @@ function HeroSlider() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 2, ease: 'easeInOut' }}
+          transition={{ duration: 1, ease: 'easeInOut' }}
         >
           {/* Overlay + Content */}
           <div className="relative z-10 w-full h-full text-center mx-auto bg-black/35 px-14 flex flex-col items-center justify-center">

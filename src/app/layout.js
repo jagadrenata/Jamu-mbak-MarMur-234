@@ -47,8 +47,11 @@ export const metadata = {
     "jamu gula asli",
     "jamu sehat",
     "jamu bukan bubuk instan",
-    "minuman herbal alami",
     "jamu rempah asli",
+    
+    "minuman tradisional gula asli",
+    "minuman herbal alami",
+    "minuman tradisional tanpa pemanis buatan",
     
     "Jamu Cibukan",
     "Jamu Sumberadi",
@@ -58,7 +61,7 @@ export const metadata = {
     "Jamu tradisional Sleman",
   ],
 
-  metadataBase: new URL("https://jamu234.biz.id"),
+  metadataBase: new URL("https://jamubumarmur.biz.id"),
   alternates: {
     canonical: "/"
   },
@@ -88,7 +91,7 @@ export const metadata = {
   openGraph: {
     type: "website",
     locale: "id_ID",
-    url: "https://jamu234.biz.id",
+    url: "https://jamubumarmur.biz.id",
     siteName: "Jamu Mbak MarMur 234",
     title: "Jamu Mbak MarMur 234 – Jamu Tradisional Tanpa Pemanis Buatan",
     description:
@@ -120,7 +123,7 @@ export const jsonLd = {
   "@graph": [
     {
       "@type": ["LocalBusiness", "FoodEstablishment"],
-      "@id": "https://jamu234.biz.id/#business",
+      "@id": "https://jamubumarmur.biz.id/#business",
 
       name: "Jamu Mbak MarMur 234",
 
@@ -128,24 +131,24 @@ export const jsonLd = {
         "Jamu Mbak Mur",
         "Jamu Mbak Mar",
         "Jamu 234",
-        "Jamu MarMur"
+        "Jamu Mbak MarMur"
       ],
 
       description:
         "Jamu tradisional di Sleman Yogyakarta yang dibuat dari empon-empon seperti kunyit, jahe, temulawak, dan kencur. Menggunakan gula asli tanpa pemanis buatan.",
 
-      url: "https://jamu234.biz.id",
+      url: "https://jamubumarmur.biz.id",
 
       logo: {
         "@type": "ImageObject",
-        url: "https://jamu234.biz.id/logo.webp"
+        url: "https://jamubumarmur.biz.id/logo.webp"
       },
 
-      image: "https://jamu234.biz.id/og-image.webp",
+      image: "https://jamubumarmur.biz.id/og-image.webp",
 
       servesCuisine: "Indonesian Herbal Drinks",
 
-      priceRange: "Rp",
+      priceRange: "Rp 8000 - Rp 12000",
 
       address: {
         "@type": "PostalAddress",
@@ -165,6 +168,7 @@ export const jsonLd = {
       hasMap: "https://www.google.com/maps?q=-7.7158,110.337958",
 
       areaServed: [
+        "Cibukan",
         "Sumberadi",
         "Mlati",
         "Sleman",
@@ -193,9 +197,9 @@ export const jsonLd = {
 
     {
       "@type": "WebSite",
-      "@id": "https://jamu234.biz.id/#website",
+      "@id": "https://jamubumarmur.biz.id/#website",
 
-      url: "https://jamu234.biz.id",
+      url: "https://jamubumarmur.biz.id",
 
       name: "Jamu Mbak MarMur 234",
 
@@ -203,7 +207,7 @@ export const jsonLd = {
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: "https://jamu234.biz.id/search?q={search_term_string}"
+          urlTemplate: "https://jamubumarmur.biz.id/search?q={search_term_string}"
         },
         "query-input": "required name=search_term_string"
       }
