@@ -15,6 +15,7 @@ import Link from "next/link";
 import { siteConfig } from "@/lib/siteConfig";
 import { usePathname } from "next/navigation";
 import Navbar, { C } from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import HeroSlider from "@/components/HeroSlider";
 import { Sidebar } from "@/components/PublicLayout";
 
@@ -416,7 +417,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
-        <Footer/>
+        <Footer />
       </div>
     </div>
   );

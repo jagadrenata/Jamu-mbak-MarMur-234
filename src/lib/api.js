@@ -230,3 +230,47 @@ export const suppliers = {
   update: (id, body) => api.patch(`/api/admin/suppliers?id=${id}`, body),
   delete: id => api.delete(`/api/admin/suppliers?id=${id}`)
 };
+
+// blog
+export const blogPosts = {
+  list: (params = {}) =>
+    api.get(`/api/blog?resource=posts&${new URLSearchParams(params)}`),
+  getBySlug: slug =>
+    api.get(`/api/blog?resource=posts&slug=${slug}`),
+  create: body =>
+    api.post("/api/blog?resource=posts", body),
+  update: (slug, body) =>
+    api.patch(`/api/blog?resource=posts&slug=${slug}`, body),
+  delete: slug =>
+    api.delete(`/api/blog?resource=posts&slug=${slug}`),
+};
+
+// Blog Categories
+export const blogCategories = {
+  list: () =>
+    api.get("/api/blog?resource=categories"),
+  create: body =>
+    api.post("/api/blog?resource=categories", body),
+  update: (id, body) =>
+    api.patch(`/api/blog?resource=categories&id=${id}`, body),
+  delete: id =>
+    api.delete(`/api/blog?resource=categories&id=${id}`),
+};
+
+// Blog Comments
+export const blogComments = {
+  // Admin: list semua komentar dengan filter
+  list: (params = {}) =>
+    api.get(`/api/blog?resource=comments&${new URLSearchParams(params)}`),
+  // Publik: kirim komentar
+  create: body =>
+    api.post("/api/blog?resource=comments", body),
+  // Admin: approve / reject
+  approve: id =>
+    api.patch(`/api/blog?resource=comments&id=${id}`, { is_approved: true }),
+  reject: id =>
+    api.patch(`/api/blog?resource=comments&id=${id}`, { is_approved: false }),
+  // Admin: hapus
+  delete: id =>
+    api.delete(`/api/blog?resource=comments&id=${id}`),
+};
