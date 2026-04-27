@@ -114,7 +114,9 @@ export default function Footer() {
           </div>
 
           {/* Outlet & Kontak */}
-          <div>
+         {
+           /*
+           <div>
             <p
               className="text-[10px] tracking-[0.18em] uppercase font-semibold font-sans mb-4 opacity-50"
               style={{ color: C.textLight }}
@@ -173,6 +175,8 @@ export default function Footer() {
               })}
             </ul>
           </div>
+           */
+         } 
 
           {/* Kontak Utama & Jam Operasional */}
           <div>
