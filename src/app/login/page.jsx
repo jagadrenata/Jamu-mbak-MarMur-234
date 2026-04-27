@@ -13,11 +13,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = e => {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
 
     const identifier = form.identifier.trim();
@@ -35,7 +35,7 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ identifier, password }),
-        credentials: "include",
+        credentials: "include"
       });
 
       const data = await res.json();
@@ -45,9 +45,26 @@ export default function LoginPage() {
         return;
       }
 
-      toast.success(`Selamat datang kembali, ${data.user.name}!`);
-      router.push("/dashboard");
-      router.refresh(); // sync cookie/session ke layout
+      // Tentukan pesan dan redirect berdasarkan account_type
+      if (data.account_type === "admin") {
+        toast.success(
+          `Selamat datang, ${data.user.name}! Mengarahkan ke dashboard admin...`
+        );
+
+        // Redirect ke /admin untuk admin
+        setTimeout(() => {
+          router.push("/admin");
+          router.refresh();
+        }, 800); // Delay kecil untuk toast terlihat
+      } else {
+        toast.success(`Selamat datang kembali, ${data.user.name}!`);
+
+        // Redirect ke /dashboard untuk user biasa
+        setTimeout(() => {
+          router.push("/dashboard");
+          router.refresh();
+        }, 800);
+      }
     } catch {
       toast.error("Terjadi kesalahan. Periksa koneksi Anda.");
     } finally {
@@ -56,12 +73,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#F5F0E8" }}>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: "#F5F0E8" }}
+    >
       <Navbar />
 
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
-
           {/* Heading */}
           <div className="text-center mb-8">
             <h1
@@ -72,16 +91,26 @@ export default function LoginPage() {
             </h1>
             <p className="text-sm text-gray-500">
               Belum punya akun?{" "}
-              <a href="/signup" className="font-semibold hover:underline" style={{ color: "#6B3A2A" }}>
+              <a
+                href="/signup"
+                className="font-semibold hover:underline"
+                style={{ color: "#6B3A2A" }}
+              >
                 Daftar sekarang
               </a>
             </p>
           </div>
 
           {/* Card */}
-          <div className="p-8 shadow-sm" style={{ background: "#FAF7F2", border: "1px solid #D9CCBA" }}>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
-
+          <div
+            className="p-8 shadow-sm"
+            style={{ background: "#FAF7F2", border: "1px solid #D9CCBA" }}
+          >
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col gap-5"
+              noValidate
+            >
               {/* Identifier */}
               <div>
                 <label
@@ -101,9 +130,13 @@ export default function LoginPage() {
                   autoComplete="username"
                   disabled={loading}
                   className="w-full px-4 py-3 text-sm outline-none transition-colors disabled:opacity-50"
-                  style={{ border: "1px solid #D9CCBA", background: "#fff", color: "#2C1810" }}
-                  onFocus={(e) => (e.target.style.borderColor = "#6B3A2A")}
-                  onBlur={(e) => (e.target.style.borderColor = "#D9CCBA")}
+                  style={{
+                    border: "1px solid #D9CCBA",
+                    background: "#fff",
+                    color: "#2C1810"
+                  }}
+                  onFocus={e => (e.target.style.borderColor = "#6B3A2A")}
+                  onBlur={e => (e.target.style.borderColor = "#D9CCBA")}
                 />
               </div>
 
@@ -117,7 +150,11 @@ export default function LoginPage() {
                   >
                     Password
                   </label>
-                  <a href="/forgot-password" className="text-xs hover:underline" style={{ color: "#C4956A" }}>
+                  <a
+                    href="/forgot-password"
+                    className="text-xs hover:underline"
+                    style={{ color: "#C4956A" }}
+                  >
                     Lupa password?
                   </a>
                 </div>
@@ -132,15 +169,23 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     disabled={loading}
                     className="w-full px-4 py-3 pr-11 text-sm outline-none transition-colors disabled:opacity-50"
-                    style={{ border: "1px solid #D9CCBA", background: "#fff", color: "#2C1810" }}
-                    onFocus={(e) => (e.target.style.borderColor = "#6B3A2A")}
-                    onBlur={(e) => (e.target.style.borderColor = "#D9CCBA")}
+                    style={{
+                      border: "1px solid #D9CCBA",
+                      background: "#fff",
+                      color: "#2C1810"
+                    }}
+                    onFocus={e => (e.target.style.borderColor = "#6B3A2A")}
+                    onBlur={e => (e.target.style.borderColor = "#D9CCBA")}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
+                    onClick={() => setShowPassword(prev => !prev)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                    aria-label={
+                      showPassword
+                        ? "Sembunyikan password"
+                        : "Tampilkan password"
+                    }
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -155,23 +200,41 @@ export default function LoginPage() {
                 style={{
                   background: loading ? "#C4956A" : "#6B3A2A",
                   color: "#F5F0E8",
-                  cursor: loading ? "wait" : "pointer",
+                  cursor: loading ? "wait" : "pointer"
                 }}
               >
-                {loading ? <><Spinner /> Memproses...</> : <><LogIn size={16} /> Masuk</>}
+                {loading ? (
+                  <>
+                    <Spinner /> Memproses...
+                  </>
+                ) : (
+                  <>
+                    <LogIn size={16} /> Masuk
+                  </>
+                )}
               </button>
-
             </form>
           </div>
 
           <p className="text-center text-xs text-gray-400 mt-6">
             Dengan masuk, Anda menyetujui{" "}
-            <a href="/syarat" className="hover:underline" style={{ color: "#C4956A" }}>Syarat & Ketentuan</a>
-            {" "}dan{" "}
-            <a href="/privasi" className="hover:underline" style={{ color: "#C4956A" }}>Kebijakan Privasi</a>
-            {" "}kami.
+            <a
+              href="/syarat"
+              className="hover:underline"
+              style={{ color: "#C4956A" }}
+            >
+              Syarat & Ketentuan
+            </a>{" "}
+            dan{" "}
+            <a
+              href="/privasi"
+              className="hover:underline"
+              style={{ color: "#C4956A" }}
+            >
+              Kebijakan Privasi
+            </a>{" "}
+            kami.
           </p>
-
         </div>
       </main>
 
@@ -184,7 +247,12 @@ function Spinner() {
   return (
     <span
       className="inline-block rounded-full animate-spin"
-      style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,0.35)", borderTopColor: "#fff" }}
+      style={{
+        width: 15,
+        height: 15,
+        border: "2px solid rgba(255,255,255,0.35)",
+        borderTopColor: "#fff"
+      }}
     />
   );
 }
