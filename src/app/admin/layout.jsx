@@ -35,6 +35,12 @@ const adminMenus = [
   },
 
   {
+    name: "blog",
+    label: "Blog",
+    href: "/admin/blog",
+    icon: Users
+  },
+  {
     name: "users",
     label: "Users",
     href: "/dashboard/admin/users",
@@ -95,7 +101,7 @@ export default function Page({ children }) {
   const { admin, loading, fetchAdmin } = useAdminStore();
 
   useEffect(() => {
-    fetchAdmin({ roles: ["admin", "superadmin"] }).finally(() =>
+    fetchAdmin({ roles: ['admin', 'superadmin', 'manager', 'staff', 'kasir', 'gudang', 'cs'] }).finally(() =>
       setFetchDone(true)
     ); // trigger saat fetch selesai
   }, [fetchAdmin]);

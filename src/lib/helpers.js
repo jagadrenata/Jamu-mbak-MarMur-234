@@ -50,23 +50,41 @@ export async function requireAdmin() {
   try {
     const { payload } = await jwtVerify(token.value, JWT_SECRET);
 
-    const { data: admin } = await supabase
-      .from("admins")
-      .select("id, role")
+    const adminRoles = ['admin', 'superadmin', 'manager', 'staff', 'kasir', 'gudang', 'cs'];
+    
+    if (payload.account_type !== 'admin' || !adminRoles.includes(payload.role)) {
+      return { supabase, admin: null, response: err("Forbidden", 403) };
+    }
+
+    const { data: user, error: queryError } = await supabase
+      .from("users")
+      .select("id, name, email, role")
       .eq("id", payload.sub)
       .single();
 
-    if (!admin) {
+    if (queryError || !user) {
+      console.error("[requireAdmin] User not found:", queryError);
+      return { supabase, admin: null, response: err("Forbidden", 403) };
+    }
+
+    // Verifikasi ulang
+    if (!adminRoles.includes(user.role)) {
       return { supabase, admin: null, response: err("Forbidden", 403) };
     }
 
     return {
       supabase,
-      admin,
+      admin: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
       response: null
     };
 
-  } catch {
+  } catch (error) {
+    console.error("[requireAdmin] Token verification failed:", error);
     return { supabase, admin: null, response: err("Unauthorized", 401) };
   }
 }

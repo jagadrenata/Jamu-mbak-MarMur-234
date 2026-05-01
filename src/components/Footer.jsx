@@ -36,7 +36,7 @@ export default function Footer() {
     >
       {/* Main Footer */}
       <div className="px-5 sm:px-8 py-12 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <div className="mb-4">

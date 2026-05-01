@@ -26,58 +26,22 @@ export async function POST(req) {
       ? identifier.toLowerCase().trim()
       : identifier.trim();
 
-    // Coba cari di tabel users dulu
-    const { data: user, error: userQueryError } = await supabase
+    // Query ke tabel users (sekarang mencakup semua role termasuk admin)
+    const { data: user, error: queryError } = await supabase
       .from("users")
       .select("id, name, email, phone, password_hash, role, avatar_url")
       .eq(isEmail ? "email" : "phone", normalizedIdentifier)
       .maybeSingle();
 
-    if (userQueryError) {
-      console.error("[/api/login] users query error:", userQueryError);
+    if (queryError) {
+      console.error("[/api/login] query error:", queryError);
       return NextResponse.json(
         { error: "Terjadi kesalahan server." },
         { status: 500 }
       );
     }
 
-    // Jika tidak ditemukan di users, coba cari di admins
-    let accountType = null;
-    let account = null;
-
-    if (user) {
-      accountType = "user";
-      account = {
-        ...user,
-        account_type: "user"
-      };
-    } else {
-      // Cari di tabel admins
-      const { data: admin, error: adminQueryError } = await supabase
-        .from("admins")
-        .select("id, name, email, password_hash, role, avatar_url, last_login")
-        .eq("email", normalizedIdentifier)
-        .maybeSingle();
-
-      if (adminQueryError) {
-        console.error("[/api/login] admins query error:", adminQueryError);
-        return NextResponse.json(
-          { error: "Terjadi kesalahan server." },
-          { status: 500 }
-        );
-      }
-
-      if (admin) {
-        accountType = "admin";
-        account = {
-          ...admin,
-          account_type: "admin"
-        };
-      }
-    }
-
-    // Jika tidak ditemukan di kedua tabel
-    if (!account) {
+    if (!user) {
       return NextResponse.json(
         { error: "Email/nomor telepon atau password salah." },
         { status: 401 }
@@ -85,7 +49,7 @@ export async function POST(req) {
     }
 
     // Verifikasi password
-    const passwordMatch = await bcrypt.compare(password, account.password_hash);
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
     if (!passwordMatch) {
       return NextResponse.json(
         { error: "Email/nomor telepon atau password salah." },
@@ -93,53 +57,35 @@ export async function POST(req) {
       );
     }
 
-    // Buat JWT dengan informasi account type
+    // Tentukan tipe akun berdasarkan role
+    const adminRoles = ['admin', 'superadmin', 'manager', 'staff', 'kasir', 'gudang', 'cs'];
+    const accountType = adminRoles.includes(user.role) ? 'admin' : 'user';
+
+    // Buat JWT
     const token = await new SignJWT({
-      sub: account.id,
-      email: account.email,
-      role: account.role,
-      account_type: accountType // 'user' atau 'admin'
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      account_type: accountType,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
       .setExpirationTime(TOKEN_TTL)
       .sign(JWT_SECRET);
 
-    // Update last_login untuk admin
-    if (accountType === "admin") {
-      const { error: updateError } = await supabase
-        .from("admins")
-        .update({ last_login: new Date().toISOString() })
-        .eq("id", account.id);
-
-      if (updateError) {
-        console.error("[/api/login] Failed to update last_login:", updateError);
-        // Tidak perlu gagalkan login, hanya log error
-      }
-    }
-
     // Siapkan response data
     const responseData = {
       message: "Login berhasil.",
       account_type: accountType,
       user: {
-        id: account.id,
-        name: account.name,
-        email: account.email,
-        role: account.role
-      }
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        avatar_url: user.avatar_url,
+        role: user.role,
+      },
     };
-
-    // Tambahkan fields spesifik berdasarkan tipe akun
-    if (accountType === "user") {
-      responseData.user.phone = account.phone;
-      responseData.user.avatar_url = account.avatar_url;
-    } else if (accountType === "admin") {
-      responseData.user.avatar_url = account.avatar_url;
-      if (account.last_login) {
-        responseData.user.last_login = account.last_login;
-      }
-    }
 
     // Set cookie & return
     const response = NextResponse.json(responseData);
@@ -149,7 +95,7 @@ export async function POST(req) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
-      path: "/"
+      path: "/",
     });
 
     return response;
