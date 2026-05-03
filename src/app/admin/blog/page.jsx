@@ -6,23 +6,25 @@ import {
   Plus,
   Edit,
   Trash2,
-  Eye,
   Check,
   X,
   FileText,
   FolderOpen,
   MessageSquare,
-  Calendar,
-  User,
-  Tag,
-  Clock,
-  BarChart3,
-  TrendingUp
+  Clock
 } from "lucide-react";
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
 import { blogPosts, blogCategories, blogComments } from "@/lib/api";
 
 function LoadingSpinner() {
@@ -75,7 +77,7 @@ function PostModal({ post, categories, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-lg">
         <div className="p-6 border-b border-[var(--color-border)]">
           <h2 className="font-serif font-bold text-[var(--color-text)] text-xl">
             {post ? "Edit Post" : "Buat Post Baru"}
@@ -84,7 +86,9 @@ function PostModal({ post, categories, onSave, onClose }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Judul *</label>
+              <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+                Judul *
+              </label>
               <input
                 type="text"
                 value={form.title}
@@ -94,7 +98,9 @@ function PostModal({ post, categories, onSave, onClose }) {
               />
             </div>
             <div>
-              <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Slug *</label>
+              <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+                Slug *
+              </label>
               <input
                 type="text"
                 value={form.slug}
@@ -104,8 +110,11 @@ function PostModal({ post, categories, onSave, onClose }) {
               />
             </div>
           </div>
+
           <div>
-            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Excerpt</label>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+              Excerpt
+            </label>
             <textarea
               rows={3}
               value={form.excerpt}
@@ -114,18 +123,26 @@ function PostModal({ post, categories, onSave, onClose }) {
               placeholder="Ringkasan artikel"
             />
           </div>
+
           <div>
-            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Gambar Featured</label>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+              Gambar Featured
+            </label>
             <input
               type="url"
               value={form.featured_image}
-              onChange={e => setForm(f => ({ ...f, featured_image: e.target.value }))}
+              onChange={e =>
+                setForm(f => ({ ...f, featured_image: e.target.value }))
+              }
               className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
               placeholder="https://..."
             />
           </div>
+
           <div>
-            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Status</label>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+              Status
+            </label>
             <select
               value={form.status}
               onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
@@ -135,8 +152,11 @@ function PostModal({ post, categories, onSave, onClose }) {
               <option value="published">Published</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Kategori</label>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+              Kategori
+            </label>
             <div className="flex flex-wrap gap-2">
               {categories.map(cat => (
                 <label key={cat.id} className="flex items-center gap-2 text-sm">
@@ -156,8 +176,11 @@ function PostModal({ post, categories, onSave, onClose }) {
               ))}
             </div>
           </div>
+
           <div>
-            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Konten</label>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+              Konten
+            </label>
             <textarea
               rows={10}
               value={form.content}
@@ -166,7 +189,11 @@ function PostModal({ post, categories, onSave, onClose }) {
               placeholder="Konten artikel dalam HTML"
             />
           </div>
-          {error && <p className="text-[12px] text-red-500 font-sans">{error}</p>}
+
+          {error && (
+            <p className="text-[12px] text-red-500 font-sans">{error}</p>
+          )}
+
           <div className="flex gap-3 pt-4">
             <button
               type="button"
@@ -218,7 +245,7 @@ function CategoryModal({ category, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] max-w-md w-full">
+      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] max-w-md w-full rounded-lg">
         <div className="p-6 border-b border-[var(--color-border)]">
           <h2 className="font-serif font-bold text-[var(--color-text)] text-xl">
             {category ? "Edit Kategori" : "Buat Kategori Baru"}
@@ -226,7 +253,9 @@ function CategoryModal({ category, onSave, onClose }) {
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Nama *</label>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+              Nama *
+            </label>
             <input
               type="text"
               value={form.name}
@@ -236,7 +265,9 @@ function CategoryModal({ category, onSave, onClose }) {
             />
           </div>
           <div>
-            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Slug *</label>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+              Slug *
+            </label>
             <input
               type="text"
               value={form.slug}
@@ -246,16 +277,24 @@ function CategoryModal({ category, onSave, onClose }) {
             />
           </div>
           <div>
-            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Deskripsi</label>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">
+              Deskripsi
+            </label>
             <textarea
               rows={3}
               value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              onChange={e =>
+                setForm(f => ({ ...f, description: e.target.value }))
+              }
               className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
               placeholder="Deskripsi kategori"
             />
           </div>
-          {error && <p className="text-[12px] text-red-500 font-sans">{error}</p>}
+
+          {error && (
+            <p className="text-[12px] text-red-500 font-sans">{error}</p>
+          )}
+
           <div className="flex gap-3 pt-4">
             <button
               type="button"
@@ -284,8 +323,8 @@ export default function AdminBlogPage() {
   const [categories, setCategories] = useState([]);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(null);
-  const [modal, setModal] = useState(null);
+  const [stats, setStats] = useState < any > null;
+  const [modal, setModal] = useState < any > null;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [approvedFilter, setApprovedFilter] = useState("");
@@ -308,7 +347,6 @@ export default function AdminBlogPage() {
         setCategories(data.categories || []);
       } else if (activeTab === "comments") {
         const params = {};
-        if (search) params.post_id = search; // or adjust
         if (approvedFilter) params.approved = approvedFilter;
         const data = await blogComments.list(params);
         setComments(data.comments || []);
@@ -320,12 +358,15 @@ export default function AdminBlogPage() {
         blogCategories.list(),
         blogComments.list({ limit: 1000 })
       ]);
+
       setStats({
         totalPosts: postsData.total || 0,
         totalCategories: catsData.categories?.length || 0,
         totalComments: commentsData.comments?.length || 0,
-        approvedComments: commentsData.comments?.filter(c => c.is_approved).length || 0,
-        pendingComments: commentsData.comments?.filter(c => !c.is_approved).length || 0
+        approvedComments:
+          commentsData.comments?.filter(c => c.is_approved).length || 0,
+        pendingComments:
+          commentsData.comments?.filter(c => !c.is_approved).length || 0
       });
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -335,7 +376,7 @@ export default function AdminBlogPage() {
   }
 
   async function handleSavePost(form) {
-    if (modal.post) {
+    if (modal?.post) {
       await blogPosts.update(modal.post.slug, form);
     } else {
       await blogPosts.create(form);
@@ -344,7 +385,7 @@ export default function AdminBlogPage() {
   }
 
   async function handleSaveCategory(form) {
-    if (modal.category) {
+    if (modal?.category) {
       await blogCategories.update(modal.category.id, form);
     } else {
       await blogCategories.create(form);
@@ -383,8 +424,6 @@ export default function AdminBlogPage() {
     }
   }
 
-  const COLORS = ['#64748b', '#c2b18f', '#8b5e3c', '#10b981'];
-
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       {/* Header */}
@@ -392,8 +431,12 @@ export default function AdminBlogPage() {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-serif font-bold text-[var(--color-text)] text-2xl">Blog Management</h1>
-              <p className="text-[var(--color-mid)] font-sans text-sm mt-1">Kelola artikel, kategori, dan komentar blog</p>
+              <h1 className="font-serif font-bold text-[var(--color-text)] text-2xl">
+                Blog Management
+              </h1>
+              <p className="text-[var(--color-mid)] font-sans text-sm mt-1">
+                Kelola artikel, kategori, dan komentar blog
+              </p>
             </div>
             {activeTab === "posts" && (
               <button
@@ -421,130 +464,130 @@ export default function AdminBlogPage() {
         {/* Stats */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
-                <div className="bg-[var(--color-accent)] p-3">
+                <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <FileText className="w-6 h-6 text-[var(--color-text-light)]" />
                 </div>
               </div>
-              <h3 className="text-[var(--color-mid)] text-sm font-medium">Total Posts</h3>
-              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.totalPosts}</p>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">
+                Total Posts
+              </h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">
+                {stats.totalPosts}
+              </p>
             </div>
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
-                <div className="bg-[var(--color-accent)] p-3">
+                <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <FolderOpen className="w-6 h-6 text-[var(--color-text-light)]" />
                 </div>
               </div>
-              <h3 className="text-[var(--color-mid)] text-sm font-medium">Kategori</h3>
-              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.totalCategories}</p>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">
+                Kategori
+              </h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">
+                {stats.totalCategories}
+              </p>
             </div>
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
-                <div className="bg-[var(--color-accent)] p-3">
+                <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <MessageSquare className="w-6 h-6 text-[var(--color-text-light)]" />
                 </div>
               </div>
-              <h3 className="text-[var(--color-mid)] text-sm font-medium">Total Komentar</h3>
-              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.totalComments}</p>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">
+                Total Komentar
+              </h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">
+                {stats.totalComments}
+              </p>
             </div>
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
-                <div className="bg-[var(--color-accent)] p-3">
+                <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <Check className="w-6 h-6 text-[var(--color-text-light)]" />
                 </div>
               </div>
-              <h3 className="text-[var(--color-mid)] text-sm font-medium">Disetujui</h3>
-              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.approvedComments}</p>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">
+                Disetujui
+              </h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">
+                {stats.approvedComments}
+              </p>
             </div>
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
-                <div className="bg-[var(--color-accent)] p-3">
+                <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <Clock className="w-6 h-6 text-[var(--color-text-light)]" />
                 </div>
               </div>
-              <h3 className="text-[var(--color-mid)] text-sm font-medium">Pending</h3>
-              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.pendingComments}</p>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">
+                Pending
+              </h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">
+                {stats.pendingComments}
+              </p>
             </div>
           </div>
         )}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="bg-[var(--color-accent)] p-3">
-                    <FolderOpen className="w-6 h-6 text-[var(--color-text-light)]" />
-                  </div>
-                </div>
-                <h3 className="text-[var(--color-mid)] text-sm font-medium">Total Kategori</h3>
-                <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.totalCategories}</p>
-              </div>
 
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="bg-[var(--color-accent)] p-3">
-                    <MessageSquare className="w-6 h-6 text-[var(--color-text-light)]" />
-                  </div>
-                </div>
-                <h3 className="text-[var(--color-mid)] text-sm font-medium">Komentar Disetujui</h3>
-                <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.approvedComments}</p>
-              </div>
-
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="bg-[var(--color-accent)] p-3">
-                    <Clock className="w-6 h-6 text-[var(--color-text-light)]" />
-                  </div>
-                </div>
-                <h3 className="text-[var(--color-mid)] text-sm font-medium">Komentar Pending</h3>
-                <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.pendingComments}</p>
-              </div>
+        {/* Charts */}
+        {stats && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
+              <h3 className="text-lg font-bold text-[var(--color-text)] mb-4">
+                Distribusi Komentar
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: "Disetujui", value: stats.approvedComments },
+                      { name: "Pending", value: stats.pendingComments }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    <Cell fill="#c5b79d" />
+                    <Cell fill="#ab9f85" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
-                <h3 className="text-lg font-bold text-[var(--color-text)] mb-4">Distribusi Komentar</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Disetujui', value: stats.approvedComments },
-                        { name: 'Pending', value: stats.pendingComments }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      <Cell fill="#c5b79d" />
-                      <Cell fill="#ab9f85" />
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
-                <h3 className="text-lg font-bold text-[var(--color-text)] mb-4">Statistik Konten</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={[
-                    { name: 'Posts', value: stats.totalPosts },
-                    { name: 'Kategori', value: stats.totalCategories },
-                    { name: 'Komentar', value: stats.totalComments }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="name" stroke="#9ca3af" />
-                    <YAxis stroke="#9ca3af" />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#c5b79d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
+              <h3 className="text-lg font-bold text-[var(--color-text)] mb-4">
+                Statistik Konten
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={[
+                    { name: "Posts", value: stats.totalPosts },
+                    { name: "Kategori", value: stats.totalCategories },
+                    { name: "Komentar", value: stats.totalComments }
+                  ]}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="name" stroke="#9ca3af" />
+                  <YAxis stroke="#9ca3af" />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#c5b79d" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-          </>
-        ) : null}
-
+          </div>
         )}
 
         {/* Tabs */}
@@ -578,9 +621,10 @@ export default function AdminBlogPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Cari..."
-              className="pl-10 pr-4 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              className="pl-10 pr-4 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors w-72"
             />
           </div>
+
           {activeTab === "posts" && (
             <select
               value={statusFilter}
@@ -592,6 +636,7 @@ export default function AdminBlogPage() {
               <option value="draft">Draft</option>
             </select>
           )}
+
           {activeTab === "comments" && (
             <select
               value={approvedFilter}
@@ -611,30 +656,48 @@ export default function AdminBlogPage() {
         ) : (
           <>
             {activeTab === "posts" && (
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden">
+              /* Table Posts */
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden rounded-lg">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
                       <tr>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Judul</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Status</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Tanggal</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Aksi</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Judul
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Tanggal
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Aksi
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {posts.map(post => (
-                        <tr key={post.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]">
+                        <tr
+                          key={post.id}
+                          className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]"
+                        >
                           <td className="px-4 py-3">
-                            <div className="font-sans text-sm text-[var(--color-text)]">{post.title}</div>
-                            <div className="text-[11px] text-[var(--color-mid)]">{post.slug}</div>
+                            <div className="font-sans text-sm text-[var(--color-text)]">
+                              {post.title}
+                            </div>
+                            <div className="text-[11px] text-[var(--color-mid)]">
+                              {post.slug}
+                            </div>
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex px-2 py-1 text-[10px] uppercase tracking-[0.12em] font-sans ${
-                              post.status === 'published'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
+                            <span
+                              className={`inline-flex px-2 py-1 text-[10px] uppercase tracking-[0.12em] font-sans ${
+                                post.status === "published"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}
+                            >
                               {post.status}
                             </span>
                           </td>
@@ -646,14 +709,12 @@ export default function AdminBlogPage() {
                               <button
                                 onClick={() => setModal({ type: "post", post })}
                                 className="p-1 text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors"
-                                title="Edit"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeletePost(post.slug)}
                                 className="p-1 text-[var(--color-mid)] hover:text-red-500 transition-colors"
-                                title="Hapus"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -668,36 +729,53 @@ export default function AdminBlogPage() {
             )}
 
             {activeTab === "categories" && (
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden">
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden rounded-lg">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
                       <tr>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Nama</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Slug</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Deskripsi</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Aksi</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Nama
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Slug
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Deskripsi
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Aksi
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {categories.map(cat => (
-                        <tr key={cat.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]">
-                          <td className="px-4 py-3 font-sans text-sm text-[var(--color-text)]">{cat.name}</td>
-                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">{cat.slug}</td>
-                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">{cat.description || "—"}</td>
+                        <tr
+                          key={cat.id}
+                          className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]"
+                        >
+                          <td className="px-4 py-3 font-sans text-sm text-[var(--color-text)]">
+                            {cat.name}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">
+                            {cat.slug}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">
+                            {cat.description || "—"}
+                          </td>
                           <td className="px-4 py-3">
                             <div className="flex gap-2">
                               <button
-                                onClick={() => setModal({ type: "category", category: cat })}
-                                className="p-1 text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors"
-                                title="Edit"
+                                onClick={() =>
+                                  setModal({ type: "category", category: cat })
+                                }
+                                className="p-1 text-[var(--color-mid)] hover:text-[var(--color-accent)]"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteCategory(cat.id)}
-                                className="p-1 text-[var(--color-mid)] hover:text-red-500 transition-colors"
-                                title="Hapus"
+                                className="p-1 text-[var(--color-mid)] hover:text-red-500"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -712,33 +790,54 @@ export default function AdminBlogPage() {
             )}
 
             {activeTab === "comments" && (
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden">
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden rounded-lg">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
                       <tr>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Komentar</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Post</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Status</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Tanggal</th>
-                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Aksi</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Komentar
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Post
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Tanggal
+                        </th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
+                          Aksi
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {comments.map(comment => (
-                        <tr key={comment.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]">
+                        <tr
+                          key={comment.id}
+                          className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]"
+                        >
                           <td className="px-4 py-3">
-                            <div className="font-sans text-sm text-[var(--color-text)]">{comment.content.slice(0, 50)}...</div>
-                            <div className="text-[11px] text-[var(--color-mid)]">{comment.guest_name || comment.user?.full_name}</div>
+                            <div className="font-sans text-sm text-[var(--color-text)]">
+                              {comment.content.slice(0, 50)}...
+                            </div>
+                            <div className="text-[11px] text-[var(--color-mid)]">
+                              {comment.guest_name || comment.user?.full_name}
+                            </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">{comment.post?.title || "—"}</td>
+                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">
+                            {comment.post?.title || "—"}
+                          </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex px-2 py-1 text-[10px] uppercase tracking-[0.12em] font-sans ${
-                              comment.is_approved
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {comment.is_approved ? 'Disetujui' : 'Pending'}
+                            <span
+                              className={`inline-flex px-2 py-1 text-[10px] uppercase tracking-[0.12em] font-sans ${
+                                comment.is_approved
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}
+                            >
+                              {comment.is_approved ? "Disetujui" : "Pending"}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">
@@ -748,26 +847,27 @@ export default function AdminBlogPage() {
                             <div className="flex gap-2">
                               {!comment.is_approved && (
                                 <button
-                                  onClick={() => handleApproveComment(comment.id)}
-                                  className="p-1 text-[var(--color-mid)] hover:text-green-500 transition-colors"
-                                  title="Setujui"
+                                  onClick={() =>
+                                    handleApproveComment(comment.id)
+                                  }
+                                  className="p-1 text-[var(--color-mid)] hover:text-green-500"
                                 >
                                   <Check className="w-4 h-4" />
                                 </button>
                               )}
                               {comment.is_approved && (
                                 <button
-                                  onClick={() => handleRejectComment(comment.id)}
-                                  className="p-1 text-[var(--color-mid)] hover:text-yellow-500 transition-colors"
-                                  title="Tolak"
+                                  onClick={() =>
+                                    handleRejectComment(comment.id)
+                                  }
+                                  className="p-1 text-[var(--color-mid)] hover:text-yellow-500"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
                               )}
                               <button
                                 onClick={() => handleDeleteComment(comment.id)}
-                                className="p-1 text-[var(--color-mid)] hover:text-red-500 transition-colors"
-                                title="Hapus"
+                                className="p-1 text-[var(--color-mid)] hover:text-red-500"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
