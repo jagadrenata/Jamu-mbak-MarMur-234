@@ -3,15 +3,35 @@
 import { useEffect, useState } from "react";
 import {
   Search,
-  Tag,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Check,
+  X,
+  FileText,
+  FolderOpen,
+  MessageSquare,
   Calendar,
   User,
-  ArrowLeft,
-  Send,
-  MessageCircle,
-  Clock
+  Tag,
+  Clock,
+  BarChart3,
+  TrendingUp
 } from "lucide-react";
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 import { blogPosts, blogCategories, blogComments } from "@/lib/api";
+
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-accent)]"></div>
+    </div>
+  );
+}
 
 function formatDate(str) {
   if (!str) return "—";
@@ -22,473 +42,764 @@ function formatDate(str) {
   });
 }
 
-function formatReadTime(content) {
-  if (!content) return "1 min";
-  const words = content.replace(/<[^>]*>/g, "").split(/\s+/).length;
-  const minutes = Math.ceil(words / 200);
-  return `${minutes} min`;
-}
-
-function BlogPost({ post, onBack }) {
-  const [comments, setComments] = useState([]);
-  const [commentForm, setCommentForm] = useState({
-    guest_name: "",
-    guest_email: "",
-    content: ""
+function PostModal({ post, categories, onSave, onClose }) {
+  const [form, setForm] = useState({
+    title: post?.title || "",
+    slug: post?.slug || "",
+    content: post?.content || "",
+    excerpt: post?.excerpt || "",
+    featured_image: post?.featured_image || "",
+    status: post?.status || "draft",
+    category_ids: post?.blog_post_categories?.map(pc => pc.category.id) || []
   });
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (post) {
-      blogComments
-        .list({ post_slug: post.slug, approved: "true" })
-        .then(data => setComments(data.comments || []))
-        .catch(() => setComments([]));
-    }
-  }, [post]);
-
-  async function handleSubmitComment(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    setSuccess(false);
-    if (!commentForm.content.trim())
-      return setError("Komentar tidak boleh kosong");
-    setSubmitting(true);
+    if (!form.title || !form.slug) {
+      setError("Judul dan slug wajib diisi");
+      return;
+    }
+    setLoading(true);
     try {
-      await blogComments.create({
-        post_slug: post.slug,
-        ...commentForm
-      });
-      setCommentForm({ guest_name: "", guest_email: "", content: "" });
-      setSuccess(true);
+      await onSave(form);
+      onClose();
     } catch (err) {
-      setError(err.message || "Gagal mengirim komentar");
+      setError(err.message || "Gagal menyimpan");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   }
 
-  const categories =
-    post.blog_post_categories?.map(pc => pc.category).filter(Boolean) || [];
-
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
-      {/* Header */}
-      <div className="border-b border-[var(--color-border)] bg-[var(--color-bg-card)]">
-        <div className="max-w-4xl mx-auto px-6 py-6">
-          <button
-            onClick={onBack}
-            className="inline-flex items-center gap-2 text-[12px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" /> Kembali
-          </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-[var(--color-border)]">
+          <h2 className="font-serif font-bold text-[var(--color-text)] text-xl">
+            {post ? "Edit Post" : "Buat Post Baru"}
+          </h2>
         </div>
-      </div>
-
-      <article className="max-w-4xl mx-auto px-6 py-12">
-        {/* Featured Image */}
-        {post.featured_image && (
-          <div className="mb-8 border border-[var(--color-border)] overflow-hidden">
-            <img
-              src={post.featured_image}
-              alt={post.title}
-              className="w-full h-[400px] object-cover"
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Judul *</label>
+              <input
+                type="text"
+                value={form.title}
+                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+                placeholder="Judul artikel"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Slug *</label>
+              <input
+                type="text"
+                value={form.slug}
+                onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+                placeholder="slug-artikel"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Excerpt</label>
+            <textarea
+              rows={3}
+              value={form.excerpt}
+              onChange={e => setForm(f => ({ ...f, excerpt: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
+              placeholder="Ringkasan artikel"
             />
           </div>
-        )}
-
-        {/* Meta */}
-        <div className="mb-6 flex flex-wrap items-center gap-4 text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)]">
-          {categories.length > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Tag className="w-3.5 h-3.5" />
-              {categories.map((cat, i) => (
-                <span key={cat.id}>
+          <div>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Gambar Featured</label>
+            <input
+              type="url"
+              value={form.featured_image}
+              onChange={e => setForm(f => ({ ...f, featured_image: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Status</label>
+            <select
+              value={form.status}
+              onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Kategori</label>
+            <div className="flex flex-wrap gap-2">
+              {categories.map(cat => (
+                <label key={cat.id} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.category_ids.includes(cat.id)}
+                    onChange={e => {
+                      const ids = e.target.checked
+                        ? [...form.category_ids, cat.id]
+                        : form.category_ids.filter(id => id !== cat.id);
+                      setForm(f => ({ ...f, category_ids: ids }));
+                    }}
+                    className="accent-[var(--color-accent)]"
+                  />
                   {cat.name}
-                  {i < categories.length - 1 && ", "}
-                </span>
+                </label>
               ))}
             </div>
-          )}
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5" />
-            {formatDate(post.published_at || post.created_at)}
           </div>
-          {post.author && (
-            <div className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5" />
-              {post.author.full_name}
-            </div>
-          )}
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            {formatReadTime(post.content)}
-          </div>
-        </div>
-
-        {/* Title */}
-        <h1 className="font-serif font-bold text-[var(--color-text)] text-4xl md:text-5xl leading-[1.2] mb-6">
-          {post.title}
-        </h1>
-
-        {/* Excerpt */}
-        {post.excerpt && (
-          <p className="text-[var(--color-mid)] text-lg font-sans leading-[1.8] mb-12 pb-12 border-b border-[var(--color-border)]">
-            {post.excerpt}
-          </p>
-        )}
-
-        {/* Content */}
-        <div
-          className="prose-blog font-sans text-[var(--color-text)] text-[15px] leading-[1.9] mb-16"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-          style={{
-            maxWidth: "none"
-          }}
-        />
-
-        {/* Comments Section */}
-        <div className="border-t border-[var(--color-border)] pt-12">
-          <div className="flex items-center gap-2 mb-8">
-            <MessageCircle className="w-5 h-5 text-[var(--color-mid)]" />
-            <h2 className="font-serif font-bold text-[var(--color-text)] text-2xl">
-              Komentar ({comments.length})
-            </h2>
-          </div>
-
-          {/* Comment Form */}
-          <form
-            onSubmit={handleSubmitComment}
-            className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 mb-8"
-          >
-            <p className="text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-4">
-              Tulis Komentar
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <div>
-                <input
-                  type="text"
-                  placeholder="Nama"
-                  value={commentForm.guest_name}
-                  onChange={e =>
-                    setCommentForm(f => ({ ...f, guest_name: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-transparent text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
-                />
-              </div>
-              <div>
-                <input
-                  type="email"
-                  placeholder="Email (opsional)"
-                  value={commentForm.guest_email}
-                  onChange={e =>
-                    setCommentForm(f => ({ ...f, guest_email: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-transparent text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Konten</label>
             <textarea
-              rows={4}
-              placeholder="Tulis komentar Anda..."
-              value={commentForm.content}
-              onChange={e =>
-                setCommentForm(f => ({ ...f, content: e.target.value }))
-              }
-              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-transparent text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none mb-4"
+              rows={10}
+              value={form.content}
+              onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
+              placeholder="Konten artikel dalam HTML"
             />
-            {error && (
-              <p className="text-[12px] text-red-500 font-sans mb-3">{error}</p>
-            )}
-            {success && (
-              <p className="text-[12px] text-green-600 font-sans mb-3">
-                Komentar berhasil dikirim dan menunggu persetujuan.
-              </p>
-            )}
+          </div>
+          {error && <p className="text-[12px] text-red-500 font-sans">{error}</p>}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-[var(--color-border)] text-sm font-sans text-[var(--color-mid)] hover:border-[var(--color-accent)] transition-colors"
+            >
+              Batal
+            </button>
             <button
               type="submit"
-              disabled={submitting}
-              className="inline-flex items-center gap-2 px-5 py-2 bg-[var(--color-accent)] border border-[var(--color-accent)] text-[var(--color-text-light)] text-sm font-semibold font-sans hover:opacity-90 transition-opacity disabled:opacity-50"
+              disabled={loading}
+              className="px-4 py-2 bg-[var(--color-accent)] border border-[var(--color-accent)] text-[var(--color-text-light)] text-sm font-semibold font-sans hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              <Send className="w-4 h-4" />
-              {submitting ? "Mengirim..." : "Kirim Komentar"}
+              {loading ? "Menyimpan..." : "Simpan"}
             </button>
-          </form>
-
-          {/* Comments List */}
-          <div className="space-y-6">
-            {comments.length === 0 ? (
-              <p className="text-sm text-[var(--color-mid)] font-sans py-8 text-center">
-                Belum ada komentar. Jadilah yang pertama berkomentar!
-              </p>
-            ) : (
-              comments.map(comment => (
-                <div
-                  key={comment.id}
-                  className="border-b border-[var(--color-border)] pb-6 last:border-0"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-[var(--color-accent)] flex items-center justify-center text-[var(--color-text-light)] font-serif font-bold">
-                      {(comment.user?.full_name ||
-                        comment.guest_name ||
-                        "A")[0].toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <p className="font-sans font-semibold text-[var(--color-text)] text-sm">
-                          {comment.user?.full_name ||
-                            comment.guest_name ||
-                            "Anonim"}
-                        </p>
-                        <span className="text-[11px] text-[var(--color-mid)] font-sans">
-                          {formatDate(comment.created_at)}
-                        </span>
-                      </div>
-                      <p className="text-[14px] text-[var(--color-mid)] font-sans leading-[1.7]">
-                        {comment.content}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
           </div>
-        </div>
-      </article>
+        </form>
+      </div>
     </div>
   );
 }
 
-export default function BlogPage() {
+function CategoryModal({ category, onSave, onClose }) {
+  const [form, setForm] = useState({
+    name: category?.name || "",
+    slug: category?.slug || "",
+    description: category?.description || ""
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    if (!form.name || !form.slug) {
+      setError("Nama dan slug wajib diisi");
+      return;
+    }
+    setLoading(true);
+    try {
+      await onSave(form);
+      onClose();
+    } catch (err) {
+      setError(err.message || "Gagal menyimpan");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] max-w-md w-full">
+        <div className="p-6 border-b border-[var(--color-border)]">
+          <h2 className="font-serif font-bold text-[var(--color-text)] text-xl">
+            {category ? "Edit Kategori" : "Buat Kategori Baru"}
+          </h2>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Nama *</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              placeholder="Nama kategori"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Slug *</label>
+            <input
+              type="text"
+              value={form.slug}
+              onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              placeholder="slug-kategori"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-[0.15em] font-sans text-[var(--color-mid)] mb-1.5">Deskripsi</label>
+            <textarea
+              rows={3}
+              value={form.description}
+              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
+              placeholder="Deskripsi kategori"
+            />
+          </div>
+          {error && <p className="text-[12px] text-red-500 font-sans">{error}</p>}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-[var(--color-border)] text-sm font-sans text-[var(--color-mid)] hover:border-[var(--color-accent)] transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 bg-[var(--color-accent)] border border-[var(--color-accent)] text-[var(--color-text-light)] text-sm font-semibold font-sans hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {loading ? "Menyimpan..." : "Simpan"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminBlogPage() {
+  const [activeTab, setActiveTab] = useState("posts");
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [searchInput, setSearchInput] = useState("");
+  const [stats, setStats] = useState(null);
+  const [modal, setModal] = useState(null);
   const [search, setSearch] = useState("");
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [offset, setOffset] = useState(0);
-  const [total, setTotal] = useState(0);
-
-  const LIMIT = 9;
+  const [statusFilter, setStatusFilter] = useState("");
+  const [approvedFilter, setApprovedFilter] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const params = { status: "published", limit: LIMIT, offset };
-        if (search) params.search = search;
-        if (selectedCategory) params.category = selectedCategory;
-        
-        const [postsData, catsData] = await Promise.all([
-          blogPosts.list(params),
-          blogCategories.list()
-        ]);
-        
-        setPosts(postsData.posts || []);
-        setTotal(postsData.total || 0);
-        setCategories(catsData.categories || []);
-      } catch {
-        setPosts([]);
-        setCategories([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, [search, selectedCategory, offset]);
+  }, [activeTab, search, statusFilter, approvedFilter]);
 
-  if (selectedPost) {
-    return <BlogPost post={selectedPost} onBack={() => setSelectedPost(null)} />;
+  async function fetchData() {
+    setLoading(true);
+    try {
+      if (activeTab === "posts") {
+        const params = { limit: 50 };
+        if (search) params.search = search;
+        if (statusFilter) params.status = statusFilter;
+        const data = await blogPosts.list(params);
+        setPosts(data.posts || []);
+      } else if (activeTab === "categories") {
+        const data = await blogCategories.list();
+        setCategories(data.categories || []);
+      } else if (activeTab === "comments") {
+        const params = {};
+        if (search) params.post_id = search; // or adjust
+        if (approvedFilter) params.approved = approvedFilter;
+        const data = await blogComments.list(params);
+        setComments(data.comments || []);
+      }
+
+      // Fetch stats
+      const [postsData, catsData, commentsData] = await Promise.all([
+        blogPosts.list({ limit: 1 }),
+        blogCategories.list(),
+        blogComments.list({ limit: 1000 })
+      ]);
+      setStats({
+        totalPosts: postsData.total || 0,
+        totalCategories: catsData.categories?.length || 0,
+        totalComments: commentsData.comments?.length || 0,
+        approvedComments: commentsData.comments?.filter(c => c.is_approved).length || 0,
+        pendingComments: commentsData.comments?.filter(c => !c.is_approved).length || 0
+      });
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    } finally {
+      setLoading(false);
+    }
   }
+
+  async function handleSavePost(form) {
+    if (modal.post) {
+      await blogPosts.update(modal.post.slug, form);
+    } else {
+      await blogPosts.create(form);
+    }
+    fetchData();
+  }
+
+  async function handleSaveCategory(form) {
+    if (modal.category) {
+      await blogCategories.update(modal.category.id, form);
+    } else {
+      await blogCategories.create(form);
+    }
+    fetchData();
+  }
+
+  async function handleDeletePost(slug) {
+    if (confirm("Yakin hapus post ini?")) {
+      await blogPosts.delete(slug);
+      fetchData();
+    }
+  }
+
+  async function handleDeleteCategory(id) {
+    if (confirm("Yakin hapus kategori ini?")) {
+      await blogCategories.delete(id);
+      fetchData();
+    }
+  }
+
+  async function handleApproveComment(id) {
+    await blogComments.approve(id);
+    fetchData();
+  }
+
+  async function handleRejectComment(id) {
+    await blogComments.reject(id);
+    fetchData();
+  }
+
+  async function handleDeleteComment(id) {
+    if (confirm("Yakin hapus komentar ini?")) {
+      await blogComments.delete(id);
+      fetchData();
+    }
+  }
+
+  const COLORS = ['#64748b', '#c2b18f', '#8b5e3c', '#10b981'];
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       {/* Header */}
       <div className="border-b border-[var(--color-border)] bg-[var(--color-bg-card)]">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <p className="text-[10px] tracking-[0.2em] uppercase font-sans text-[var(--color-mid)] mb-2">
-            Artikel & Wawasan
-          </p>
-          <h1 className="font-serif font-bold text-[var(--color-text)] text-4xl md:text-5xl mb-4">
-            Blog
-          </h1>
-          <p className="text-[var(--color-mid)] font-sans text-base max-w-2xl leading-[1.7]">
-            Temukan artikel terbaru, panduan mendalam, dan wawasan seputar produk dan industri kami.
-          </p>
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="font-serif font-bold text-[var(--color-text)] text-2xl">Blog Management</h1>
+              <p className="text-[var(--color-mid)] font-sans text-sm mt-1">Kelola artikel, kategori, dan komentar blog</p>
+            </div>
+            {activeTab === "posts" && (
+              <button
+                onClick={() => setModal({ type: "post" })}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-accent)] border border-[var(--color-accent)] text-[var(--color-text-light)] text-sm font-semibold font-sans hover:opacity-90 transition-opacity"
+              >
+                <Plus className="w-4 h-4" />
+                Buat Post
+              </button>
+            )}
+            {activeTab === "categories" && (
+              <button
+                onClick={() => setModal({ type: "category" })}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-accent)] border border-[var(--color-accent)] text-[var(--color-text-light)] text-sm font-semibold font-sans hover:opacity-90 transition-opacity"
+              >
+                <Plus className="w-4 h-4" />
+                Buat Kategori
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Filters */}
-        <div className="mb-12 space-y-6">
-          {/* Search */}
-          <form
-            onSubmit={e => {
-              e.preventDefault();
-              setSearch(searchInput);
-              setOffset(0);
-            }}
-            className="flex gap-3"
-          >
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-mid)]" />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-                placeholder="Cari artikel..."
-                className="w-full pl-10 pr-4 py-2.5 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
-              />
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Stats */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-[var(--color-accent)] p-3">
+                  <FileText className="w-6 h-6 text-[var(--color-text-light)]" />
+                </div>
+              </div>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">Total Posts</h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.totalPosts}</p>
             </div>
-            <button
-              type="submit"
-              className="px-5 py-2.5 border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-text-light)] text-sm font-semibold font-sans hover:opacity-90 transition-opacity"
-            >
-              Cari
-            </button>
-          </form>
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-[var(--color-accent)] p-3">
+                  <FolderOpen className="w-6 h-6 text-[var(--color-text-light)]" />
+                </div>
+              </div>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">Kategori</h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.totalCategories}</p>
+            </div>
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-[var(--color-accent)] p-3">
+                  <MessageSquare className="w-6 h-6 text-[var(--color-text-light)]" />
+                </div>
+              </div>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">Total Komentar</h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.totalComments}</p>
+            </div>
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-[var(--color-accent)] p-3">
+                  <Check className="w-6 h-6 text-[var(--color-text-light)]" />
+                </div>
+              </div>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">Disetujui</h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.approvedComments}</p>
+            </div>
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-[var(--color-accent)] p-3">
+                  <Clock className="w-6 h-6 text-[var(--color-text-light)]" />
+                </div>
+              </div>
+              <h3 className="text-[var(--color-mid)] text-sm font-medium">Pending</h3>
+              <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.pendingComments}</p>
+            </div>
+          </div>
+        )}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-[var(--color-accent)] p-3">
+                    <FolderOpen className="w-6 h-6 text-[var(--color-text-light)]" />
+                  </div>
+                </div>
+                <h3 className="text-[var(--color-mid)] text-sm font-medium">Total Kategori</h3>
+                <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.totalCategories}</p>
+              </div>
 
-          {/* Categories */}
-          {categories.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => {
-                  setSelectedCategory(null);
-                  setOffset(0);
-                }}
-                className={`text-[11px] tracking-[0.12em] uppercase px-3 py-1.5 border font-sans transition-colors ${!selectedCategory ? "bg-[var(--color-accent)] border-[var(--color-accent)] text-[var(--color-text-light)]" : "border-[var(--color-border)] text-[var(--color-mid)] hover:border-[var(--color-accent)]"}`}
-              >
-                Semua
-              </button>
-              {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    setSelectedCategory(cat.slug);
-                    setOffset(0);
-                  }}
-                  className={`text-[11px] tracking-[0.12em] uppercase px-3 py-1.5 border font-sans transition-colors ${selectedCategory === cat.slug ? "bg-[var(--color-accent)] border-[var(--color-accent)] text-[var(--color-text-light)]" : "border-[var(--color-border)] text-[var(--color-mid)] hover:border-[var(--color-accent)]"}`}
-                >
-                  {cat.name}
-                </button>
-              ))}
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-[var(--color-accent)] p-3">
+                    <MessageSquare className="w-6 h-6 text-[var(--color-text-light)]" />
+                  </div>
+                </div>
+                <h3 className="text-[var(--color-mid)] text-sm font-medium">Komentar Disetujui</h3>
+                <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.approvedComments}</p>
+              </div>
+
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-[var(--color-accent)] p-3">
+                    <Clock className="w-6 h-6 text-[var(--color-text-light)]" />
+                  </div>
+                </div>
+                <h3 className="text-[var(--color-mid)] text-sm font-medium">Komentar Pending</h3>
+                <p className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.pendingComments}</p>
+              </div>
             </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+                <h3 className="text-lg font-bold text-[var(--color-text)] mb-4">Distribusi Komentar</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Disetujui', value: stats.approvedComments },
+                        { name: 'Pending', value: stats.pendingComments }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      <Cell fill="#c5b79d" />
+                      <Cell fill="#ab9f85" />
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+                <h3 className="text-lg font-bold text-[var(--color-text)] mb-4">Statistik Konten</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={[
+                    { name: 'Posts', value: stats.totalPosts },
+                    { name: 'Kategori', value: stats.totalCategories },
+                    { name: 'Komentar', value: stats.totalComments }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="name" stroke="#9ca3af" />
+                    <YAxis stroke="#9ca3af" />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#c5b79d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </>
+        ) : null}
+
+        )}
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
+          {[
+            { id: "posts", label: "Posts", icon: FileText },
+            { id: "categories", label: "Kategori", icon: FolderOpen },
+            { id: "comments", label: "Komentar", icon: MessageSquare }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`inline-flex items-center gap-2 px-4 py-3 text-sm font-sans border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? "border-[var(--color-accent)] text-[var(--color-accent)]"
+                  : "border-transparent text-[var(--color-mid)] hover:text-[var(--color-text)]"
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-mid)]" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cari..."
+              className="pl-10 pr-4 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+            />
+          </div>
+          {activeTab === "posts" && (
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+            >
+              <option value="">Semua Status</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          )}
+          {activeTab === "comments" && (
+            <select
+              value={approvedFilter}
+              onChange={e => setApprovedFilter(e.target.value)}
+              className="px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+            >
+              <option value="">Semua Status</option>
+              <option value="true">Disetujui</option>
+              <option value="false">Pending</option>
+            </select>
           )}
         </div>
 
-        {/* Posts Grid */}
+        {/* Content */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="border border-[var(--color-border)] bg-[var(--color-bg-card)] animate-pulse"
-              >
-                <div className="h-48 bg-[var(--color-border)]" />
-                <div className="p-6 space-y-3">
-                  <div className="h-3 bg-[var(--color-border)] rounded w-2/3" />
-                  <div className="h-3 bg-[var(--color-border)] rounded w-full" />
-                  <div className="h-3 bg-[var(--color-border)] rounded w-full" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : posts.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-[var(--color-mid)] font-sans text-sm">
-              Tidak ada artikel yang ditemukan.
-            </p>
-          </div>
+          <LoadingSpinner />
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {posts.map(post => {
-                const cats =
-                  post.blog_post_categories
-                    ?.map(pc => pc.category)
-                    .filter(Boolean) || [];
-                return (
-                  <article
-                    key={post.id}
-                    className="border border-[var(--color-border)] bg-[var(--color-bg-card)] hover:shadow-lg transition-shadow cursor-pointer group"
-                    onClick={() => setSelectedPost(post)}
-                  >
-                    {post.featured_image && (
-                      <div className="overflow-hidden">
-                        <img
-                          src={post.featured_image}
-                          alt={post.title}
-                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                    )}
-                    <div className="p-6">
-                      {cats.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-3">
-                          {cats.map(cat => (
-                            <span
-                              key={cat.id}
-                              className="text-[10px] uppercase tracking-[0.12em] px-2 py-0.5 border border-[var(--color-border)] text-[var(--color-mid)] font-sans"
-                            >
-                              {cat.name}
+            {activeTab === "posts" && (
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Judul</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Status</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Tanggal</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {posts.map(post => (
+                        <tr key={post.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]">
+                          <td className="px-4 py-3">
+                            <div className="font-sans text-sm text-[var(--color-text)]">{post.title}</div>
+                            <div className="text-[11px] text-[var(--color-mid)]">{post.slug}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex px-2 py-1 text-[10px] uppercase tracking-[0.12em] font-sans ${
+                              post.status === 'published'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {post.status}
                             </span>
-                          ))}
-                        </div>
-                      )}
-                      <h2 className="font-serif font-bold text-[var(--color-text)] text-xl leading-[1.3] mb-3 group-hover:text-[var(--color-accent)] transition-colors">
-                        {post.title}
-                      </h2>
-                      {post.excerpt && (
-                        <p className="text-[var(--color-mid)] font-sans text-sm leading-[1.7] mb-4">
-                          {post.excerpt.length > 120
-                            ? post.excerpt.slice(0, 120) + "..."
-                            : post.excerpt}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
-                        <span>
-                          {formatDate(post.published_at || post.created_at)}
-                        </span>
-                        <span>·</span>
-                        <span>{formatReadTime(post.content)}</span>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">
+                            {formatDate(post.created_at)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setModal({ type: "post", post })}
+                                className="p-1 text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeletePost(post.slug)}
+                                className="p-1 text-[var(--color-mid)] hover:text-red-500 transition-colors"
+                                title="Hapus"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
-            {/* Pagination */}
-            {total > LIMIT && (
-              <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-8">
-                <p className="text-[12px] font-sans text-[var(--color-mid)]">
-                  Menampilkan {offset + 1}–{Math.min(offset + LIMIT, total)} dari{" "}
-                  {total} artikel
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    disabled={offset === 0}
-                    onClick={() => setOffset(o => Math.max(0, o - LIMIT))}
-                    className="px-4 py-2 border border-[var(--color-border)] text-sm font-sans text-[var(--color-mid)] disabled:opacity-40 hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors"
-                  >
-                    ← Sebelumnya
-                  </button>
-                  <button
-                    disabled={offset + LIMIT >= total}
-                    onClick={() => setOffset(o => o + LIMIT)}
-                    className="px-4 py-2 border border-[var(--color-border)] text-sm font-sans text-[var(--color-mid)] disabled:opacity-40 hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors"
-                  >
-                    Berikutnya →
-                  </button>
+            {activeTab === "categories" && (
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Nama</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Slug</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Deskripsi</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {categories.map(cat => (
+                        <tr key={cat.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]">
+                          <td className="px-4 py-3 font-sans text-sm text-[var(--color-text)]">{cat.name}</td>
+                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">{cat.slug}</td>
+                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">{cat.description || "—"}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setModal({ type: "category", category: cat })}
+                                className="p-1 text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteCategory(cat.id)}
+                                className="p-1 text-[var(--color-mid)] hover:text-red-500 transition-colors"
+                                title="Hapus"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "comments" && (
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Komentar</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Post</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Status</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Tanggal</th>
+                        <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {comments.map(comment => (
+                        <tr key={comment.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]">
+                          <td className="px-4 py-3">
+                            <div className="font-sans text-sm text-[var(--color-text)]">{comment.content.slice(0, 50)}...</div>
+                            <div className="text-[11px] text-[var(--color-mid)]">{comment.guest_name || comment.user?.full_name}</div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">{comment.post?.title || "—"}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex px-2 py-1 text-[10px] uppercase tracking-[0.12em] font-sans ${
+                              comment.is_approved
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {comment.is_approved ? 'Disetujui' : 'Pending'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">
+                            {formatDate(comment.created_at)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-2">
+                              {!comment.is_approved && (
+                                <button
+                                  onClick={() => handleApproveComment(comment.id)}
+                                  className="p-1 text-[var(--color-mid)] hover:text-green-500 transition-colors"
+                                  title="Setujui"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                              )}
+                              {comment.is_approved && (
+                                <button
+                                  onClick={() => handleRejectComment(comment.id)}
+                                  className="p-1 text-[var(--color-mid)] hover:text-yellow-500 transition-colors"
+                                  title="Tolak"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteComment(comment.id)}
+                                className="p-1 text-[var(--color-mid)] hover:text-red-500 transition-colors"
+                                title="Hapus"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
           </>
         )}
       </div>
+
+      {/* Modals */}
+      {modal?.type === "post" && (
+        <PostModal
+          post={modal.post}
+          categories={categories}
+          onSave={handleSavePost}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === "category" && (
+        <CategoryModal
+          category={modal.category}
+          onSave={handleSaveCategory}
+          onClose={() => setModal(null)}
+        />
+      )}
     </div>
   );
 }
