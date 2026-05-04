@@ -77,7 +77,7 @@ function PostModal({ post, categories, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-lg">
+      <div className="bg-cream-300border border-[var(--color-border)] max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-lg">
         <div className="p-6 border-b border-[var(--color-border)]">
           <h2 className="font-serif font-bold text-[var(--color-text)] text-xl">
             {post ? "Edit Post" : "Buat Post Baru"}
@@ -93,7 +93,7 @@ function PostModal({ post, categories, onSave, onClose }) {
                 type="text"
                 value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+                className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
                 placeholder="Judul artikel"
               />
             </div>
@@ -105,7 +105,7 @@ function PostModal({ post, categories, onSave, onClose }) {
                 type="text"
                 value={form.slug}
                 onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
-                className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+                className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
                 placeholder="slug-artikel"
               />
             </div>
@@ -119,7 +119,7 @@ function PostModal({ post, categories, onSave, onClose }) {
               rows={3}
               value={form.excerpt}
               onChange={e => setForm(f => ({ ...f, excerpt: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
               placeholder="Ringkasan artikel"
             />
           </div>
@@ -134,7 +134,7 @@ function PostModal({ post, categories, onSave, onClose }) {
               onChange={e =>
                 setForm(f => ({ ...f, featured_image: e.target.value }))
               }
-              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
               placeholder="https://..."
             />
           </div>
@@ -146,7 +146,7 @@ function PostModal({ post, categories, onSave, onClose }) {
             <select
               value={form.status}
               onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
             >
               <option value="draft">Draft</option>
               <option value="published">Published</option>
@@ -185,7 +185,7 @@ function PostModal({ post, categories, onSave, onClose }) {
               rows={10}
               value={form.content}
               onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
               placeholder="Konten artikel dalam HTML"
             />
           </div>
@@ -245,7 +245,7 @@ function CategoryModal({ category, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] max-w-md w-full rounded-lg">
+      <div className="bg-cream-300border border-[var(--color-border)] max-w-md w-full rounded-lg">
         <div className="p-6 border-b border-[var(--color-border)]">
           <h2 className="font-serif font-bold text-[var(--color-text)] text-xl">
             {category ? "Edit Kategori" : "Buat Kategori Baru"}
@@ -260,7 +260,7 @@ function CategoryModal({ category, onSave, onClose }) {
               type="text"
               value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
               placeholder="Nama kategori"
             />
           </div>
@@ -272,7 +272,7 @@ function CategoryModal({ category, onSave, onClose }) {
               type="text"
               value={form.slug}
               onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
               placeholder="slug-kategori"
             />
           </div>
@@ -286,7 +286,7 @@ function CategoryModal({ category, onSave, onClose }) {
               onChange={e =>
                 setForm(f => ({ ...f, description: e.target.value }))
               }
-              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
+              className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
               placeholder="Deskripsi kategori"
             />
           </div>
@@ -425,7 +425,7 @@ export default function AdminBlogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
+    <div className="min-h-screen bg-cream-100">
       {/* Header */}
       <div className="border-b border-[var(--color-border)] bg-[var(--color-bg-card)]">
         <div className="max-w-7xl mx-auto px-6 py-6">
@@ -464,7 +464,7 @@ export default function AdminBlogPage() {
         {/* Stats */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
+            <div className="bg-cream-300border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <FileText className="w-6 h-6 text-[var(--color-text-light)]" />
@@ -478,7 +478,7 @@ export default function AdminBlogPage() {
               </p>
             </div>
 
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
+            <div className="bg-cream-300border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <FolderOpen className="w-6 h-6 text-[var(--color-text-light)]" />
@@ -492,7 +492,7 @@ export default function AdminBlogPage() {
               </p>
             </div>
 
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
+            <div className="bg-cream-300border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <MessageSquare className="w-6 h-6 text-[var(--color-text-light)]" />
@@ -506,7 +506,7 @@ export default function AdminBlogPage() {
               </p>
             </div>
 
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
+            <div className="bg-cream-300border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <Check className="w-6 h-6 text-[var(--color-text-light)]" />
@@ -520,7 +520,7 @@ export default function AdminBlogPage() {
               </p>
             </div>
 
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
+            <div className="bg-cream-300border border-[var(--color-border)] p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="bg-[var(--color-accent)] p-3 rounded-lg">
                   <Clock className="w-6 h-6 text-[var(--color-text-light)]" />
@@ -539,7 +539,7 @@ export default function AdminBlogPage() {
         {/* Charts */}
         {stats && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
+            <div className="bg-cream-300border border-[var(--color-border)] p-6 rounded-lg">
               <h3 className="text-lg font-bold text-[var(--color-text)] mb-4">
                 Distribusi Komentar
               </h3>
@@ -567,7 +567,7 @@ export default function AdminBlogPage() {
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 rounded-lg">
+            <div className="bg-cream-300border border-[var(--color-border)] p-6 rounded-lg">
               <h3 className="text-lg font-bold text-[var(--color-text)] mb-4">
                 Statistik Konten
               </h3>
@@ -621,7 +621,7 @@ export default function AdminBlogPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Cari..."
-              className="pl-10 pr-4 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors w-72"
+              className="pl-10 pr-4 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors w-72"
             />
           </div>
 
@@ -629,7 +629,7 @@ export default function AdminBlogPage() {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              className="px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
             >
               <option value="">Semua Status</option>
               <option value="published">Published</option>
@@ -641,7 +641,7 @@ export default function AdminBlogPage() {
             <select
               value={approvedFilter}
               onChange={e => setApprovedFilter(e.target.value)}
-              className="px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+              className="px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
             >
               <option value="">Semua Status</option>
               <option value="true">Disetujui</option>
@@ -657,10 +657,10 @@ export default function AdminBlogPage() {
           <>
             {activeTab === "posts" && (
               /* Table Posts */
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden rounded-lg">
+              <div className="bg-cream-300border border-[var(--color-border)] overflow-hidden rounded-lg">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
+                    <thead className="bg-cream-100 border-b border-[var(--color-border)]">
                       <tr>
                         <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
                           Judul
@@ -680,7 +680,7 @@ export default function AdminBlogPage() {
                       {posts.map(post => (
                         <tr
                           key={post.id}
-                          className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]"
+                          className="border-b border-[var(--color-border)] hover:bg-cream-100"
                         >
                           <td className="px-4 py-3">
                             <div className="font-sans text-sm text-[var(--color-text)]">
@@ -729,10 +729,10 @@ export default function AdminBlogPage() {
             )}
 
             {activeTab === "categories" && (
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden rounded-lg">
+              <div className="bg-cream-300 border border-[var(--color-border)] overflow-hidden rounded-lg">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
+                    <thead className="bg-cream-100 border-b border-[var(--color-border)]">
                       <tr>
                         <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
                           Nama
@@ -752,7 +752,7 @@ export default function AdminBlogPage() {
                       {categories.map(cat => (
                         <tr
                           key={cat.id}
-                          className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]"
+                          className="border-b border-[var(--color-border)] hover:bg-cream-100"
                         >
                           <td className="px-4 py-3 font-sans text-sm text-[var(--color-text)]">
                             {cat.name}
@@ -790,10 +790,10 @@ export default function AdminBlogPage() {
             )}
 
             {activeTab === "comments" && (
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] overflow-hidden rounded-lg">
+              <div className="bg-cream-300border border-[var(--color-border)] overflow-hidden rounded-lg">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
+                    <thead className="bg-cream-100 border-b border-[var(--color-border)]">
                       <tr>
                         <th className="px-4 py-3 text-left text-[11px] uppercase tracking-[0.12em] font-sans text-[var(--color-mid)]">
                           Komentar
@@ -816,7 +816,7 @@ export default function AdminBlogPage() {
                       {comments.map(comment => (
                         <tr
                           key={comment.id}
-                          className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg)]"
+                          className="border-b border-[var(--color-border)] hover:bg-cream-100"
                         >
                           <td className="px-4 py-3">
                             <div className="font-sans text-sm text-[var(--color-text)]">
