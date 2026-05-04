@@ -76,7 +76,7 @@ function PostModal({ post, categories, onSave, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-cream-300border border-[var(--color-border)] max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-lg">
         <div className="p-6 border-b border-[var(--color-border)]">
           <h2 className="font-serif font-bold text-[var(--color-text)] text-xl">
@@ -244,7 +244,7 @@ function CategoryModal({ category, onSave, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-cream-300border border-[var(--color-border)] max-w-md w-full rounded-lg">
         <div className="p-6 border-b border-[var(--color-border)]">
           <h2 className="font-serif font-bold text-[var(--color-text)] text-xl">
