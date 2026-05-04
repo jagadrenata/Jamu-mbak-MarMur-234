@@ -823,7 +823,7 @@ export default function AdminBlogPage() {
                               {comment.content.slice(0, 50)}...
                             </div>
                             <div className="text-[11px] text-[var(--color-mid)]">
-                              {comment.guest_name || comment.user?.full_name}
+                              {comment.guest_name || comment.user?.name}
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-[var(--color-mid)] font-sans">

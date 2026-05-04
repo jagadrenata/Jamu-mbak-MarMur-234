@@ -25,13 +25,13 @@ export async function GET(request) {
           `
 id, title, slug, content, excerpt, featured_image,
 status, published_at, created_at, updated_at,
-author:users!author_id(id, full_name, avatar_url),
+author:users!author_id(id, name, avatar_url),
 blog_post_categories(
 category:blog_categories(id, name, slug)
 ),
 blog_comments(
 id, content, guest_name, created_at, is_approved,
-user:users!user_id(id, full_name, avatar_url)
+user:users!user_id(id, name, avatar_url)
 )
 `
         )
@@ -66,7 +66,7 @@ user:users!user_id(id, full_name, avatar_url)
       .select(
         `
           id, title, slug, excerpt, featured_image, status, published_at, created_at, updated_at,
-          author:users!author_id(id, full_name, avatar_url),
+          author:users!author_id(id, name, avatar_url),
           blog_post_categories(
 category:blog_categories(id, name, slug)
 )
@@ -122,7 +122,7 @@ category:blog_categories(id, name, slug)
       .select(
         `
           id, content, guest_name, guest_email, is_approved, created_at, post_id,
-          user:users!user_id(id, full_name),
+          user:users!user_id(id, name),
           post:blog_posts!post_id(id, title, slug)
         `
       )

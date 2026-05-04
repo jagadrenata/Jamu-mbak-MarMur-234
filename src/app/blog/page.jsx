@@ -56,9 +56,9 @@ function HeroCard({ post }) {
           </p>
         )}
         <div className="flex items-center gap-3 pt-2 text-[11px] text-[var(--color-mid)] font-sans">
-          {post.author?.full_name && (
+          {post.author?.name && (
             <span className="flex items-center gap-1">
-              <User className="w-3 h-3" /> {post.author.full_name}
+              <User className="w-3 h-3" /> {post.author.name}
             </span>
           )}
           {post.published_at && (
@@ -164,9 +164,9 @@ function StandardCard({ post }) {
           </p>
         )}
         <div className="flex items-center gap-3 pt-1 text-[11px] text-[var(--color-mid)] font-sans">
-          {post.author?.full_name && (
+          {post.author?.name && (
             <span className="flex items-center gap-1">
-              <User className="w-3 h-3" /> {post.author.full_name}
+              <User className="w-3 h-3" /> {post.author.name}
             </span>
           )}
           {post.published_at && (
@@ -218,9 +218,9 @@ function ListCard({ post }) {
           {post.title}
         </h3>
         <div className="flex items-center gap-3 text-[11px] text-[var(--color-mid)] font-sans">
-          {post.author?.full_name && (
+          {post.author?.name && (
             <span className="flex items-center gap-1">
-              <User className="w-3 h-3" /> {post.author.full_name}
+              <User className="w-3 h-3" /> {post.author.name}
             </span>
           )}
           {post.published_at && (
