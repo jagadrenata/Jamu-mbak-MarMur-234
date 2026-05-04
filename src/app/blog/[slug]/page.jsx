@@ -116,9 +116,9 @@ function TableOfContents({ content }) {
   if (headings.length === 0) return null;
 
   return (
-    <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-4 sticky top-24">
-      <h3 className="font-serif font-bold text-[var(--color-text)] text-sm mb-3">Daftar Isi</h3>
-      <nav className="space-y-1">
+    <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-4 sticky top-24 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+      <h3 className="font-serif font-bold text-[var(--color-text)] text-sm mb-4 uppercase tracking-wide">Daftar Isi</h3>
+      <nav className="space-y-2">
         {headings.map((heading) => (
           <button
             key={heading.id}
@@ -128,11 +128,11 @@ function TableOfContents({ content }) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
             }}
-            className={`block w-full text-left text-xs font-sans transition-colors hover:text-[var(--color-accent)] ${
+            className={`block w-full text-left text-xs font-sans px-2 py-1.5 rounded transition-all duration-200 ${
               activeId === heading.id
-                ? 'text-[var(--color-accent)] font-semibold'
-                : 'text-[var(--color-mid)]'
-            } ${heading.level === 3 ? 'ml-3' : ''}`}
+                ? 'text-[var(--color-accent)] font-semibold bg-[var(--color-bg)]'
+                : 'text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg)]'
+            } ${heading.level === 3 ? 'ml-2' : ''}`}
           >
             {heading.text}
           </button>
@@ -252,8 +252,9 @@ function CommentForm({ postId, onSubmitted }) {
             type="text"
             value={form.guest_name}
             onChange={e => setForm(f => ({ ...f, guest_name: e.target.value }))}
-            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors rounded"
             placeholder="Nama Anda"
+            required
           />
         </div>
         <div>
@@ -262,7 +263,7 @@ function CommentForm({ postId, onSubmitted }) {
             type="email"
             value={form.guest_email}
             onChange={e => setForm(f => ({ ...f, guest_email: e.target.value }))}
-            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors"
+            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors rounded"
             placeholder="email@contoh.com"
           />
         </div>
@@ -273,15 +274,16 @@ function CommentForm({ postId, onSubmitted }) {
           rows={4}
           value={form.content}
           onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-          className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
+          className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none rounded"
           placeholder="Tulis komentar Anda di sini..."
+          required
         />
       </div>
       {error && <p className="text-[12px] text-red-500 font-sans">{error}</p>}
       <button
         type="submit"
         disabled={loading}
-        className="inline-flex items-center gap-2 border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-text-light)] px-5 py-2.5 text-[13px] font-semibold font-sans hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="inline-flex items-center gap-2 border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-text-light)] px-5 py-2.5 text-[13px] font-semibold font-sans hover:opacity-90 transition-opacity disabled:opacity-50 rounded"
       >
         <Send className="w-4 h-4" />
         {loading ? "Mengirim..." : "Kirim Komentar"}
@@ -295,14 +297,19 @@ function RelatedPosts({ currentPostId, categories }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (categories.length > 0) {
+    if (categories && categories.length > 0) {
       const categorySlug = categories[0].slug;
       blogPosts.list({ category: categorySlug, limit: 3, status: 'published' })
         .then(data => {
-          setRelatedPosts(data.posts?.filter(p => p.id !== currentPostId) || []);
+          setRelatedPosts((data.posts || []).filter(p => p.id !== currentPostId).slice(0, 3));
         })
-        .catch(() => setRelatedPosts([]))
+        .catch(err => {
+          console.error('Failed to fetch related posts:', err);
+          setRelatedPosts([]);
+        })
         .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, [currentPostId, categories]);
 
@@ -310,30 +317,33 @@ function RelatedPosts({ currentPostId, categories }) {
 
   return (
     <div className="border-t border-[var(--color-border)] pt-12">
-      <h3 className="font-serif font-bold text-[var(--color-text)] text-xl mb-6">Artikel Terkait</h3>
+      <h3 className="font-serif font-bold text-[var(--color-text)] text-xl mb-6 uppercase tracking-wide">Artikel Terkait</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {relatedPosts.map(post => (
           <Link
             key={post.id}
             href={`/blog/${post.slug}`}
-            className="related-post group block border border-[var(--color-border)] bg-[var(--color-bg-card)] overflow-hidden hover:shadow-md transition-shadow"
+            className="related-post group block border border-[var(--color-border)] bg-[var(--color-bg-card)] overflow-hidden hover:shadow-lg hover:border-[var(--color-accent)] transition-all duration-300 rounded-lg"
           >
             {post.featured_image && (
-              <div className="aspect-[16/9] overflow-hidden">
+              <div className="aspect-[16/9] overflow-hidden bg-[var(--color-border)]">
                 <img
                   src={post.featured_image}
                   alt={post.title}
-                  className="related-post-image w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="related-post-image w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
             )}
-            <div className="p-4">
-              <h4 className="font-serif font-bold text-[var(--color-text)] text-sm leading-snug mb-2 group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
+            <div className="p-5 space-y-3">
+              <h4 className="font-serif font-bold text-[var(--color-text)] text-sm leading-snug group-hover:text-[var(--color-accent)] transition-colors line-clamp-2">
                 {post.title}
               </h4>
-              <p className="text-[11px] text-[var(--color-mid)] font-sans">
-                {formatDate(post.published_at)}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] text-[var(--color-mid)] font-sans">
+                  {formatDate(post.published_at)}
+                </p>
+                <ArrowRight className="w-4 h-4 text-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
             </div>
           </Link>
         ))}
@@ -355,12 +365,10 @@ export default function BlogDetailPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [postData, commentsData] = await Promise.all([
-          blogPosts.get(params.slug),
-          blogComments.list({ post_slug: params.slug, status: 'approved' })
-        ]);
-        setPost(postData);
-        setComments(commentsData.comments || []);
+        const { post } = await blogPosts.getBySlug(params.slug);
+        setPost(post);
+        // Comments sudah di-filter di backend (hanya approved)
+        setComments(post.blog_comments || []);
       } catch (e) {
         setError(e.message || "Gagal memuat artikel");
       } finally {
@@ -377,7 +385,7 @@ export default function BlogDetailPage() {
       const headings = tempDiv.querySelectorAll('h2, h3');
       setShowTOC(headings.length > 2);
     }
-  }, [post]);
+  }, [post?.content]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -530,25 +538,28 @@ export default function BlogDetailPage() {
         </div>
       </div>
 
-      <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-8">
             {/* Article Header */}
             <header className="article-header space-y-6">
               {/* Categories */}
-              {post.categories && post.categories.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {post.categories.map(cat => (
-                    <Link
-                      key={cat.id}
-                      href={`/blog?category=${cat.slug}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-accent)] text-[var(--color-text-light)] text-xs font-semibold font-sans uppercase tracking-wide hover:opacity-90 transition-opacity"
-                    >
-                      <Tag className="w-3 h-3" />
-                      {cat.name}
-                    </Link>
-                  ))}
+              {post.blog_post_categories && post.blog_post_categories.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                  {post.blog_post_categories.map(pc => {
+                    const cat = pc.category;
+                    return (
+                      <Link
+                        key={cat.id}
+                        href={`/blog?category=${cat.slug}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-accent)] text-[var(--color-text-light)] text-xs font-semibold font-sans uppercase tracking-wide hover:opacity-90 transition-all duration-200 rounded-md hover:shadow-md"
+                      >
+                        <Tag className="w-3 h-3" />
+                        {cat.name}
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
 
@@ -558,17 +569,17 @@ export default function BlogDetailPage() {
               </h1>
 
               {/* Meta Information */}
-              <div className="flex flex-wrap items-center gap-6 text-sm font-sans text-[var(--color-mid)]">
+              <div className="flex flex-wrap items-center gap-6 text-sm font-sans text-[var(--color-mid)] bg-[var(--color-bg-card)] p-4 rounded-lg border border-[var(--color-border)]">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  <span>{post.author?.name || "Admin"}</span>
+                  <User className="w-4 h-4 text-[var(--color-accent)]" />
+                  <span className="font-medium">{post.author?.name || "Admin"}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-4 h-4 text-[var(--color-accent)]" />
                   <span>{formatDate(post.published_at)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
+                  <Eye className="w-4 h-4 text-[var(--color-accent)]" />
                   <span>{formatReadTime(post.content)}</span>
                 </div>
               </div>
@@ -576,10 +587,10 @@ export default function BlogDetailPage() {
               {/* Social Share & Actions */}
               <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[var(--color-border)]">
                 <SocialShare title={post.title} slug={post.slug} />
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={printArticle}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)] transition-colors rounded-md"
                     title="Cetak artikel"
                   >
                     <Printer className="w-4 h-4" />
@@ -587,7 +598,11 @@ export default function BlogDetailPage() {
                   </button>
                   <button
                     onClick={() => setShowComments(!showComments)}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors"
+                    className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-sans transition-colors rounded-md ${
+                      showComments
+                        ? 'bg-[var(--color-accent)] text-[var(--color-text-light)]'
+                        : 'text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)]'
+                    }`}
                   >
                     <MessageCircle className="w-4 h-4" />
                     {comments.length} Komentar
@@ -598,11 +613,11 @@ export default function BlogDetailPage() {
 
             {/* Featured Image */}
             {post.featured_image && (
-              <div className="aspect-[16/9] overflow-hidden bg-[var(--color-border)]">
+              <div className="aspect-[16/9] overflow-hidden bg-[var(--color-border)] rounded-lg shadow-md">
                 <img
                   src={post.featured_image}
                   alt={post.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                 />
               </div>
             )}
@@ -619,13 +634,13 @@ export default function BlogDetailPage() {
               {/* Tags */}
               {post.tags && post.tags.length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="font-serif font-bold text-[var(--color-text)] text-sm">Tag:</h4>
+                  <h4 className="font-serif font-bold text-[var(--color-text)] text-sm uppercase tracking-wide">Tag:</h4>
                   <div className="flex flex-wrap gap-2">
                     {post.tags.map(tag => (
                       <Link
                         key={tag.id}
                         href={`/blog?tag=${tag.slug}`}
-                        className="px-3 py-1.5 bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-mid)] text-xs font-sans hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors"
+                        className="px-3 py-1.5 bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-mid)] text-xs font-sans hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all duration-200 rounded-md"
                       >
                         #{tag.name}
                       </Link>
@@ -635,14 +650,14 @@ export default function BlogDetailPage() {
               )}
 
               {/* Social Share */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4 p-4 bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border)]">
                 <SocialShare title={post.title} slug={post.slug} />
                 <div className="flex items-center gap-2">
-                  <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors">
+                  <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors hover:bg-[var(--color-bg)] rounded-md">
                     <Bookmark className="w-4 h-4" />
                     Simpan
                   </button>
-                  <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors">
+                  <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-red-500 transition-colors hover:bg-[var(--color-bg)] rounded-md">
                     <Heart className="w-4 h-4" />
                     Suka
                   </button>
@@ -659,19 +674,19 @@ export default function BlogDetailPage() {
 
                 {/* Comments List */}
                 {comments.length > 0 ? (
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {comments.map(comment => (
-                      <div key={comment.id} className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="comment-avatar w-10 h-10 bg-[var(--color-accent)] flex items-center justify-center text-[var(--color-text-light)] font-serif font-bold text-sm flex-shrink-0">
+                      <div key={comment.id} className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 rounded-lg hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4">
+                          <div className="comment-avatar w-12 h-12 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-dark,var(--color-accent))] flex items-center justify-center text-[var(--color-text-light)] font-serif font-bold text-base flex-shrink-0 rounded-full">
                             {comment.guest_name?.charAt(0).toUpperCase() || "A"}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <span className="font-serif font-semibold text-[var(--color-text)] text-sm">
                                 {comment.guest_name}
                               </span>
-                              <span className="text-[11px] text-[var(--color-mid)] font-sans">
+                              <span className="text-[11px] text-[var(--color-mid)] font-sans bg-[var(--color-bg)] px-2 py-0.5 rounded">
                                 {formatDate(comment.created_at)}
                               </span>
                             </div>
@@ -698,8 +713,9 @@ export default function BlogDetailPage() {
                     postId={post.id}
                     onSubmitted={() => {
                       // Refresh comments
-                      blogComments.list({ post_slug: params.slug, status: 'approved' })
-                        .then(data => setComments(data.comments || []));
+                      blogPosts.getBySlug(params.slug)
+                        .then(data => setComments(data.post?.blog_comments || []))
+                        .catch(err => console.error('Failed to refresh comments:', err));
                     }}
                   />
                 </div>
@@ -707,7 +723,12 @@ export default function BlogDetailPage() {
             )}
 
             {/* Related Posts */}
-            <RelatedPosts currentPostId={post.id} categories={post.categories || []} />
+            {post.blog_post_categories && post.blog_post_categories.length > 0 && (
+              <RelatedPosts 
+                currentPostId={post.id} 
+                categories={post.blog_post_categories.map(pc => pc.category)} 
+              />
+            )}
           </div>
 
           {/* Sidebar */}
@@ -717,13 +738,13 @@ export default function BlogDetailPage() {
 
             {/* Author Info */}
             {post.author && (
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-4 sticky top-24">
-                <h3 className="font-serif font-bold text-[var(--color-text)] text-sm mb-3">Tentang Penulis</h3>
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 bg-[var(--color-accent)] flex items-center justify-center text-[var(--color-text-light)] font-serif font-bold text-lg flex-shrink-0">
+              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-5 sticky top-24 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <h3 className="font-serif font-bold text-[var(--color-text)] text-sm mb-4 uppercase tracking-wide">Tentang Penulis</h3>
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-dark,var(--color-accent))] flex items-center justify-center text-[var(--color-text-light)] font-serif font-bold text-lg flex-shrink-0 rounded-full">
                     {post.author.name?.charAt(0).toUpperCase() || "A"}
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="font-serif font-semibold text-[var(--color-text)] text-sm mb-1">
                       {post.author.name}
                     </p>
@@ -736,19 +757,19 @@ export default function BlogDetailPage() {
             )}
 
             {/* Quick Actions */}
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-4">
-              <h3 className="font-serif font-bold text-[var(--color-text)] text-sm mb-3">Tindakan Cepat</h3>
-              <div className="space-y-2">
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-4 rounded-lg">
+              <h3 className="font-serif font-bold text-[var(--color-text)] text-sm mb-3 uppercase tracking-wide">Tindakan Cepat</h3>
+              <div className="space-y-1">
                 <Link
                   href="/blog"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)] transition-colors rounded-md"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Kembali ke Blog
                 </Link>
                 <button
                   onClick={scrollToTop}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)] transition-colors w-full text-left"
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)] transition-colors rounded-md w-full text-left"
                 >
                   <ChevronUp className="w-4 h-4" />
                   Kembali ke Atas
@@ -757,7 +778,7 @@ export default function BlogDetailPage() {
             </div>
           </div>
         </div>
-      </article>
+      </div>
     </PublicLayout>
   );
 }
