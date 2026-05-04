@@ -16,7 +16,7 @@ import {
   Copy,
   Facebook,
   Twitter,
-  Instagram,
+  ArrowRight,
   Bookmark,
   Eye,
   Heart,
