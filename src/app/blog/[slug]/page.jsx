@@ -252,7 +252,7 @@ function CommentForm({ postId, onSubmitted }) {
             type="text"
             value={form.guest_name}
             onChange={e => setForm(f => ({ ...f, guest_name: e.target.value }))}
-            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors rounded"
+            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors "
             placeholder="Nama Anda"
             required
           />
@@ -263,7 +263,7 @@ function CommentForm({ postId, onSubmitted }) {
             type="email"
             value={form.guest_email}
             onChange={e => setForm(f => ({ ...f, guest_email: e.target.value }))}
-            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors rounded"
+            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors "
             placeholder="email@contoh.com"
           />
         </div>
@@ -274,7 +274,7 @@ function CommentForm({ postId, onSubmitted }) {
           rows={4}
           value={form.content}
           onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-          className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none rounded"
+          className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none "
           placeholder="Tulis komentar Anda di sini..."
           required
         />
@@ -283,7 +283,7 @@ function CommentForm({ postId, onSubmitted }) {
       <button
         type="submit"
         disabled={loading}
-        className="inline-flex items-center gap-2 border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-text-light)] px-5 py-2.5 text-[13px] font-semibold font-sans hover:opacity-90 transition-opacity disabled:opacity-50 rounded"
+        className="inline-flex items-center gap-2 border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-text-light)] px-5 py-2.5 text-[13px] font-semibold font-sans hover:opacity-90 transition-opacity disabled:opacity-50 "
       >
         <Send className="w-4 h-4" />
         {loading ? "Mengirim..." : "Kirim Komentar"}
@@ -323,10 +323,10 @@ function RelatedPosts({ currentPostId, categories }) {
           <Link
             key={post.id}
             href={`/blog/${post.slug}`}
-            className="related-post group block border border-[var(--color-border)] bg-[var(--color-bg-card)] overflow-hidden hover:shadow-lg hover:border-[var(--color-accent)] transition-all duration-300 rounded-lg"
+            className="related-post group block border border-[var(--color-border)] bg-[var(--color-bg-card)] overflow-hidden hover:shadow-lg hover:border-[var(--color-accent)] transition-all duration-300"
           >
             {post.featured_image && (
-              <div className="aspect-[16/9] overflow-hidden bg-[var(--color-border)]">
+              <div className="aspect-[16/9] overflow-hidden bg-cream-500">
                 <img
                   src={post.featured_image}
                   alt={post.title}
@@ -400,13 +400,13 @@ export default function BlogDetailPage() {
       <PublicLayout>
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-pulse space-y-4 w-full max-w-4xl">
-            <div className="h-8 bg-[var(--color-border)] rounded w-3/4"></div>
-            <div className="h-4 bg-[var(--color-border)] rounded w-1/2"></div>
-            <div className="h-64 bg-[var(--color-border)] rounded"></div>
+            <div className="h-8 bg-cream-500 rounded w-3/4"></div>
+            <div className="h-4 bg-cream-500 rounded w-1/2"></div>
+            <div className="h-64 bg-cream-500 rounded"></div>
             <div className="space-y-2">
-              <div className="h-4 bg-[var(--color-border)] rounded"></div>
-              <div className="h-4 bg-[var(--color-border)] rounded w-5/6"></div>
-              <div className="h-4 bg-[var(--color-border)] rounded w-4/6"></div>
+              <div className="h-4 bg-cream-500 rounded"></div>
+              <div className="h-4 bg-cream-500 rounded w-5/6"></div>
+              <div className="h-4 bg-cream-500 rounded w-4/6"></div>
             </div>
           </div>
         </div>
@@ -613,7 +613,7 @@ export default function BlogDetailPage() {
 
             {/* Featured Image */}
             {post.featured_image && (
-              <div className="aspect-[16/9] overflow-hidden bg-[var(--color-border)] rounded-lg shadow-md">
+              <div className="aspect-[16/9] overflow-hidden bg-cream-500 rounded-lg shadow-md">
                 <img
                   src={post.featured_image}
                   alt={post.title}
