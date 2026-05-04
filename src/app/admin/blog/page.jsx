@@ -323,8 +323,8 @@ export default function AdminBlogPage() {
   const [categories, setCategories] = useState([]);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState < any > null;
-  const [modal, setModal] = useState < any > null;
+  const [stats, setStats] = useState(null);
+  const [modal, setModal] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [approvedFilter, setApprovedFilter] = useState("");
