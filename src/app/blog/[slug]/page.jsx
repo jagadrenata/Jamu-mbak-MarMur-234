@@ -116,7 +116,7 @@ function TableOfContents({ content }) {
   if (headings.length === 0) return null;
 
   return (
-    <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-4 sticky top-24 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-cream-300 border border-[var(--color-border)] p-4 sticky top-24 shadow-sm hover:shadow-md transition-shadow">
       <h3 className="font-serif font-bold text-[var(--color-text)] text-sm mb-4 uppercase tracking-wide">Daftar Isi</h3>
       <nav className="space-y-2">
         {headings.map((heading) => (
@@ -128,7 +128,7 @@ function TableOfContents({ content }) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
             }}
-            className={`block w-full text-left text-xs font-sans px-2 py-1.5 rounded transition-all duration-200 ${
+            className={`block w-full text-left text-xs font-sans px-2 py-1.5 transition-all duration-200 ${
               activeId === heading.id
                 ? 'text-[var(--color-accent)] font-semibold bg-[var(--color-bg)]'
                 : 'text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg)]'
@@ -170,7 +170,7 @@ function SocialShare({ title, slug }) {
           href={shareLinks.facebook}
           target="_blank"
           rel="noopener noreferrer"
-          className="social-share-button w-8 h-8 bg-[var(--color-bg-card)] border border-[var(--color-border)] flex items-center justify-center hover:border-[var(--color-accent)] transition-colors"
+          className="social-share-button w-8 h-8 bg-cream-300 border border-[var(--color-border)] flex items-center justify-center hover:border-[var(--color-accent)] transition-colors"
           title="Bagikan ke Facebook"
         >
           <Facebook className="w-4 h-4 text-[var(--color-mid)]" />
@@ -179,7 +179,7 @@ function SocialShare({ title, slug }) {
           href={shareLinks.twitter}
           target="_blank"
           rel="noopener noreferrer"
-          className="social-share-button w-8 h-8 bg-[var(--color-bg-card)] border border-[var(--color-border)] flex items-center justify-center hover:border-[var(--color-accent)] transition-colors"
+          className="social-share-button w-8 h-8 bg-cream-300 border border-[var(--color-border)] flex items-center justify-center hover:border-[var(--color-accent)] transition-colors"
           title="Bagikan ke Twitter"
         >
           <Twitter className="w-4 h-4 text-[var(--color-mid)]" />
@@ -188,7 +188,7 @@ function SocialShare({ title, slug }) {
           href={shareLinks.whatsapp}
           target="_blank"
           rel="noopener noreferrer"
-          className="social-share-button w-8 h-8 bg-[var(--color-bg-card)] border border-[var(--color-border)] flex items-center justify-center hover:border-[var(--color-accent)] transition-colors"
+          className="social-share-button w-8 h-8 bg-cream-300 border border-[var(--color-border)] flex items-center justify-center hover:border-[var(--color-accent)] transition-colors"
           title="Bagikan ke WhatsApp"
         >
           <svg className="w-4 h-4 text-[var(--color-mid)]" fill="currentColor" viewBox="0 0 24 24">
@@ -197,7 +197,7 @@ function SocialShare({ title, slug }) {
         </a>
         <button
           onClick={copyToClipboard}
-          className="social-share-button w-8 h-8 bg-[var(--color-bg-card)] border border-[var(--color-border)] flex items-center justify-center hover:border-[var(--color-accent)] transition-colors"
+          className="social-share-button w-8 h-8 bg-cream-300 border border-[var(--color-border)] flex items-center justify-center hover:border-[var(--color-accent)] transition-colors"
           title="Salin link"
         >
           {copied ? (
@@ -236,7 +236,7 @@ function CommentForm({ postId, onSubmitted }) {
 
   if (sent) {
     return (
-      <div className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6 flex items-center gap-3 text-[var(--color-mid)] font-sans text-sm">
+      <div className="border border-[var(--color-border)] bg-cream-300 p-6 flex items-center gap-3 text-[var(--color-mid)] font-sans text-sm">
         <CheckCircle className="w-5 h-5 text-[var(--color-accent)] flex-shrink-0" />
         Komentar Anda telah dikirim dan menunggu persetujuan moderator. Terima kasih!
       </div>
@@ -252,7 +252,7 @@ function CommentForm({ postId, onSubmitted }) {
             type="text"
             value={form.guest_name}
             onChange={e => setForm(f => ({ ...f, guest_name: e.target.value }))}
-            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors "
+            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300 text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors "
             placeholder="Nama Anda"
             required
           />
@@ -263,7 +263,7 @@ function CommentForm({ postId, onSubmitted }) {
             type="email"
             value={form.guest_email}
             onChange={e => setForm(f => ({ ...f, guest_email: e.target.value }))}
-            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors "
+            className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300 text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors "
             placeholder="email@contoh.com"
           />
         </div>
@@ -274,7 +274,7 @@ function CommentForm({ postId, onSubmitted }) {
           rows={4}
           value={form.content}
           onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-          className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none "
+          className="w-full px-3 py-2 text-sm border border-[var(--color-border)] bg-cream-300 text-[var(--color-text)] font-sans outline-none focus:border-[var(--color-accent)] transition-colors resize-none "
           placeholder="Tulis komentar Anda di sini..."
           required
         />
@@ -323,7 +323,7 @@ function RelatedPosts({ currentPostId, categories }) {
           <Link
             key={post.id}
             href={`/blog/${post.slug}`}
-            className="related-post group block border border-[var(--color-border)] bg-[var(--color-bg-card)] overflow-hidden hover:shadow-lg hover:border-[var(--color-accent)] transition-all duration-300"
+            className="related-post group block border border-[var(--color-border)] bg-cream-300 overflow-hidden hover:shadow-lg hover:border-[var(--color-accent)] transition-all duration-300"
           >
             {post.featured_image && (
               <div className="aspect-[16/9] overflow-hidden bg-cream-500">
@@ -400,13 +400,13 @@ export default function BlogDetailPage() {
       <PublicLayout>
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-pulse space-y-4 w-full max-w-4xl">
-            <div className="h-8 bg-cream-500 rounded w-3/4"></div>
-            <div className="h-4 bg-cream-500 rounded w-1/2"></div>
-            <div className="h-64 bg-cream-500 rounded"></div>
+            <div className="h-8 bg-cream-500 w-3/4"></div>
+            <div className="h-4 bg-cream-500 w-1/2"></div>
+            <div className="h-64 bg-cream-500 "></div>
             <div className="space-y-2">
-              <div className="h-4 bg-cream-500 rounded"></div>
-              <div className="h-4 bg-cream-500 rounded w-5/6"></div>
-              <div className="h-4 bg-cream-500 rounded w-4/6"></div>
+              <div className="h-4 bg-cream-500 "></div>
+              <div className="h-4 bg-cream-500 w-5/6"></div>
+              <div className="h-4 bg-cream-500  w-4/6"></div>
             </div>
           </div>
         </div>
@@ -522,7 +522,7 @@ export default function BlogDetailPage() {
       <ReadingProgress />
 
       {/* Breadcrumb Navigation */}
-      <div className="breadcrumb border-b border-[var(--color-border)] bg-[var(--color-bg-card)]">
+      <div className="breadcrumb border-b border-[var(--color-border)] bg-cream-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <nav className="flex items-center gap-2 text-sm font-sans">
             <Link href="/" className="text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors">
@@ -553,7 +553,7 @@ export default function BlogDetailPage() {
                       <Link
                         key={cat.id}
                         href={`/blog?category=${cat.slug}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-accent)] text-[var(--color-text-light)] text-xs font-semibold font-sans uppercase tracking-wide hover:opacity-90 transition-all duration-200 rounded-md hover:shadow-md"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-accent)] text-[var(--color-text-light)] text-xs font-semibold font-sans uppercase tracking-wide hover:opacity-90 transition-all duration-200 hover:shadow-md"
                       >
                         <Tag className="w-3 h-3" />
                         {cat.name}
@@ -569,7 +569,7 @@ export default function BlogDetailPage() {
               </h1>
 
               {/* Meta Information */}
-              <div className="flex flex-wrap items-center gap-6 text-sm font-sans text-[var(--color-mid)] bg-[var(--color-bg-card)] p-4 rounded-lg border border-[var(--color-border)]">
+              <div className="flex flex-wrap items-center gap-6 text-sm font-sans text-[var(--color-mid)] bg-cream-300 p-4 border border-[var(--color-border)]">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-[var(--color-accent)]" />
                   <span className="font-medium">{post.author?.name || "Admin"}</span>
@@ -590,7 +590,7 @@ export default function BlogDetailPage() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={printArticle}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)] transition-colors rounded-md"
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-cream-300 transition-colors"
                     title="Cetak artikel"
                   >
                     <Printer className="w-4 h-4" />
@@ -598,10 +598,10 @@ export default function BlogDetailPage() {
                   </button>
                   <button
                     onClick={() => setShowComments(!showComments)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-sans transition-colors rounded-md ${
+                    className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-sans transition-colors ${
                       showComments
                         ? 'bg-[var(--color-accent)] text-[var(--color-text-light)]'
-                        : 'text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)]'
+                        : 'text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-cream-300'
                     }`}
                   >
                     <MessageCircle className="w-4 h-4" />
@@ -613,7 +613,7 @@ export default function BlogDetailPage() {
 
             {/* Featured Image */}
             {post.featured_image && (
-              <div className="aspect-[16/9] overflow-hidden bg-cream-500 rounded-lg shadow-md">
+              <div className="aspect-[16/9] overflow-hidden bg-cream-500 shadow-md">
                 <img
                   src={post.featured_image}
                   alt={post.title}
@@ -625,7 +625,7 @@ export default function BlogDetailPage() {
             {/* Article Content */}
             <div
               ref={contentRef}
-              className="prose-content prose prose-lg max-w-none font-sans text-[var(--color-text)] prose-headings:font-serif prose-headings:text-[var(--color-text)] prose-p:text-[var(--color-text)] prose-a:text-[var(--color-accent)] prose-a:no-underline hover:prose-a:underline prose-strong:text-[var(--color-text)] prose-code:text-[var(--color-accent)] prose-pre:bg-[var(--color-bg-card)] prose-pre:border prose-pre:border-[var(--color-border)] prose-blockquote:border-l-[var(--color-accent)] prose-blockquote:text-[var(--color-mid)]"
+              className="prose-content prose prose-lg max-w-none font-sans text-[var(--color-text)] prose-headings:font-serif prose-headings:text-[var(--color-text)] prose-p:text-[var(--color-text)] prose-a:text-[var(--color-accent)] prose-a:no-underline hover:prose-a:underline prose-strong:text-[var(--color-text)] prose-code:text-[var(--color-accent)] prose-pre:bg-cream-300 prose-pre:border prose-pre:border-[var(--color-border)] prose-blockquote:border-l-[var(--color-accent)] prose-blockquote:text-[var(--color-mid)]"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
@@ -640,7 +640,7 @@ export default function BlogDetailPage() {
                       <Link
                         key={tag.id}
                         href={`/blog?tag=${tag.slug}`}
-                        className="px-3 py-1.5 bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-mid)] text-xs font-sans hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all duration-200 rounded-md"
+                        className="px-3 py-1.5 bg-cream-300 border border-[var(--color-border)] text-[var(--color-mid)] text-xs font-sans hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all duration-200"
                       >
                         #{tag.name}
                       </Link>
@@ -650,14 +650,14 @@ export default function BlogDetailPage() {
               )}
 
               {/* Social Share */}
-              <div className="flex items-center justify-between gap-4 p-4 bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border)]">
+              <div className="flex items-center justify-between gap-4 p-4 bg-cream-300 border border-[var(--color-border)]">
                 <SocialShare title={post.title} slug={post.slug} />
                 <div className="flex items-center gap-2">
-                  <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors hover:bg-[var(--color-bg)] rounded-md">
+                  <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] transition-colors hover:bg-[var(--color-bg)]">
                     <Bookmark className="w-4 h-4" />
                     Simpan
                   </button>
-                  <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-red-500 transition-colors hover:bg-[var(--color-bg)] rounded-md">
+                  <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans text-[var(--color-mid)] hover:text-red-500 transition-colors hover:bg-[var(--color-bg)]">
                     <Heart className="w-4 h-4" />
                     Suka
                   </button>
@@ -676,17 +676,17 @@ export default function BlogDetailPage() {
                 {comments.length > 0 ? (
                   <div className="space-y-4">
                     {comments.map(comment => (
-                      <div key={comment.id} className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 rounded-lg hover:shadow-md transition-shadow">
+                      <div key={comment.id} className="border border-[var(--color-border)] bg-cream-300 p-5 hover:shadow-md transition-shadow">
                         <div className="flex items-start gap-4">
                           <div className="comment-avatar w-12 h-12 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-dark,var(--color-accent))] flex items-center justify-center text-[var(--color-text-light)] font-serif font-bold text-base flex-shrink-0 rounded-full">
                             {comment.guest_name?.charAt(0).toUpperCase() || "A"}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
-                              <span className="font-serif font-semibold text-[var(--color-text)] text-sm">
+                              <span className="font-serif font-semibold text-gray-900 text-sm">
                                 {comment.guest_name}
                               </span>
-                              <span className="text-[11px] text-[var(--color-mid)] font-sans bg-[var(--color-bg)] px-2 py-0.5 rounded">
+                              <span className="text-[11px] text-[var(--color-mid)] font-sans bg-[var(--color-bg)] px-2 py-0.5 ">
                                 {formatDate(comment.created_at)}
                               </span>
                             </div>
@@ -738,7 +738,7 @@ export default function BlogDetailPage() {
 
             {/* Author Info */}
             {post.author && (
-              <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-5 sticky top-24 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-cream-300 border border-[var(--color-border)] p-5 sticky top-24 shadow-sm hover:shadow-md transition-shadow">
                 <h3 className="font-serif font-bold text-[var(--color-text)] text-sm mb-4 uppercase tracking-wide">Tentang Penulis</h3>
                 <div className="flex items-start gap-4">
                   <div className="w-14 h-14 bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-dark,var(--color-accent))] flex items-center justify-center text-[var(--color-text-light)] font-serif font-bold text-lg flex-shrink-0 rounded-full">
@@ -757,19 +757,19 @@ export default function BlogDetailPage() {
             )}
 
             {/* Quick Actions */}
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] p-4 rounded-lg">
+            <div className="bg-cream-300 border border-[var(--color-border)] p-4">
               <h3 className="font-serif font-bold text-[var(--color-text)] text-sm mb-3 uppercase tracking-wide">Tindakan Cepat</h3>
               <div className="space-y-1">
                 <Link
                   href="/blog"
-                  className="flex items-center gap-2 px-3 py-2.5 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)] transition-colors rounded-md"
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-cream-300 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Kembali ke Blog
                 </Link>
                 <button
                   onClick={scrollToTop}
-                  className="flex items-center gap-2 px-3 py-2.5 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-card)] transition-colors rounded-md w-full text-left"
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm font-sans text-[var(--color-mid)] hover:text-[var(--color-accent)] hover:bg-cream-300 transition-colors w-full text-left"
                 >
                   <ChevronUp className="w-4 h-4" />
                   Kembali ke Atas
